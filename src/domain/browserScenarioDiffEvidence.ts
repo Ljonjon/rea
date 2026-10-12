@@ -5,6 +5,7 @@ import type {
   BrowserStepArtifacts,
 } from "./browserScenarioCaptureValues.js";
 import type { BrowserScenarioCapture } from "./browserScenarioCapture.js";
+import { digestCanonicalValue } from "./canonicalDigest.js";
 import type {
   BrowserScenarioArtifactKind,
   BrowserScenarioEvidenceState,
@@ -94,27 +95,98 @@ export const actionState = (step: BrowserScenarioStep) => ({
   error: step.error,
 });
 
-/** Select events attributed to one scenario step without sequence metadata. */
+/** One step's ordered events and its network events grouped by transaction. */
+export interface ScenarioStepEvents {
+  readonly events: readonly unknown[];
+  readonly network_transactions: readonly (readonly unknown[])[];
+}
+
+/** Select one step's events without sequence metadata; network events follow the step that sent their request. */
 export const eventsFor = (
   capture: BrowserScenarioCapture,
   stepIndex: number,
-): readonly unknown[] => {
+): ScenarioStepEvents => {
   const sourceSteps = new Map(
     capture.events.items.map(({ sequence, step_index }) => [
       sequence,
       step_index,
     ]),
   );
-  return capture.events.items.flatMap<unknown>(
-    ({ sequence: _sequence, step_index: eventStepIndex, ...event }) => {
-      if (event.kind === "network-content") {
-        const { source_event_sequence: sourceSequence, ...content } = event;
-        return sourceSteps.get(sourceSequence) === stepIndex ? [content] : [];
-      }
-      return eventStepIndex === stepIndex ? [event] : [];
-    },
+  const requests = new Map(
+    capture.events.items.flatMap((event) =>
+      event.kind === "request" ? [[event.transaction_id, event]] : [],
+    ),
   );
+  const events: unknown[] = [];
+  const transactions = new Map<string, unknown[]>();
+  const record = (transactionId: string, event: unknown) => {
+    const transaction = transactions.get(transactionId);
+    if (transaction === undefined) transactions.set(transactionId, [event]);
+    else transaction.push(event);
+  };
+  for (const {
+    sequence: _sequence,
+    step_index: eventStepIndex,
+    ...event
+  } of capture.events.items) {
+    if (!("transaction_id" in event)) {
+      if (eventStepIndex === stepIndex) events.push(event);
+      continue;
+    }
+    const receiptStep =
+      event.kind === "network-content"
+        ? sourceSteps.get(event.source_event_sequence)
+        : eventStepIndex;
+    if (
+      (requests.get(event.transaction_id)?.step_index ?? receiptStep) !==
+      stepIndex
+    )
+      continue;
+    if (event.kind === "network-content") {
+      const {
+        source_event_sequence: _sourceSequence,
+        transaction_id: transactionId,
+        ...content
+      } = event;
+      record(transactionId, content);
+      continue;
+    }
+    const {
+      transaction_id: transactionId,
+      redirected_from_transaction_id: predecessorId,
+      ...network
+    } = event;
+    const predecessor =
+      predecessorId === null ? undefined : requests.get(predecessorId);
+    record(transactionId, {
+      ...network,
+      redirected_from:
+        predecessor === undefined
+          ? null
+          : { method: predecessor.method, url: predecessor.url },
+    });
+  }
+  return { events, network_transactions: [...transactions.values()] };
 };
+
+const digestEach = (items: unknown): unknown =>
+  Array.isArray(items)
+    ? items.map((item) => digestCanonicalValue(item, "Browser scenario")).sort()
+    : items;
+
+/** Compare normalized network transactions as an unordered collection; concurrent responses arrive in any order. */
+export const orderNetworkTransactions = (value: unknown): unknown =>
+  typeof value === "object" &&
+  value !== null &&
+  "network_transactions" in value &&
+  Array.isArray(value.network_transactions)
+    ? {
+        ...value,
+        network_transactions: digestEach(
+          value.network_transactions.map(digestEach),
+        ),
+      }
+    : value;
 
 /** Different content selection is missing comparability, not an observed website change. */
 export const networkContentCoverageReason = (

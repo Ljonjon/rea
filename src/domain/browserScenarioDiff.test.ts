@@ -235,6 +235,76 @@ it("reports event-family mismatch and legacy selection as unknown", () => {
   );
 });
 
+const concurrentCapture = (
+  order: readonly ("a" | "b")[],
+  statuses: Readonly<Record<"a" | "b", number>>,
+  responseStep = 0,
+) => {
+  const base = scenarioCapture({});
+  const network = (path: "a" | "b") => ({
+    step_index: 0,
+    transaction_id: `request-${String(order.indexOf(path) + 1)}`,
+    redirected_from_transaction_id:
+      path === "b" ? `request-${String(order.indexOf("a") + 1)}` : null,
+    method: "GET",
+    url: {
+      url: `https://app.example.test/${path}.js`,
+      origin: "https://app.example.test",
+      query_parameter_names: [],
+      redacted: false,
+    },
+    resource_type: "script",
+    header_names: [],
+    failure: null,
+  });
+  const events = [
+    ...order.map((path) => ({
+      ...network(path),
+      kind: "request",
+      status: null,
+    })),
+    ...order.map((path) => ({
+      ...network(path),
+      step_index: responseStep,
+      kind: "response",
+      status: statuses[path],
+    })),
+  ].map((event, index) => ({ ...event, sequence: index + 1 }));
+  return browserScenarioCaptureSchema.parse({
+    ...base,
+    events: { items: events, retained: events.length, dropped: 0 },
+  });
+};
+
+describe("browser scenario network event order", () => {
+  it("compares concurrent network transactions without receipt order, receipt step or capture-local IDs", () => {
+    const compare = (
+      before: BrowserScenarioCapture,
+      after: BrowserScenarioCapture,
+    ) =>
+      compareBrowserScenarios(
+        compareBrowserScenariosInputSchema.parse({
+          before_scenario: before,
+          after_scenario: after,
+        }),
+      ).overall_status;
+    const statuses = { a: 200, b: 404 };
+
+    expect(
+      compare(
+        concurrentCapture(["a", "b"], statuses),
+        concurrentCapture(["b", "a"], statuses, 1),
+      ),
+    ).toBe("unchanged");
+    expect(
+      compare(
+        concurrentCapture(["a", "b"], statuses),
+        concurrentCapture(["b", "a"], { a: 404, b: 200 }),
+      ),
+    ).toBe("changed");
+  });
+});
+
 describe("browser scenario comparison", () => {
   it("records canonical literal normalization and ignores declared volatile fields", () => {
     const before = scenarioCapture({

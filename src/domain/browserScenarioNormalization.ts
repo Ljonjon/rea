@@ -34,13 +34,17 @@ export const commitBrowserScenarioNormalization = (
   };
 };
 
-/** Digest one artifact after applying committed exact-literal rules. */
+/** Digest one artifact after applying committed exact-literal rules, then any artifact ordering. */
 export const digestNormalizedScenarioValue = (
   value: unknown,
   artifact: BrowserScenarioArtifactKind,
   rules: readonly BrowserScenarioNormalizationRule[],
+  order: (normalized: unknown) => unknown = (normalized) => normalized,
 ): string =>
-  digestCanonicalValue(normalize(value, artifact, rules), "Browser scenario");
+  digestCanonicalValue(
+    order(normalize(value, artifact, rules)),
+    "Browser scenario",
+  );
 
 const normalize = (
   value: unknown,

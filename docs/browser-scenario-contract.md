@@ -284,8 +284,10 @@ browser cleanup, with a provider-owned five-second timeout per read and
 cancellation support. Failed or unexposed reads retain per-content states and make selected
 event coverage incomplete. Body events can arrive during later steps or final
 drain; event bounds describe receipt during the step, while the source event
-reference establishes the transaction phase. Comparison attributes content to
-its source event's step and excludes the sequence reference from normalization.
+reference establishes the transaction phase. Comparison attributes content, like
+every other event of its transaction, to the step that sent the request (the
+receipt step when that request was not observed) and excludes the sequence
+reference from normalization.
 Playwright scenario capture does not supply initiator stacks; passive CDP
 observation retains its own initiator evidence.
 
@@ -300,7 +302,12 @@ an unchanged claim; observed differences may still prove a changed result.
 The comparison records its full normalization commitment and SHA-256 digest.
 Built-in rules exclude step elapsed time and event sequence/index fields,
 compare screenshots by content digest, and compare DOM/accessibility captures
-by normalized text. Optional caller rules are bounded exact-literal
+by normalized text. Network events are grouped by transaction without their
+capture-local transaction IDs, attributed to the step that sent the request,
+and compared as an unordered collection after caller rules apply, because
+concurrent responses arrive in any order and can land in a later step; a
+redirect keeps its predecessor's method and URL. Other events keep receipt
+order. Optional caller rules are bounded exact-literal
 replacements over named artifact kinds. Rules and artifact-kind lists are
 sorted canonically before application, making the same policy reproducible
 regardless of input order. Rules operate only on already-redacted durable
