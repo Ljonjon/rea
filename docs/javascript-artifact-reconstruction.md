@@ -290,7 +290,9 @@ RPC client syntax also contributes network endpoint candidates, in both
   the name must be followed by variable definitions (`($`), a directive, or a
   selection set starting with a field name — or in a precompiled
   `OperationDefinition` document object. In a template literal, leading
-  interpolations such as fragment definitions are skipped first. A graphql-tag
+  interpolations such as fragment definitions are skipped first; the operation
+  must then start on a later line than the last interpolation, since an
+  interpolation can open or end a `#` comment. A graphql-tag
   `loc.source.body` copy is not reported twice. Anonymous operations are not
   reported.
 

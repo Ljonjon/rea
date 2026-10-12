@@ -271,6 +271,20 @@ describe("GraphQL operation recognition", () => {
     ]);
   });
 
+  it("does not claim text that an interpolation may leave inside a comment", () => {
+    expect(
+      rpcEndpoints(`
+        const COMMENTED = gql\`# \${EMPTY}query Hidden { f }
+          fragment F on T { f }\`;
+        const SAME_LINE = gql\`\${PREFIX}query AlsoHidden { f }\`;
+        const NEXT_LINE = gql\`# fragments \${F}
+          query Shown { f }\`;
+      `),
+    ).toEqual([
+      { kind: "network", value: "Shown", mechanism: "graphql:query" },
+    ]);
+  });
+
   it("retains operations after long ignored prefixes and long headers", () => {
     const name = "Operation" + "x".repeat(512);
     const text =

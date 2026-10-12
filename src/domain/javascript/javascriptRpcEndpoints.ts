@@ -316,11 +316,23 @@ export const createJavaScriptRpcScan = (
           : graphqlOperationFromText(node.value);
       if (t.isTemplateLiteral(node)) {
         // Read past leading fragment interpolations; uncooked text stays dynamic.
+        // An interpolation may open or close a # comment, so text on the line
+        // where it ends is unknown and the operation must start on a later line.
+        let afterInterpolation = false;
         for (const quasi of node.quasis) {
           const cooked = quasi.value.cooked;
           if (cooked === undefined || cooked === null) return undefined;
-          if (skipGraphqlIgnored(cooked) < cooked.length)
-            return graphqlOperationFromText(cooked);
+          let text = cooked;
+          if (afterInterpolation) {
+            const lineEnd = text.search(/[\n\r]/u);
+            const line = lineEnd < 0 ? text : text.slice(0, lineEnd);
+            if (skipGraphqlIgnored(line) < line.length) return undefined;
+            if (lineEnd < 0) continue;
+            text = text.slice(lineEnd);
+          }
+          if (skipGraphqlIgnored(text) < text.length)
+            return graphqlOperationFromText(text);
+          afterInterpolation = true;
         }
         return undefined;
       }
