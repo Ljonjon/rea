@@ -64,7 +64,58 @@ const fullServer = (): EvidenceMcpServer =>
     new ToolResultDelivery(STDIO_DEFAULT_MAX_BUFFER_SIZE),
   );
 
+// Gemini function declarations reject these keywords, and one unknown keyword
+// fails the client's whole tool catalog rather than the one tool (#2832).
+const geminiRejectedKeywords = new Set(["dependentRequired", "dependencies"]);
+const propertyNameMaps = new Set([
+  "properties",
+  "patternProperties",
+  "$defs",
+  "definitions",
+]);
+const literalData = new Set(["const", "enum", "default", "examples"]);
+
+const geminiRejectedKeywordPaths = (value: unknown, path: string): string[] => {
+  if (Array.isArray(value))
+    return value.flatMap((item, index) =>
+      geminiRejectedKeywordPaths(item, `${path}/${index}`),
+    );
+  if (typeof value !== "object" || value === null) return [];
+  return Object.entries(value).flatMap(([key, child]) => {
+    if (literalData.has(key)) return [];
+    if (
+      propertyNameMaps.has(key) &&
+      typeof child === "object" &&
+      child !== null
+    )
+      return Object.entries(child).flatMap(([name, schema]) =>
+        geminiRejectedKeywordPaths(schema, `${path}/${key}/${name}`),
+      );
+    return [
+      ...(geminiRejectedKeywords.has(key) ? [`${path}/${key}`] : []),
+      ...geminiRejectedKeywordPaths(child, `${path}/${key}`),
+    ];
+  });
+};
+
 describe("MCP compact input schema profile", () => {
+  it.each([
+    ["full", fullServer],
+    ["compact", compactServer],
+  ] as const)(
+    "advertises no keyword Gemini rejects in the %s profile",
+    async (_profile, createServer) => {
+      const server = createServer();
+      registerCatalog(server);
+      const tools = await listToolsThroughTransport(server);
+      expect(
+        tools.flatMap(({ name, inputSchema }) =>
+          geminiRejectedKeywordPaths(inputSchema, name),
+        ),
+      ).toEqual([]);
+    },
+  );
+
   it("advertises every tool input schema within the provider budget", async () => {
     const server = compactServer();
     registerCatalog(server);

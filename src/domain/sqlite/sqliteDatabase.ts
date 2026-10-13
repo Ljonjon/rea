@@ -52,7 +52,7 @@ export const inspectSqliteDatabaseInputSchema = z
       .min(1)
       .optional()
       .describe(
-        "Selected-table sample size, default 20; subject to byte and worker resource limits",
+        "Selected-table sample size, default 20; requires table. Subject to byte and worker resource limits",
       ),
   })
   .superRefine((input, context) => {
@@ -75,8 +75,9 @@ export const inspectSqliteDatabaseInputSchema = z
         message: "selected_table schema scope requires table",
       });
   })
+  // row_limit and columns state their table requirement in their descriptions:
+  // Gemini function declarations reject dependentRequired and fail every tool.
   .meta({
-    dependentRequired: { row_limit: ["table"], columns: ["table"] },
     if: {
       properties: { schema_scope: { const: "selected_table" } },
       required: ["schema_scope"],
