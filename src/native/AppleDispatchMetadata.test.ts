@@ -637,4 +637,54 @@ describe("Apple dispatch unmapped protocol-list slot", () => {
       coverage?.reason?.match(/Unmapped or ambiguous metadata pointer/g) ?? [];
     expect(failures.length).toBeLessThanOrEqual(100);
   });
+
+  it("reports the real failure for a mapped-but-malformed class at the budget boundary", () => {
+    // The class-list slot itself is mapped, so readClass admits the record
+    // budget and only then throws on the unmapped class_ro pointer. The
+    // failure must be recorded as-is: it already spent one budget unit, so
+    // admitting again would break before the reason is appended and report
+    // only max_records_reached.
+    const bytes = image("neither");
+    bytes.writeBigUInt64LE(sectionBase + 0x700n, 0x200);
+    bytes.writeBigUInt64LE(sectionBase + 0x9000n, 0x720);
+    const result = decodeAppleDispatchMetadata(bytes, 1, provenance);
+    const coverage = classCoverage(result);
+    expect(coverage).toMatchObject({ status: "partial" });
+    expect(coverage?.reason).toContain(
+      "Unmapped or ambiguous metadata pointer 0x100009018",
+    );
+    expect(coverage?.reason).not.toContain("max_records_reached");
+  });
+
+  it("does not skip a valid class after a mapped-but-malformed class", () => {
+    // With two slots and a budget of two, the corrupt first slot must spend
+    // exactly one unit: admitting twice would exhaust the budget and skip
+    // the valid class behind it.
+    const bytes = image("neither");
+    bytes.writeBigUInt64LE(16n, 144);
+    bytes.writeBigUInt64LE(sectionBase + 0x700n, 0x200);
+    bytes.writeBigUInt64LE(sectionBase + 0x9000n, 0x720);
+    bytes.writeBigUInt64LE(sectionBase + 0x400n, 0x208);
+    const result = decodeAppleDispatchMetadata(bytes, 2, provenance);
+    expect(result.objc_classes).toMatchObject([{ name: "RetainedClass" }]);
+    expect(classCoverage(result)?.reason).toContain(
+      "Unmapped or ambiguous metadata pointer 0x100009018",
+    );
+  });
+
+  it("reports the real failure for a mapped-but-truncated protocol slot", () => {
+    // The protocol slot is mapped, so protocolReader.record admits the
+    // budget itself before throwing on the truncated declaration. The loop
+    // must not admit a second time; the recorded reason stays the
+    // declaration failure, not max_records_reached.
+    const bytes = image("neither");
+    bytes.writeBigUInt64LE(sectionBase + 0x700n, 0x300);
+    const result = decodeAppleDispatchMetadata(bytes, 100, provenance);
+    const coverage = classCoverage(result);
+    expect(coverage).toMatchObject({ status: "partial" });
+    expect(coverage?.reason).toContain(
+      "Truncated Objective-C protocol declaration",
+    );
+    expect(coverage?.reason).not.toContain("max_records_reached");
+  });
 });

@@ -201,13 +201,26 @@ export const decodeObjcDispatchFacets = (input: {
         break;
       }
       const field = section.address + BigInt(index * 8);
+      let pointer: bigint;
       try {
-        protocolReader.record(read.pointer(field));
+        pointer = read.pointer(field);
       } catch (cause) {
-        // A failed slot still spends the record budget: without this, a
-        // file-declared section size bounds the loop while failed reads never
-        // trip budget.isFull(), letting crafted images force unbounded attempts.
-        if (!budget.admit()) break;
+        // A slot whose pointer cannot be read still spends the record
+        // budget: without this, a file-declared section size bounds the loop
+        // while failed reads never trip budget.isFull(), letting crafted
+        // images force unbounded attempts.
+        const admitted = budget.admit();
+        failures.push(
+          `${hex(field)}: ${cause instanceof Error ? cause.message : String(cause)}`,
+        );
+        if (!admitted) break;
+        continue;
+      }
+      try {
+        protocolReader.record(pointer);
+      } catch (cause) {
+        // record() admits the slot itself before decoding, so admitting
+        // again here would count one protocol twice.
         failures.push(
           `${hex(field)}: ${cause instanceof Error ? cause.message : String(cause)}`,
         );
@@ -333,13 +346,29 @@ export const decodeObjcDispatchFacets = (input: {
       }
       examined++;
       const field = section.address + BigInt(index * 8);
+      let pointer: bigint;
       try {
-        readClass(read.pointer(field));
+        pointer = read.pointer(field);
       } catch (cause) {
-        // A failed slot still spends the record budget: without this, a
-        // file-declared section size bounds the loop while failed reads never
-        // trip budget.isFull(), letting crafted images force unbounded attempts.
-        if (!budget.admit()) break;
+        // A slot whose pointer cannot be read still spends the record
+        // budget: without this, a file-declared section size bounds the loop
+        // while failed reads never trip budget.isFull(), letting crafted
+        // images force unbounded attempts.
+        const admitted = budget.admit();
+        failures.push(
+          `${hex(field)}: ${cause instanceof Error ? cause.message : String(cause)}`,
+        );
+        if (!admitted) break;
+        continue;
+      }
+      try {
+        readClass(pointer);
+      } catch (cause) {
+        // The slot was already admitted inside readClass before anything
+        // could throw (its admit runs before the first pointer read), so
+        // admitting again here would count one class twice: at the budget
+        // boundary it would break before appending the failure reason, and
+        // with larger limits malformed classes would starve valid ones.
         failures.push(
           `${hex(field)}: ${cause instanceof Error ? cause.message : String(cause)}`,
         );
