@@ -278,16 +278,18 @@ it("attributes rejected WASM paths to their selected fields before provider work
       name: "inspect_wasm_artifact",
       arguments: input,
     });
-    expect(parseMcpToolError(response).error).toMatchObject({
-      code: "invalid_request",
-      details: {
-        issues: paths.map((path) => ({
-          path,
-          reason: "invalid_format",
-          message: "Expected an absolute filesystem path on this host.",
-        })),
-      },
-    });
+    const failure = parseMcpToolError(response).error;
+    expect(failure.code).toBe("invalid_request");
+    const { issues } = z
+      .object({ issues: z.array(z.unknown()) })
+      .parse(failure.details);
+    expect(issues).toEqual(
+      paths.map((path) => ({
+        path,
+        reason: "invalid_format",
+        message: "Expected an absolute filesystem path on this host.",
+      })),
+    );
   }
   expect(inspect).not.toHaveBeenCalled();
   const valid = await harness.client.callTool({
