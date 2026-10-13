@@ -30,6 +30,18 @@ export interface JavaScriptArtifactFile {
       };
 }
 
+/** Inventoried path whose bytes and content identity could not be acquired. */
+export interface JavaScriptArtifactUnavailableFile {
+  readonly path: string;
+  readonly container_sha256: string;
+  readonly kind: JavaScriptArtifactFileKind;
+  readonly text: { readonly included: false; readonly reason: "unavailable" };
+}
+
+export type JavaScriptArtifactPathFact =
+  | JavaScriptArtifactFile
+  | JavaScriptArtifactUnavailableFile;
+
 /** One filesystem-backed ASAR nested beneath a directory input. */
 export interface JavaScriptArtifactContainer {
   readonly path: string;
@@ -41,6 +53,7 @@ export interface JavaScriptArtifactContainer {
 /** Deterministic relevant-file projection plus explicit omissions. */
 export interface JavaScriptArtifactFileSet {
   readonly files: readonly JavaScriptArtifactFile[];
+  readonly unavailable_files?: readonly JavaScriptArtifactUnavailableFile[];
   readonly containers: readonly JavaScriptArtifactContainer[];
   readonly text_bytes_read: number;
   readonly invalid_utf8_files: number;

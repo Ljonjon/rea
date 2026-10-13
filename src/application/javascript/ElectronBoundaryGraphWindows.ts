@@ -23,7 +23,10 @@ import {
   electronFindingSourceNode,
   electronRangeKey,
 } from "./ElectronBoundaryGraphContext.js";
-import { resolveArtifactPathByContext } from "./JavaScriptArtifactPathResolution.js";
+import {
+  resolveArtifactPathByContext,
+  artifactPathResolutionProperties,
+} from "./JavaScriptArtifactPathResolution.js";
 
 interface FindingInput<Value> {
   readonly context: JavaScriptArtifactGraphContext;
@@ -136,7 +139,7 @@ const addWindowPreload = (
     declaredPath: declared,
     sourcePath: input.file.path,
     context: resolutionContext,
-    files: input.context.filesByPath,
+    files: input.context.pathFacts,
   });
   const role = createElectronRoleNode(input.context, {
     kind: "electron-preload",
@@ -227,6 +230,15 @@ const addUtilityProcess = (
   input: FindingInput<ElectronUtilityProcessFinding>,
 ): void => {
   const { context, file, value, coverage } = input;
+  const resolution =
+    value.module_path === null
+      ? undefined
+      : resolveArtifactPathByContext({
+          declaredPath: value.module_path,
+          sourcePath: file.path,
+          context: value.module_resolution_context,
+          files: context.pathFacts,
+        });
   const utility = context.accumulator.addNode({
     kind: "electron-utility",
     identity: artifactLocalIdentity(
@@ -242,6 +254,14 @@ const addUtilityProcess = (
           module_resolution_context: value.module_resolution_context,
           module_expression: value.module_expression,
           service_name: value.service_name,
+          ...(resolution === undefined
+            ? {}
+            : {
+                resolution_context: resolution.resolution_context,
+                resolved_path: resolution.resolved_path,
+                resolution_status: resolution.resolution_status,
+                ...artifactPathResolutionProperties(resolution),
+              }),
         },
         evidence: astObservationEvidence({
           sha256: file.sha256,
@@ -264,15 +284,17 @@ const addUtilityProcess = (
     properties: {
       declared_path: value.module_path,
       expression: value.module_expression,
+      ...(resolution === undefined
+        ? {}
+        : {
+            resolution_context: resolution.resolution_context,
+            resolved_path: resolution.resolved_path,
+            resolution_status: resolution.resolution_status,
+            ...artifactPathResolutionProperties(resolution),
+          }),
     },
   });
-  if (value.module_path === null) return;
-  const resolution = resolveArtifactPathByContext({
-    declaredPath: value.module_path,
-    sourcePath: file.path,
-    context: value.module_resolution_context,
-    files: context.filesByPath,
-  });
+  if (resolution === undefined) return;
   const resolved = resolution.resolved_path;
   const target =
     resolved === null

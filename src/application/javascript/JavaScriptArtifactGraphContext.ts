@@ -13,6 +13,7 @@ import type {
   JavaScriptArtifactFile,
   JavaScriptArtifactFileSet,
   JavaScriptArtifactFileKind,
+  JavaScriptArtifactPathFact,
 } from "../../domain/javascript/javascriptArtifactFiles.js";
 import { JavaScriptArtifactGraphAccumulator } from "./JavaScriptArtifactGraphAccumulator.js";
 import {
@@ -35,6 +36,7 @@ export interface JavaScriptArtifactGraphContext {
   readonly analysis: JavaScriptModuleArtifactAnalysis;
   readonly root: ApplicationNode;
   readonly filesByPath: ReadonlyMap<string, JavaScriptArtifactFile>;
+  readonly pathFacts: ReadonlyMap<string, JavaScriptArtifactPathFact>;
   readonly fileNodes: Map<string, ApplicationNode>;
   readonly assetNodes: Map<string, ApplicationNode>;
   readonly sourceModuleNodes: Map<string, ApplicationNode>;

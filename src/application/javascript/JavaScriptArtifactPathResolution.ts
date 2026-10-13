@@ -5,7 +5,7 @@ import {
   normalizeJoinedLogicalPath,
   logicalPathEscapesRoot,
 } from "../../domain/artifactIdentity.js";
-import type { JavaScriptArtifactFile } from "../../domain/javascript/javascriptArtifactFiles.js";
+import type { JavaScriptArtifactPathFact } from "../../domain/javascript/javascriptArtifactFiles.js";
 import {
   admitsCanonicalPathSyntax,
   hasScheme,
@@ -74,7 +74,7 @@ export interface ResolveArtifactPathInput {
   readonly declaredPath: string;
   readonly sourcePath: string;
   readonly context: ArtifactPathResolutionContext;
-  readonly files: ReadonlyMap<string, JavaScriptArtifactFile>;
+  readonly files: ReadonlyMap<string, JavaScriptArtifactPathFact>;
   readonly htmlBaseHref?: string | null;
   /** Import/require semantics; runtime resource paths omit this provenance. */
   readonly moduleKind?: JavaScriptModuleResolutionMode;
@@ -764,7 +764,7 @@ const parseBarePackageRequest = (
 };
 
 const hasContainerDirectory = (
-  files: ReadonlyMap<string, JavaScriptArtifactFile>,
+  files: ReadonlyMap<string, JavaScriptArtifactPathFact>,
   candidate: string,
   containerSha256: string | undefined,
 ): boolean => {
@@ -1054,10 +1054,19 @@ const resolveFileCandidates = (
 
 /** Classify the retained target representation once for all module modes. */
 const resolvedFileCandidate = (
-  target: JavaScriptArtifactFile,
+  target: JavaScriptArtifactPathFact,
   path: string,
   declaration = false,
 ): CandidateResolution => {
+  if (!target.text.included && target.text.reason === "unavailable")
+    return {
+      resolvedPath: null,
+      status: "unavailable",
+      candidatePath: path,
+      limitations: [
+        `The inventoried file ${path} has unavailable source bytes.`,
+      ],
+    };
   return target.kind === "unsupported"
     ? {
         resolvedPath: null,

@@ -6,7 +6,10 @@ import {
   type JavaScriptApplicationGraph,
 } from "../../domain/javascript/javascriptApplicationGraph.js";
 import type { JavaScriptModuleArtifactAnalysis } from "./JavaScriptArtifactAnalysisTypes.js";
-import type { JavaScriptArtifactFileSet } from "../../domain/javascript/javascriptArtifactFiles.js";
+import type {
+  JavaScriptArtifactFileSet,
+  JavaScriptArtifactPathFact,
+} from "../../domain/javascript/javascriptArtifactFiles.js";
 import { JavaScriptArtifactGraphAccumulator } from "./JavaScriptArtifactGraphAccumulator.js";
 import {
   selfReferenceOmissions,
@@ -97,6 +100,12 @@ function* buildJavaScriptArtifactGraphInputSteps(
     analysis,
     root,
     filesByPath: new Map(fileSet.files.map((file) => [file.path, file])),
+    pathFacts: new Map<string, JavaScriptArtifactPathFact>([
+      ...(fileSet.unavailable_files ?? []).map(
+        (file) => [file.path, file] as const,
+      ),
+      ...fileSet.files.map((file) => [file.path, file] as const),
+    ]),
     fileNodes: new Map(),
     assetNodes: new Map(),
     sourceModuleNodes: new Map(),
@@ -169,6 +178,7 @@ const graphCoverage = (context: JavaScriptArtifactGraphContext) => {
         javascript !== null && javascript.parse_status === "partial",
     ) || context.fileSet.files.some(({ kind }) => kind === "unsupported");
   const unknownGap =
+    (context.fileSet.unavailable_files?.length ?? 0) > 0 ||
     (context.fileSet.source_selection?.unselected_files ?? 0) > 0 ||
     context.analysis.files.some(
       ({ analysis_failure, application_projection_failure }) =>
@@ -179,8 +189,7 @@ const graphCoverage = (context: JavaScriptArtifactGraphContext) => {
     context.fileSet.invalid_utf8_files > 0 ||
     sourceMapPolicyGap ||
     malformedStructuredData ||
-    partialJavaScript ||
-    context.fileSet.files.some(({ kind }) => kind === "unsupported");
+    partialJavaScript;
   const executionLimits = context.analysis.files.flatMap(
     ({ analysis_failure, application_projection_failure }) =>
       [analysis_failure, application_projection_failure].flatMap((failure) =>

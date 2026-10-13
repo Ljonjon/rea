@@ -57,7 +57,7 @@ export const addJavaScriptHtmlRoles = (
         declaredPath: script.script_path,
         sourcePath: html.path,
         context: "html-reference",
-        files: context.filesByPath,
+        files: context.pathFacts,
         htmlBaseHref: script.base_href,
       });
       const resolvedPath = resolution.resolved_path;
