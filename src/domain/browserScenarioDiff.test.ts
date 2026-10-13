@@ -236,16 +236,20 @@ it("reports event-family mismatch and legacy selection as unknown", () => {
 });
 
 const concurrentCapture = (
-  order: readonly ("a" | "b")[],
+  requestOrder: readonly ("a" | "b")[],
   statuses: Readonly<Record<"a" | "b", number>>,
   responseStep = 0,
+  responseOrder: readonly ("a" | "b")[] = requestOrder,
+  redirect = false,
 ) => {
   const base = scenarioCapture({});
   const network = (path: "a" | "b") => ({
     step_index: 0,
-    transaction_id: `request-${String(order.indexOf(path) + 1)}`,
+    transaction_id: `request-${String(requestOrder.indexOf(path) + 1)}`,
     redirected_from_transaction_id:
-      path === "b" ? `request-${String(order.indexOf("a") + 1)}` : null,
+      redirect && path === "b"
+        ? `request-${String(requestOrder.indexOf("a") + 1)}`
+        : null,
     method: "GET",
     url: {
       url: `https://app.example.test/${path}.js`,
@@ -257,19 +261,22 @@ const concurrentCapture = (
     header_names: [],
     failure: null,
   });
-  const events = [
-    ...order.map((path) => ({
-      ...network(path),
-      kind: "request",
-      status: null,
-    })),
-    ...order.map((path) => ({
-      ...network(path),
-      step_index: responseStep,
-      kind: "response",
-      status: statuses[path],
-    })),
-  ].map((event, index) => ({ ...event, sequence: index + 1 }));
+  const request = (path: "a" | "b") => ({
+    ...network(path),
+    kind: "request",
+    status: null,
+  });
+  const response = (path: "a" | "b") => ({
+    ...network(path),
+    step_index: responseStep,
+    kind: "response",
+    status: statuses[path],
+  });
+  const events = (
+    redirect
+      ? requestOrder.flatMap((path) => [request(path), response(path)])
+      : [...requestOrder.map(request), ...responseOrder.map(response)]
+  ).map((event, index) => ({ ...event, sequence: index + 1 }));
   return browserScenarioCaptureSchema.parse({
     ...base,
     events: { items: events, retained: events.length, dropped: 0 },
@@ -293,13 +300,26 @@ describe("browser scenario network event order", () => {
     expect(
       compare(
         concurrentCapture(["a", "b"], statuses),
-        concurrentCapture(["b", "a"], statuses, 1),
+        concurrentCapture(["b", "a"], statuses, 1, ["a", "b"]),
       ),
     ).toBe("unchanged");
     expect(
       compare(
         concurrentCapture(["a", "b"], statuses),
         concurrentCapture(["b", "a"], { a: 404, b: 200 }),
+      ),
+    ).toBe("changed");
+    expect(
+      compare(
+        concurrentCapture(["a", "b"], statuses, 0, ["a", "b"]),
+        concurrentCapture(["a", "b"], statuses, 0, ["b", "a"]),
+      ),
+    ).toBe("unchanged");
+    // Redirect linkage is distinct from independent concurrent transactions.
+    expect(
+      compare(
+        concurrentCapture(["a", "b"], statuses),
+        concurrentCapture(["a", "b"], statuses, 0, ["a", "b"], true),
       ),
     ).toBe("changed");
   });

@@ -325,3 +325,7 @@ selection. Captures with different selections report event evidence as unknown
 with a recovery instruction, even when no selected family emitted an event.
 Captures written before this field existed omit it, so their event evidence is
 also unknown.
+
+Network normalization also commits the removal of capture-local transaction IDs,
+attribution to the requesting step, and unordered transaction comparison. These
+built-in rule identities participate in the normalization digest.
