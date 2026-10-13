@@ -1,6 +1,7 @@
 import { constants } from "node:fs";
 import { access, realpath, stat } from "node:fs/promises";
 import { delimiter, isAbsolute, join, resolve } from "node:path";
+import { inspectWindowsNativeReadiness } from "../process/WindowsAuthority.js";
 import { systemWindowsNativeAuthority } from "../windows/WindowsNativeLoader.js";
 import { AnalysisCapabilityUnavailableError } from "../domain/analysisErrorCore.js";
 import type { AndroidOperation } from "../domain/android/androidAnalysis.js";
@@ -30,6 +31,7 @@ type ConfigurationFailureCode =
   | "not_configured"
   | "executable_missing"
   | "runtime_missing"
+  | "runtime_unavailable"
   | "unsupported_host"
   | "unsupported_version"
   | "version_unresolved"
@@ -207,18 +209,25 @@ const requireSupportedHost = (): void => {
   if (process.platform === "linux" || process.platform === "darwin") return;
   if (process.platform === "win32" && process.arch === "x64") {
     const loaded = systemWindowsNativeAuthority();
+    const readiness = inspectWindowsNativeReadiness(process.platform, loaded);
     if (loaded.available && loaded.authority.inspection.protocolStdin === true)
       return;
     throw configurationFailure(
-      "runtime_missing",
-      loaded.available
+      readiness.available ? "runtime_unavailable" : readiness.code,
+      readiness.available
         ? "The bundled Windows native artifact lacks owned protocol stdin; use a matching current Windows x64 REA package."
-        : loaded.reason,
+        : readiness.reason,
       {
         platform: process.platform,
         architecture: process.arch,
         phase: "process-ownership",
         owned_protocol_stdin: false,
+        ...(readiness.available
+          ? {}
+          : {
+              failure_stage: readiness.failureStage,
+              remediation: readiness.remediation,
+            }),
       },
     );
   }
