@@ -36,6 +36,7 @@ describe("FreeBuff configuration paths", () => {
       displayName: "FreeBuff",
       configPath: join("/home/a", ".agents", "mcp.json"),
       markerPath: join("/home/a", ".config", "freebuff-desktop"),
+      discoveryPaths: [join("/home/a", ".config", "freebuff-desktop")],
       format: "json",
     });
     expect(freebuffPath("/Users/a", "darwin")?.markerPath).toBe(
@@ -50,9 +51,21 @@ describe("FreeBuff configuration paths", () => {
     const home = await createTestTempDirectory("rea-freebuff-shared-");
     // REA's own skill installs create this directory for every client.
     await mkdir(join(home, ".agents", "skills"), { recursive: true });
+    await writeFile(
+      join(home, ".agents", "mcp.json"),
+      '{"mcpServers":{"other":{"command":"other-server"}}}',
+    );
     expect((await detectClients(home)).map(({ name }) => name)).not.toContain(
       "freebuff",
     );
+    expect(
+      (
+        await readClientRegistrationStatuses(home, undefined, {
+          platform: process.platform,
+          environment: {},
+        })
+      ).map(({ client }) => client),
+    ).not.toContain("freebuff");
 
     await mkdir(join(home, ".config", "freebuff-desktop"), {
       recursive: true,
@@ -85,6 +98,7 @@ describe("FreeBuff JSON registration", () => {
     const client = freebuffPath(home, process.platform);
     if (client === undefined) throw new Error("missing FreeBuff client");
     await mkdir(dirname(client.configPath), { recursive: true });
+    await mkdir(client.markerPath!, { recursive: true });
     return { home, client };
   };
 

@@ -29,6 +29,8 @@ export interface SetupClient {
   /** Same-scope fallback ZCode stops loading after its first native server. */
   readonly zcodeFallbackPath?: string;
   readonly markerPath?: string;
+  /** Product-specific applicability evidence when configuration storage is shared. */
+  readonly discoveryPaths?: readonly string[];
   readonly format?:
     | "json"
     | "toml"
@@ -66,6 +68,7 @@ interface ClientDefinition {
   readonly displayName: string;
   readonly configPath: ClientPath;
   readonly markerPath: ClientPath;
+  readonly discoveryPaths?: (context: ClientPathContext) => readonly string[];
   readonly format: NonNullable<SetupClient["format"]>;
   readonly zcodeFallbackPath?: (context: ClientPathContext) => string;
   readonly skillPath?: ClientPath;
@@ -578,6 +581,9 @@ export const SUPPORTED_CLIENT_DEFINITIONS = [
     configPath: ({ home }: ClientPathContext) =>
       join(home, ".agents", "mcp.json"),
     markerPath: freebuffProfileDirectory,
+    discoveryPaths: (context: ClientPathContext) => [
+      freebuffProfileDirectory(context),
+    ],
     format: "json",
   },
   {
@@ -595,14 +601,19 @@ export const SUPPORTED_CLIENT_DEFINITIONS = [
  * directory override does not exist.
  */
 export const clientEvidencePaths = (
-  client: Pick<SetupClient, "configPath" | "configPaths" | "markerPath">,
+  client: Pick<
+    SetupClient,
+    "configPath" | "configPaths" | "markerPath" | "discoveryPaths"
+  >,
 ): readonly string[] => [
   ...new Set(
-    [
-      client.configPath,
-      ...(client.configPaths ?? []),
-      client.markerPath,
-    ].filter((path): path is string => path !== undefined && path.length > 0),
+    (
+      client.discoveryPaths ?? [
+        client.configPath,
+        ...(client.configPaths ?? []),
+        client.markerPath,
+      ]
+    ).filter((path): path is string => path !== undefined && path.length > 0),
   ),
 ];
 
@@ -664,6 +675,9 @@ export const supportedClients = (
           ? {}
           : { zcodeFallbackPath: definition.zcodeFallbackPath(context) }),
         markerPath: marker.value,
+        ...(definition.discoveryPaths === undefined
+          ? {}
+          : { discoveryPaths: definition.discoveryPaths(context) }),
         format: definition.format,
       };
     } catch (cause: unknown) {
