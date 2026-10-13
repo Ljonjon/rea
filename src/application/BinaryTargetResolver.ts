@@ -164,7 +164,8 @@ export const parseBinaryTarget = async (
       }
       if (
         targetKind === "database" ||
-        (targetKind === undefined && path.toLowerCase().endsWith(".hop"))
+        (targetKind === undefined &&
+          (await inferredDatabase(path, handle, signal)))
       )
         return ok({
           path,
@@ -259,6 +260,36 @@ const throwIfTargetResolutionCancelled = (signal?: AbortSignal): void => {
     throw new AnalysisCancelledError("resolve_binary_target");
 };
 
+const WEBASSEMBLY_V1_HEADER = Buffer.from([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
+
+const isWebAssemblyV1 = (header: Buffer): boolean =>
+  header.equals(WEBASSEMBLY_V1_HEADER);
+
+const webAssemblyTargetError = (path: string): BinaryTargetError =>
+  new BinaryTargetError(
+    path,
+    "WebAssembly v1 artifacts are not supported by the native opening route",
+    { constraint: "wasm_requires_static_inspection" },
+  );
+
+/**
+ * Infer a database from the .hop extension only after recognized content is
+ * ruled out; an explicitly selected kind never reaches this guess.
+ */
+const inferredDatabase = async (
+  path: string,
+  handle: FileHandle,
+  signal?: AbortSignal,
+): Promise<boolean> => {
+  if (!path.toLowerCase().endsWith(".hop")) return false;
+  const header = Buffer.alloc(WEBASSEMBLY_V1_HEADER.length);
+  const observed = await handle.read(header, 0, header.length, 0);
+  throwIfTargetResolutionCancelled(signal);
+  if (isWebAssemblyV1(header.subarray(0, observed.bytesRead)))
+    throw webAssemblyTargetError(path);
+  return true;
+};
+
 const detectArtifactFormat = async (
   path: string,
   handle: FileHandle,
@@ -282,15 +313,8 @@ const detectArtifactFormat = async (
   const magic = Buffer.alloc(8);
   const observed = await handle.read(magic, 0, magic.length, 0);
   throwIfTargetResolutionCancelled(signal);
-  if (
-    observed.bytesRead === 8 &&
-    magic.equals(Buffer.from([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]))
-  )
-    throw new BinaryTargetError(
-      path,
-      "WebAssembly v1 artifacts are not supported by the native opening route",
-      { constraint: "wasm_requires_static_inspection" },
-    );
+  if (isWebAssemblyV1(magic.subarray(0, observed.bytesRead)))
+    throw webAssemblyTargetError(path);
   if (hasZipSignature(magic.subarray(0, observed.bytesRead))) {
     // The HarmonyOS App Pack suffix `.app` is a root-input concept; a nested
     // ZIP member ending in `.app` keeps the generic zip classification.
