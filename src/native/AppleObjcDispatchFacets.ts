@@ -1,3 +1,4 @@
+import { err, ok, type Result } from "../domain/result.js";
 import type { ObjcSwiftMetadata } from "../domain/native/objcSwiftMetadata.js";
 import type { Segment, Section } from "./AppleMachoSelection.js";
 import { boundClassName, decodeObjcCategories } from "./AppleObjcCategories.js";
@@ -190,6 +191,21 @@ export const decodeObjcDispatchFacets = (input: {
     result,
     failures,
   });
+  // Failed slot reads spend the same budget for protocol and class lists.
+  // Their record decoders own admission once a pointer has been read.
+  const readListSlot = (
+    field: bigint,
+  ): Result<bigint, "unmapped" | "exhausted"> => {
+    try {
+      return ok(read.pointer(field));
+    } catch (cause: unknown) {
+      const admitted = budget.admit();
+      failures.push(
+        `${hex(field)}: ${cause instanceof Error ? cause.message : String(cause)}`,
+      );
+      return err(admitted ? "unmapped" : "exhausted");
+    }
+  };
   for (const section of sections.filter(
     ({ name }) => name === "__objc_protolist",
   )) {
@@ -201,23 +217,13 @@ export const decodeObjcDispatchFacets = (input: {
         break;
       }
       const field = section.address + BigInt(index * 8);
-      let pointer: bigint;
-      try {
-        pointer = read.pointer(field);
-      } catch (cause) {
-        // A slot whose pointer cannot be read still spends the record
-        // budget: without this, a file-declared section size bounds the loop
-        // while failed reads never trip budget.isFull(), letting crafted
-        // images force unbounded attempts.
-        const admitted = budget.admit();
-        failures.push(
-          `${hex(field)}: ${cause instanceof Error ? cause.message : String(cause)}`,
-        );
-        if (!admitted) break;
+      const pointer = readListSlot(field);
+      if (!pointer.ok) {
+        if (pointer.error === "exhausted") break;
         continue;
       }
       try {
-        protocolReader.record(pointer);
+        protocolReader.record(pointer.value);
       } catch (cause) {
         // record() admits the slot itself before decoding, so admitting
         // again here would count one protocol twice.
@@ -346,23 +352,13 @@ export const decodeObjcDispatchFacets = (input: {
       }
       examined++;
       const field = section.address + BigInt(index * 8);
-      let pointer: bigint;
-      try {
-        pointer = read.pointer(field);
-      } catch (cause) {
-        // A slot whose pointer cannot be read still spends the record
-        // budget: without this, a file-declared section size bounds the loop
-        // while failed reads never trip budget.isFull(), letting crafted
-        // images force unbounded attempts.
-        const admitted = budget.admit();
-        failures.push(
-          `${hex(field)}: ${cause instanceof Error ? cause.message : String(cause)}`,
-        );
-        if (!admitted) break;
+      const pointer = readListSlot(field);
+      if (!pointer.ok) {
+        if (pointer.error === "exhausted") break;
         continue;
       }
       try {
-        readClass(pointer);
+        readClass(pointer.value);
       } catch (cause) {
         // The slot was already admitted inside readClass before anything
         // could throw (its admit runs before the first pointer read), so
