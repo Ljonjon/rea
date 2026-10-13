@@ -66,7 +66,9 @@ export class WindowsOwnedProcess extends EventEmitter {
   #settle: (() => void) | undefined;
   #closed = false;
   #failure: string | undefined;
+  #consecutivePollFailures = 0;
   #timer: NodeJS.Timeout | undefined;
+  #shutdownRequested = false;
   #unreferenced = false;
   #cleanup: Promise<ProcessCleanupResult> | undefined;
   readonly #memoryLimitBytes: number | undefined;
@@ -207,11 +209,14 @@ export class WindowsOwnedProcess extends EventEmitter {
           .number()
           .parse(this.#authority.call("process_alive", [this.#handle])) > 0
       );
-    return this.#closed
-      ? false
-      : z
-          .boolean()
-          .parse(this.#authority.call("process_terminate", [this.#handle]));
+    if (this.#closed) return false;
+    const signaled = z
+      .boolean()
+      .parse(this.#authority.call("process_terminate", [this.#handle]));
+    // Only an explicit termination decision may release the owner-exit guard.
+    // A failed observation alone must never close a kill-on-owner-close job.
+    this.#shutdownRequested = true;
+    return signaled;
   }
 
   /** Terminate and verify that the entire job has settled before releasing it. */
@@ -240,6 +245,7 @@ export class WindowsOwnedProcess extends EventEmitter {
     let timer: NodeJS.Timeout | undefined;
     try {
       const signaled = this.kill();
+      this.#consecutivePollFailures = 0;
       this.#schedule();
       const settled = await Promise.race([
         this.#settled.then(() => true),
@@ -265,10 +271,10 @@ export class WindowsOwnedProcess extends EventEmitter {
     }
   }
 
-  #schedule(): void {
+  #schedule(delayMs = 25): void {
     if (this.#closed || this.#timer !== undefined) return;
-    this.#timer = setTimeout(() => this.#poll(), 25);
-    if (this.#unreferenced) this.#timer.unref();
+    this.#timer = setTimeout(() => this.#poll(), delayMs);
+    if (this.#shutdownRequested || this.#unreferenced) this.#timer.unref();
   }
 
   #poll(): void {
@@ -289,6 +295,7 @@ export class WindowsOwnedProcess extends EventEmitter {
         state = limited;
       }
       this.#failure = undefined;
+      this.#consecutivePollFailures = 0;
       if (state.stdout.length > 0) this.stdout.write(state.stdout);
       if (state.stderr.length > 0) this.stderr.write(state.stderr);
       if (state.exitCode !== null && this.exitCode === null) {
@@ -309,7 +316,15 @@ export class WindowsOwnedProcess extends EventEmitter {
       // Native lifecycle failures belong to the error/cleanup channels, never
       // the captured stderr observation produced by the child itself.
       if (this.listenerCount("error") > 0) this.emit("error", failure);
-      // Retain the original job so explicit cleanup can retry its observation.
+      // Observation never terminates the job. Back off to a low-frequency
+      // referenced retry so naturally exiting descendants can still settle.
+      this.#consecutivePollFailures = Math.min(
+        this.#consecutivePollFailures + 1,
+        6,
+      );
+      this.#schedule(
+        Math.min(5_000, 250 * 2 ** (this.#consecutivePollFailures - 1)),
+      );
     }
   }
 
