@@ -285,6 +285,21 @@ describe("GraphQL operation recognition", () => {
     ]);
   });
 
+  it("keeps literal interpolation block strings within their GraphQL document", () => {
+    const prefix = 'fragment F on T { f(arg: """';
+    const suffix = '""") }';
+    const source =
+      "const doc = gql`" +
+      "${" +
+      JSON.stringify(prefix) +
+      "}" +
+      "\nquery Hidden { f }\n" +
+      "${" +
+      JSON.stringify(suffix) +
+      "}`;";
+    expect(rpcEndpoints(source)).toEqual([]);
+  });
+
   it("retains operations after long ignored prefixes and long headers", () => {
     const name = "Operation" + "x".repeat(512);
     const text =

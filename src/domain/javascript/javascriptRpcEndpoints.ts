@@ -1,6 +1,7 @@
 import * as t from "@babel/types";
 
 import {
+  readExactJavaScriptLiteral,
   unwrapJavaScriptExpression,
   semanticStaticPropertyKey,
 } from "./javascriptAstValues.js";
@@ -315,14 +316,23 @@ export const createJavaScriptRpcScan = (
           ? undefined
           : graphqlOperationFromText(node.value);
       if (t.isTemplateLiteral(node)) {
-        // Read past leading fragment interpolations; uncooked text stays dynamic.
-        // An interpolation may open or close a # comment, so text on the line
-        // where it ends is unknown and the operation must start on a later line.
-        let afterInterpolation = false;
-        for (const quasi of node.quasis) {
+        // Fold exact interpolation values before interpreting GraphQL lexical
+        // boundaries: a newline cannot end a block string supplied by a literal.
+        const chunks: string[] = [""];
+        for (const [index, quasi] of node.quasis.entries()) {
           const cooked = quasi.value.cooked;
           if (cooked === undefined || cooked === null) return undefined;
-          let text = cooked;
+          chunks[chunks.length - 1] += cooked;
+          const expression = node.expressions[index];
+          if (expression === undefined) continue;
+          const literal = readExactJavaScriptLiteral(expression);
+          if (literal.found) chunks[chunks.length - 1] += String(literal.value);
+          else chunks.push("");
+        }
+        // Unknown interpolation boundaries retain the existing conservative
+        // same-line rule; exact literals stay within their surrounding chunk.
+        let afterInterpolation = false;
+        for (let text of chunks) {
           if (afterInterpolation) {
             const lineEnd = text.search(/[\n\r]/u);
             const line = lineEnd < 0 ? text : text.slice(0, lineEnd);
