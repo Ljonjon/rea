@@ -96,13 +96,16 @@ export class PlaywrightElectronActiveProvider implements ElectronActiveObservati
         await systemProcessOwnershipHost.captureBaseline?.(options.signal);
       if (options.signal?.aborted)
         throw new BrowserObservationError(OPERATION, "cancelled");
-      application = await this.launch({
+      const launchOptions: Parameters<typeof electron.launch>[0] = {
         executablePath: paths.executable,
         cwd: paths.root,
         env: safeElectronEnvironment(this.environment, runId),
         args: ["-r", hookPath, paths.application, ...input.args],
         timeout: Math.max(1, startupDeadline - performance.now()),
-      });
+      };
+      application = await containLaunchRejections(() =>
+        this.launch(launchOptions),
+      );
       const leaderPid = application.process().pid;
       if (
         typeof leaderPid !== "number" ||
@@ -376,6 +379,83 @@ const safeElectronEnvironment = (
       ),
     ["REA_PROCESS_RUN_ID", runId] as const,
   ]);
+
+const PLAYWRIGHT_INTERNAL_FRAME = /playwright-core[\\/]lib[\\/]/;
+interface LaunchRejectionScope {
+  failure?: unknown;
+}
+const activeLaunches = new Set<LaunchRejectionScope>();
+const heldLaunchRejections = new Map<
+  Promise<unknown>,
+  { readonly reason: Error; readonly candidates: Set<LaunchRejectionScope> }
+>();
+
+const holdLaunchRejection = (
+  reason: unknown,
+  promise: Promise<unknown>,
+): void => {
+  if (
+    !(reason instanceof Error) ||
+    !PLAYWRIGHT_INTERNAL_FRAME.test(reason.stack ?? "")
+  )
+    throw reason;
+  if (!heldLaunchRejections.has(promise))
+    heldLaunchRejections.set(promise, {
+      reason,
+      candidates: new Set(activeLaunches),
+    });
+};
+
+const forwardLaunchRejection = (
+  reason: Error,
+  promise: Promise<unknown>,
+): void => {
+  // Replaying to external listeners must never re-enter our own holding map.
+  process.off("unhandledRejection", holdLaunchRejection);
+  try {
+    if (!process.emit("unhandledRejection", reason, promise))
+      process.nextTick(() => {
+        throw reason;
+      });
+  } finally {
+    if (activeLaunches.size > 0)
+      process.on("unhandledRejection", holdLaunchRejection);
+  }
+};
+
+/** Playwright leaves rejected launch promises unhandled; absorb only those that repeat this launch's failure. */
+const containLaunchRejections = async <T>(
+  launch: () => Promise<T>,
+): Promise<T> => {
+  const scope: LaunchRejectionScope = {};
+  if (activeLaunches.size === 0)
+    process.on("unhandledRejection", holdLaunchRejection);
+  activeLaunches.add(scope);
+  try {
+    return await launch();
+  } catch (cause: unknown) {
+    scope.failure = cause;
+    throw cause;
+  } finally {
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    activeLaunches.delete(scope);
+    if (activeLaunches.size === 0)
+      process.off("unhandledRejection", holdLaunchRejection);
+    for (const [promise, { reason, candidates }] of heldLaunchRejections) {
+      if (!candidates.delete(scope)) continue;
+      if (
+        scope.failure instanceof Error &&
+        reason.message !== "" &&
+        scope.failure.message.includes(reason.message)
+      )
+        heldLaunchRejections.delete(promise);
+      else if (candidates.size === 0) {
+        heldLaunchRejections.delete(promise);
+        forwardLaunchRejection(reason, promise);
+      }
+    }
+  }
+};
 
 const providerError = (cause: unknown): AnalysisError =>
   cause instanceof AnalysisError
