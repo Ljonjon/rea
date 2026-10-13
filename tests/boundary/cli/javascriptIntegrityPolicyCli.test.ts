@@ -15,6 +15,19 @@ const run = async (arguments_: readonly string[]): Promise<unknown> => {
   return JSON.parse(stdout);
 };
 
+const runFailure = async (arguments_: readonly string[]): Promise<unknown> => {
+  try {
+    await run(arguments_);
+  } catch (cause: unknown) {
+    if (typeof cause !== "object" || cause === null || !("stdout" in cause))
+      throw cause;
+    const stdout = cause.stdout;
+    if (typeof stdout !== "string") throw cause;
+    return JSON.parse(stdout);
+  }
+  throw new Error("Expected the CLI command to fail");
+};
+
 it.each(["analyze-javascript-application", "analyze"])(
   "%s carries the integrity policy into shared JavaScript analysis",
   async (command) => {
@@ -47,20 +60,32 @@ it("rejects the JavaScript integrity policy on binary-only inspection", async ()
   });
 });
 
-it("rejects the JavaScript integrity policy on a binary analyze target", async () => {
-  // `analyze` has to declare the option for its JavaScript lane, so a binary
-  // target needs an explicit refusal rather than proceeding without it.
-  await expect(
-    run(["analyze", "unused.bin", "--integrity-policy", "record-and-continue"]),
-  ).rejects.toMatchObject({
-    code: 1,
-    stdout: expect.stringContaining("integrity_policy"),
-  });
-});
+it.each(["fail", "record-and-continue"] as const)(
+  "rejects the explicitly selected %s integrity policy on a binary analyze target",
+  async (policy) => {
+    const failure = await runFailure([
+      "analyze",
+      "unused.bin",
+      "--integrity-policy",
+      policy,
+    ]);
+    expect(failure).toMatchObject({
+      code: "invalid_request",
+      details: {
+        issues: [
+          {
+            path: ["integrity_policy"],
+            reason: "invalid_value",
+            message:
+              "An integrity policy requires the static JavaScript ASAR/directory analysis lane; binary_overview accepts no input.",
+          },
+        ],
+      },
+    });
+  },
+);
 
 it("still routes a binary analyze target without an integrity policy", async () => {
-  // The option carries a default, so the refusal above must key off the value
-  // rather than the flag's presence, or every binary analyze would be refused.
   await expect(run(["analyze", "unused.bin"])).rejects.toMatchObject({
     code: 1,
     stdout: expect.stringContaining("target does not exist"),

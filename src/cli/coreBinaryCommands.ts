@@ -45,11 +45,9 @@ const registerOverviewCommands = (
       .describe("Load and update a local analysis snapshot"),
     ...nativeOpenOptionFields,
   });
-  // `analyze` has to declare the JavaScript integrity policy for its JavaScript
-  // lane, and that option carries a default. The binary lane performs no
-  // declared-integrity comparison, so only a policy that differs from the
-  // owner's own default is a request it cannot honor. Read the default from the
-  // schema rather than restating it here.
+  // `analyze` declares the JavaScript integrity policy for its JavaScript
+  // lane. Preserve whether the caller supplied it until the target lane is
+  // known, then apply the JavaScript default only in that lane.
   const defaultIntegrityPolicy =
     javascriptApplicationOptions.shape.integrityPolicy.parse(undefined);
   cli.command(CLI_COMMANDS.analyze, {
@@ -58,7 +56,8 @@ const registerOverviewCommands = (
       path: z.string().describe("App, program, or analysis database path"),
     }),
     options: overviewOptions.extend({
-      integrityPolicy: javascriptApplicationOptions.shape.integrityPolicy,
+      integrityPolicy:
+        javascriptApplicationOptions.shape.integrityPolicy.optional(),
       sourcePath: javascriptApplicationOptions.shape.sourcePath,
     }),
     run: async ({ args, options }) => {
@@ -71,7 +70,8 @@ const registerOverviewCommands = (
             runCliJavaScriptApplicationAnalysis(
               {
                 input_path: resolve(args.path),
-                integrity_policy: options.integrityPolicy,
+                integrity_policy:
+                  options.integrityPolicy ?? defaultIntegrityPolicy,
                 ...(options.sourcePath === undefined
                   ? {}
                   : { source_paths: options.sourcePath }),
@@ -94,7 +94,7 @@ const registerOverviewCommands = (
               },
             ],
           );
-        if (options.integrityPolicy !== defaultIntegrityPolicy)
+        if (options.integrityPolicy !== undefined)
           throw new AnalysisInputError(
             "analyze_javascript_application",
             undefined,
