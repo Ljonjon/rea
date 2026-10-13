@@ -327,7 +327,10 @@ export const createJavaScriptRpcScan = (
           const expression = node.expressions[index];
           if (expression === undefined) continue;
           const literal = readExactJavaScriptLiteral(expression);
-          if (!literal.found) return undefined;
+          if (!literal.found)
+            // An already observed leading header survives an unknown suffix;
+            // never resume scanning after this unresolved boundary.
+            return graphqlOperationFromText(pieces.join(""));
           pieces.push(String(literal.value));
         }
         return graphqlOperationFromText(pieces.join(""));
