@@ -138,6 +138,9 @@ const codexDirectory = ({ home, env }: ClientPathContext): string =>
 const qoderDirectory = ({ home, env }: ClientPathContext): string =>
   env.QODER_CONFIG_DIR || join(home, ".qoder");
 
+const factoryDirectory = ({ home }: ClientPathContext): string =>
+  join(home, ".factory");
+
 /** Match Qwen Code's home override, including tilde and cwd-relative paths. */
 const qwenCodeDirectory = ({ home, env }: ClientPathContext): string => {
   const override = env.QWEN_HOME;
@@ -160,8 +163,27 @@ const qwenCodeDirectory = ({ home, env }: ClientPathContext): string => {
 const grokDirectory = ({ home, env }: ClientPathContext): string =>
   env.GROK_HOME || join(home, ".grok");
 
+/** Match Harness home-paths for both independent roots; trim only to detect blanks. */
+const dshDirectory = (
+  home: string,
+  override: string | undefined,
+  fallback: string,
+): string => {
+  const selected =
+    override !== undefined && override.trim().length > 0
+      ? override
+      : join(home, fallback);
+  const expanded =
+    selected === "~"
+      ? home
+      : selected.startsWith("~/") || selected.startsWith("~\\")
+        ? join(home, selected.slice(2))
+        : selected;
+  return resolve(expanded);
+};
+
 const dshHomeDirectory = ({ home, env }: ClientPathContext): string =>
-  env.DSH_HOME ?? join(home, ".dsh");
+  dshDirectory(home, env.DSH_HOME, ".dsh");
 
 const dshPatchDirectory = (context: ClientPathContext): string =>
   join(dshHomeDirectory(context), "cordis.patch.yml");
@@ -552,6 +574,16 @@ export const SUPPORTED_CLIENT_DEFINITIONS = [
     format: "json",
   },
   {
+    name: "droid",
+    displayName: "Factory Droid",
+    skillPath: (context: ClientPathContext) =>
+      join(factoryDirectory(context), "skills"),
+    configPath: (context: ClientPathContext) =>
+      join(factoryDirectory(context), "mcp.json"),
+    markerPath: factoryDirectory,
+    format: "json",
+  },
+  {
     name: "zcode",
     zcodeFallbackPath: ({ home }: ClientPathContext) =>
       join(home, ".agents", "mcp.json"),
@@ -567,7 +599,7 @@ export const SUPPORTED_CLIENT_DEFINITIONS = [
     // The home Cordis patch applies to every profile; the skill directory is
     // shared agent storage Harness discovers.
     skillPath: ({ home, env }: ClientPathContext) =>
-      join(env.DSH_AGENTS_HOME ?? join(home, ".agents"), "skills"),
+      join(dshDirectory(home, env.DSH_AGENTS_HOME, ".agents"), "skills"),
     configPath: dshPatchDirectory,
     markerPath: dshHomeDirectory,
     format: "dsh",

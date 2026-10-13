@@ -165,6 +165,14 @@ For [Qoder](https://docs.qoder.com/cli/mcp-reference), setup writes
 from `~/.qoder/skills` (following `QODER_CONFIG_DIR` when set), so setup
 installs its skill copy there.
 
+## Factory Droid
+
+For [Factory Droid](https://docs.factory.com/harness/mcp), setup writes
+`mcpServers.rea` into the user-level `~/.factory/mcp.json`. Entries carry
+`command`, `args`, and `env`. Droid discovers personal skills from
+`~/.factory/skills` ([skills](https://docs.factory.com/harness/skills)), so
+setup installs its skill copy there.
+
 ## Trae
 
 For [Trae](https://docs.trae.ai/ide/add-mcp-servers), setup writes
@@ -231,8 +239,15 @@ replaces) the REA entry in the home patch `$DSH_HOME/cordis.patch.yml`
 patches and comments. `rea doctor --client dsh` checks that same entry id.
 `rea uninstall` removes it by scanning supported clients; uninstall takes no
 `--client` flag. The home patch applies to every Harness profile, so the
-registration is written once and no per-profile edit is needed. The written
-entry is:
+registration is written once and no per-profile edit is needed.
+
+Setup, doctor and uninstall resolve `DSH_HOME` and `DSH_AGENTS_HOME` as Harness
+does: unset, empty or whitespace-only values use `~/.dsh` and `~/.agents`,
+respectively. Bare `~`, `~/` and `~\` expand to the user home; other relative
+values resolve against the command's working directory. Nonblank values retain
+their original spaces, and the agents root is independent of the Harness home.
+Run REA and Harness from the same working directory when using relative overrides.
+The written entry is:
 
 ```yaml
 - insert:

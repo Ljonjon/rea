@@ -17,7 +17,7 @@ import {
   type NativeCommandRunner,
 } from "../../../../src/native/CommandRunner.js";
 import { err, ok } from "../../../../src/domain/result.js";
-import { parseLipoArchitectures } from "../../../../src/native/parsers/lipo.js";
+import { parseLipoOutput } from "../../../../src/native/parsers/lipo.js";
 import { parseCodeSignature } from "../../../../src/native/parsers/codesign.js";
 import { prepareProcessOwnershipInspection } from "../../../../src/process/ProcessOwnershipObservation.js";
 import { projectAnalysisError } from "../../../../src/domain/analysisErrorProjection.js";
@@ -61,7 +61,13 @@ afterEach(async () => {
 });
 
 describe("native macOS provider discovery", () => {
-  it.each(["ordinary.fixture", "  spaced.fixture  ", " leading", "trailing "])(
+  it.each([
+    "ordinary.fixture",
+    "  spaced.fixture  ",
+    " leading",
+    "trailing ",
+    "literal\r\nidentifier\r",
+  ])(
     "preserves the exact signing identifier %j reported by codesign",
     (identifier) => {
       const parsed = parseCodeSignature(
@@ -74,31 +80,68 @@ describe("native macOS provider discovery", () => {
     },
   );
 
-  it("separates echoed path and identifier text from signature fields", () => {
-    const path = "/apps/x\nAuthority=Forged\nIdentifier=forged";
-    const identifier = "x\nFormat=forged\nAuthority=Forged-5555";
-    const parsed = parseCodeSignature(
-      [
-        `Executable=${path}`,
-        `Identifier=${identifier}`,
-        "Format=Mach-O thin (arm64)",
-        "CodeDirectory v=20400 size=342 flags=0x2(adhoc) hashes=2+2",
-        "CDHash=6aee90e6",
-        "Signature=adhoc",
-        "TeamIdentifier=not set",
-        "",
-      ].join("\r\n"),
-      false,
-      ["/elsewhere", path],
-    );
-    expect(parsed).toMatchObject({
-      identifier,
-      format: "Mach-O thin (arm64)",
-      authorities: [],
-      cdhashes: ["6aee90e6"],
-      team_identifier: null,
-    });
-  });
+  it.each(["\n", "\r\n"])(
+    "separates echoed path and identifier text from signature fields (%j)",
+    (newline) => {
+      const path = "/apps/x\r\nAuthority=Forged\nIdentifier=forged";
+      const identifier = "x\r\nFormat=forged\nAuthority=Forged-5555\r";
+      const parsed = parseCodeSignature(
+        [
+          `Executable=${path}`,
+          `Identifier=${identifier}`,
+          "Format=Mach-O thin (arm64)",
+          "CodeDirectory v=20400 size=342 flags=0x2(adhoc) hashes=2+2",
+          "CDHash=6aee90e6",
+          "Signature=adhoc",
+          "TeamIdentifier=not set",
+          "",
+        ].join(newline),
+        false,
+        ["/elsewhere", path],
+      );
+      expect(parsed).toMatchObject({
+        identifier,
+        format: "Mach-O thin (arm64)",
+        authorities: [],
+        cdhashes: ["6aee90e6"],
+        team_identifier: null,
+      });
+    },
+  );
+
+  it.each([
+    { executable: "", paths: [], newline: "\r\n", identifier: "fixture" },
+    {
+      executable: "Executable=/apps/fixture\r\n",
+      paths: [],
+      newline: "\r\n",
+      identifier: "fixture\nFormat=payload\r",
+    },
+    {
+      executable: "Executable=/apps/fixture\n",
+      paths: ["/elsewhere"],
+      newline: "\n",
+      identifier: "fixture\r\nFormat=payload\r",
+    },
+    {
+      executable: "Executable=/apps/fixture\r\n",
+      paths: ["/elsewhere"],
+      newline: "\r\n",
+      identifier: "fixture\r",
+    },
+  ])(
+    "frames the identifier without a matching executable path: %j",
+    ({ executable, paths, newline, identifier }) => {
+      const parsed = parseCodeSignature(
+        `${executable}Identifier=${identifier}${newline}Format=Mach-O thin (arm64)${newline}TeamIdentifier=not set${newline}`,
+        false,
+        paths,
+      );
+      expect(parsed.identifier).toBe(identifier);
+      expect(parsed.format).toBe("Mach-O thin (arm64)");
+      expect(parsed.team_identifier).toBeNull();
+    },
+  );
 
   it.each(["timeout", "output-limit"] as const)(
     "preserves %s resolution failures with their captured output and cleanup status",
@@ -917,15 +960,17 @@ describe("native macOS provider failures and parsing", () => {
   });
 
   it("parses thin and universal lipo fixtures", async () => {
-    expect(
-      parseLipoArchitectures(await fixture("lipo-thin.txt")),
-    ).toMatchObject([{ name: "arm64" }]);
-    expect(parseLipoArchitectures(await fixture("lipo-fat.txt"))).toMatchObject(
-      [
+    expect(parseLipoOutput(await fixture("lipo-thin.txt"))).toMatchObject({
+      format: "thin",
+      architectures: [{ name: "arm64" }],
+    });
+    expect(parseLipoOutput(await fixture("lipo-fat.txt"))).toMatchObject({
+      format: "fat",
+      architectures: [
         { name: "x86_64", file_offset: 16384, size: 4096 },
         { name: "arm64", file_offset: 32768, size: 8192 },
       ],
-    );
+    });
   });
 
   it("rejects trailing text in lipo numeric fields instead of truncating", () => {
@@ -937,7 +982,7 @@ describe("native macOS provider failures and parsing", () => {
       "    size 0x10",
       "    align 2^14 (16384)",
     ].join("\n");
-    expect(parseLipoArchitectures(output)).toMatchObject([
+    expect(parseLipoOutput(output).architectures).toMatchObject([
       { name: "arm64", file_offset: null, size: null, alignment: 16384 },
     ]);
   });
@@ -950,10 +995,11 @@ describe("native macOS provider failures and parsing", () => {
       "    align 2^14 (16384)",
     ].join("\n");
     expect(
-      parseLipoArchitectures(output.replace("(16384)", "(8192)"))[0]?.alignment,
+      parseLipoOutput(output.replace("(16384)", "(8192)")).architectures[0]
+        ?.alignment,
     ).toBeNull();
     expect(
-      parseLipoArchitectures(output.replace("2^14 (16384)", "2^14"))[0]
+      parseLipoOutput(output.replace("2^14 (16384)", "2^14")).architectures[0]
         ?.alignment,
     ).toBe(16384);
   });
@@ -976,6 +1022,38 @@ describe("native macOS provider failures and parsing", () => {
       ).hardened_runtime,
     ).toBe(false);
   });
+});
+
+describe("native signature inspection target scope", () => {
+  // This provider's inspect_signature path is scoped to Mach-O targets; on
+  // another container a codesign verdict cannot see a format-level signature
+  // such as a xar pkg signature.
+  it.each([
+    {
+      path: "/fixture.pkg",
+      sha256: "0".repeat(64),
+      kind: "archive" as const,
+      format: "pkg" as const,
+    },
+    {
+      ...machoTarget("/fixture.elf"),
+      format: "elf" as const,
+    },
+  ])(
+    "refuses inspect_signature on a $format target without running codesign",
+    async (target) => {
+      const runner = new CountingRunner();
+      const result = await new NativeMacOSProvider({}, runner, "darwin")
+        .createClient(target)
+        .execute("inspect_signature", {});
+      if (result.ok) throw new Error("Expected a non-Mach-O refusal");
+      expect(result.error._tag).toBe("AnalysisCapabilityUnavailableError");
+      expect(projectAnalysisError(result.error)).toMatchObject({
+        code: "capability_unavailable",
+      });
+      expect(runner.calls).toBe(0);
+    },
+  );
 });
 
 class FailingRunner implements NativeCommandRunner {
