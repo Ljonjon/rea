@@ -33,7 +33,7 @@ unverified.
 ## Supply tools
 
 Use a **full JDK 17 or newer** (including its compiler module) and
-**jadx-headless-mcp 0.7.1**. REA runs its packaged Java metadata bridge in
+[**jadx-headless-mcp 0.7.1**](https://github.com/1013503897/jadx-headless-mcp/releases/download/v0.7.1/jadx-headless-mcp-0.7.1-all.jar). REA runs its packaged Java metadata bridge in
 source-file mode against the unmodified engine JAR. REA does not install Java,
 an Android SDK, JADX, a device service or an emulator. Set the path in the shell
 or MCP server environment:
