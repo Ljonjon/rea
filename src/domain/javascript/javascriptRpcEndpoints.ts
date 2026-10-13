@@ -264,9 +264,9 @@ export const createJavaScriptRpcScan = (
   let marker: boolean | undefined;
   const hasMarker = (): boolean =>
     (marker ??= TRPC_SOURCE_MARKERS.some((value) => source.includes(value)));
-  // graphql-tag documents retain their source text in loc.source.body; that
-  // text repeats the OperationDefinition already recovered from the object.
-  const documentSourceBodies = new WeakSet<t.Node>();
+  // Text consumed by an enclosing GraphQL representation has one reporting
+  // owner: compiled document source bodies and exact folded template literals.
+  const ownedGraphqlText = new WeakSet<t.Node>();
 
   const procedure = (
     node: t.CallExpression | t.OptionalCallExpression,
@@ -298,6 +298,7 @@ export const createJavaScriptRpcScan = (
 
   return {
     inspect: (node) => {
+      if (ownedGraphqlText.has(node)) return undefined;
       if (t.isCallExpression(node) || t.isOptionalCallExpression(node))
         return trpcLinkUrl(node) ?? procedure(node);
       if (t.isObjectExpression(node)) {
@@ -306,20 +307,24 @@ export const createJavaScriptRpcScan = (
           t.isStringLiteral(body) &&
           objectProperty(node, "locationOffset") !== undefined
         ) {
-          documentSourceBodies.add(body);
+          ownedGraphqlText.add(body);
           return undefined;
         }
         return graphqlOperationFromDocumentNode(node);
       }
-      if (t.isStringLiteral(node))
-        return documentSourceBodies.has(node)
-          ? undefined
-          : graphqlOperationFromText(node.value);
+      if (t.isStringLiteral(node)) return graphqlOperationFromText(node.value);
       if (t.isTemplateLiteral(node)) {
         // Only exact syntax-level values can establish the combined document's
         // lexical context. A dynamic interpolation may contain a comment,
         // block string or non-fragment definition, so later text stays unknown.
         const pieces: string[] = [];
+        const folded: t.Node[] = [];
+        const report = (): JavaScriptRpcEndpoint | undefined => {
+          const endpoint = graphqlOperationFromText(pieces.join(""));
+          if (endpoint !== undefined)
+            for (const expression of folded) ownedGraphqlText.add(expression);
+          return endpoint;
+        };
         for (const [index, quasi] of node.quasis.entries()) {
           const cooked = quasi.value.cooked;
           if (cooked === undefined || cooked === null) return undefined;
@@ -330,10 +335,11 @@ export const createJavaScriptRpcScan = (
           if (!literal.found)
             // An already observed leading header survives an unknown suffix;
             // never resume scanning after this unresolved boundary.
-            return graphqlOperationFromText(pieces.join(""));
+            return report();
+          folded.push(unwrapJavaScriptExpression(expression).node);
           pieces.push(String(literal.value));
         }
-        return graphqlOperationFromText(pieces.join(""));
+        return report();
       }
       return undefined;
     },

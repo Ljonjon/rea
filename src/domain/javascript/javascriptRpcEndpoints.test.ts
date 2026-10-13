@@ -382,3 +382,23 @@ it("keeps existing network endpoint recognition unchanged", () => {
     },
   ]);
 });
+
+describe("GraphQL template reporting ownership", () => {
+  it.each([
+    '${"query Q { f }"}',
+    '${("query Q { f }" as const)}',
+    "${`query Q { f }`}",
+  ])("reports a folded operation once for %s", (interpolation) => {
+    expect(rpcEndpoints("const doc = gql`" + interpolation + "`;")).toEqual([
+      { kind: "network", value: "Q", mechanism: "graphql:query" },
+    ]);
+  });
+
+  it("retains child observations when the enclosing template has no operation", () => {
+    const source =
+      'const doc = gql`fragment F on T { f } ${"query Child { f }"}`;';
+    expect(rpcEndpoints(source)).toEqual([
+      { kind: "network", value: "Child", mechanism: "graphql:query" },
+    ]);
+  });
+});
