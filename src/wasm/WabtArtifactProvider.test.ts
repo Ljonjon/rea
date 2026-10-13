@@ -391,3 +391,57 @@ it.each([
     expect(() => process.kill(pid, 0)).toThrow();
   }
 });
+
+it("routes a selected component before any WABT configuration or command", async () => {
+  const selectedRoot = await createTestTempDirectory("rea-wabt-component-");
+  const path = join(selectedRoot, "component.wasm");
+  await writeFile(path, Buffer.from([0, 0x61, 0x73, 0x6d, 0x0d, 0, 1, 0]));
+  for (const tool of ["wasm-validate", "wasm-objdump", "wasm2wat"])
+    await writeFile(
+      join(selectedRoot, tool + (process.platform === "win32" ? ".exe" : "")),
+      "source-owned executable seam",
+      { mode: 0o700 },
+    );
+  const commands: string[][] = [];
+  let runtimePath = "";
+  const provider = new WabtArtifactProvider(
+    { REA_WABT_BIN_DIRECTORY: selectedRoot },
+    async (input) => {
+      commands.push([...input.arguments]);
+      return await spawnOwnedProviderProcess({
+        ...input,
+        command: process.execPath,
+        arguments: ["-e", 'process.stdout.write("1.0.42\\n")'],
+        expectedCommand: null,
+      });
+    },
+    async () => {
+      const root = await PrivateRuntimeRoot.create({
+        prefix: "rea-wabt-component-test-",
+      });
+      runtimePath = root.path;
+      return root;
+    },
+  );
+  expect(
+    await provider.inspect({ path, glue_paths: [], candidate_paths: [] }),
+  ).toMatchObject({
+    ok: false,
+    error: {
+      _tag: "AnalysisUnsupportedTargetError",
+      remediationAction: expect.stringContaining("inspect_wasm_component"),
+    },
+  });
+  expect(commands).toEqual([]);
+  expect(runtimePath).toBe("");
+
+  const unconfigured = new WabtArtifactProvider({}, undefined, () => {
+    throw new Error("Must not allocate");
+  });
+  expect(
+    await unconfigured.inspect({ path, glue_paths: [], candidate_paths: [] }),
+  ).toMatchObject({
+    ok: false,
+    error: { _tag: "AnalysisUnsupportedTargetError" },
+  });
+});

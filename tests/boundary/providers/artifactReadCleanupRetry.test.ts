@@ -47,17 +47,35 @@ import { GoBinaryProvider } from "../../../src/go/GoBinaryProvider.js";
 import { PeResourcesProvider } from "../../../src/native/pe/PeResourcesProvider.js";
 import { createGoBinaryFixture } from "../../fixtures/go/image.js";
 import { peResourceFixture } from "../../../src/native/pe/PeResources.fixture.js";
+import { representativeComponent } from "../../../src/wasm/WasmComponentBinary.fixture.js";
+import { WasmComponentProvider } from "../../../src/wasm/WasmComponentProvider.js";
 
-it.each(["go", "pe"] as const)(
+const PROVIDERS = {
+  go: {
+    file: "program.elf",
+    bytes: () => createGoBinaryFixture().bytes,
+    create: () => new GoBinaryProvider(),
+  },
+  pe: {
+    file: "program.exe",
+    bytes: () => peResourceFixture().bytes,
+    create: () => new PeResourcesProvider(),
+  },
+  "wasm-component": {
+    file: "component.wasm",
+    bytes: representativeComponent,
+    create: () => new WasmComponentProvider(),
+  },
+} as const;
+
+it.each(["go", "pe", "wasm-component"] as const)(
   "%s provider retains a failed descriptor close and retries that owner before the next read",
   async (kind) => {
     const root = await mkdtemp(join(tmpdir(), "rea-read-cleanup-"));
-    const path = join(root, kind === "go" ? "program.elf" : "program.exe");
-    const bytes =
-      kind === "go" ? createGoBinaryFixture().bytes : peResourceFixture().bytes;
-    await writeFile(path, bytes);
-    const provider =
-      kind === "go" ? new GoBinaryProvider() : new PeResourcesProvider();
+    const fixture = PROVIDERS[kind];
+    const path = join(root, fixture.file);
+    await writeFile(path, fixture.bytes());
+    const provider = fixture.create();
     cleanupState.failFirstClose = true;
     const controller = new AbortController();
     cleanupState.abortController = controller;

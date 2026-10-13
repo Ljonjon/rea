@@ -37,6 +37,14 @@ import { wabtFailure } from "./WabtFailures.js";
 import { parseWabtOutput } from "./WabtOutput.js";
 import { parseWabtWat } from "./WabtWat.js";
 import { associateWasmGlue } from "./WasmGlueAdapter.js";
+import {
+  rejectWasmComponent,
+  wasmComponentSelected,
+} from "./WabtComponentRouting.js";
+import {
+  isWasmComponent,
+  readWasmPreamble,
+} from "../domain/wasm/wasmPreamble.js";
 
 type Launcher = NonNullable<Parameters<typeof runOwnedCommand>[2]>["launcher"];
 const OPERATION = "inspect_wasm_artifact";
@@ -106,6 +114,7 @@ export class WabtArtifactProvider implements WasmArtifactPort {
     let capturedOutput: AnalysisCapturedOutput | undefined;
     try {
       if (options?.signal?.aborted) throw new AnalysisCancelledError(OPERATION);
+      await rejectWasmComponent(input.path, this.#resources);
       const directory = this.environment.REA_WABT_BIN_DIRECTORY ?? "";
       if (!isAbsolute(directory))
         throw new Error(
@@ -236,6 +245,9 @@ export class WabtArtifactProvider implements WasmArtifactPort {
         undefined,
         this.#resources,
       );
+      // The early probe can race a replaced file; the stable read decides.
+      if (isWasmComponent(readWasmPreamble(selected.bytes)))
+        throw wasmComponentSelected(input.path);
       const artifact = {
         path: input.path,
         sha256: selected.sha256,
