@@ -1,3 +1,4 @@
+import { AnalysisCapabilityUnavailableError } from "../domain/analysisErrorCore.js";
 import type { AnalysisError } from "../domain/analysisErrorBase.js";
 import type { JsonValue } from "../domain/jsonValue.js";
 import { DarwinProcessOwnershipInspectionError } from "../process/DarwinProcessRunTokenReader.js";
@@ -35,6 +36,7 @@ export class GhidraSessionError extends Error {
   readonly timeoutMs: number | undefined;
   readonly remoteCode: string | undefined;
   readonly cleanupFailure: AnalysisError | undefined;
+  readonly capabilityFailure: AnalysisCapabilityUnavailableError | undefined;
 
   constructor(
     readonly kind: GhidraSessionFailureKind,
@@ -48,6 +50,12 @@ export class GhidraSessionError extends Error {
     this.timeoutMs = options.timeoutMs;
     this.remoteCode = options.remoteCode;
     this.cleanupFailure = options.cleanupFailure;
+    const source = options.cause instanceof GhidraLaunchError
+      ? options.cause.cause
+      : options.cause;
+    this.capabilityFailure = source instanceof AnalysisCapabilityUnavailableError
+      ? source
+      : source instanceof GhidraSessionError ? source.capabilityFailure : undefined;
   }
 }
 

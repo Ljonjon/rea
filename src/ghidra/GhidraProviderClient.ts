@@ -1043,6 +1043,8 @@ const projectPrimarySessionError = (
   startupTimeoutMs: number,
 ): AnalysisError => {
   const context = { cause: failure, diagnostics: failure.diagnostics };
+  if (failure.kind === "start" && failure.capabilityFailure !== undefined)
+    return failure.capabilityFailure;
   if (failure.cause instanceof AnalysisAccessDeniedError)
     return new AnalysisAccessDeniedError(
       operation,

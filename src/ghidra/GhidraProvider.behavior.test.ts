@@ -35,6 +35,8 @@ import { WINDOWS_NATIVE_AUTHORITY_UNAVAILABLE_REASON } from "../process/WindowsA
 import { ProviderCleanupError } from "../domain/providerCleanupError.js";
 import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
 import { ProviderStartupDeadline } from "../process/ProviderDeadline.js";
+import { AnalysisCapabilityUnavailableError } from "../domain/analysisErrorCore.js";
+import { GhidraLaunchError } from "./GhidraLauncher.js";
 
 const INSTALL = "/opt/ghidra_12.1.4_PUBLIC";
 const installationHost = (): GhidraInstallationHost => ({
@@ -2185,4 +2187,19 @@ describe("Ghidra disabled analyzer options", () => {
       expect(starts).toBe(0);
     }
   });
+});
+
+it("preserves an owned-process prerequisite refusal through Ghidra startup wrappers", async () => {
+  const prerequisite = new AnalysisCapabilityUnavailableError("process", "inspect_process_ownership", "procps-compatible ps is unavailable", { diagnostics: { command: "ps" } });
+  const ghidra = provider(installationHost(), () => ({
+    start: () => Promise.resolve(err(new GhidraSessionError("start", "launch failed", {}, { cause: new GhidraLaunchError("headless launch failed", { cause: prerequisite }) }))),
+    callTool: () => Promise.resolve(ok(null)),
+    close: () => Promise.resolve(ok(null)),
+  }));
+  const client = await createElfClient(ghidra);
+  const opened = await client.execute("health", {});
+  expect(opened.ok).toBe(false);
+  if (opened.ok) throw new Error("Expected a prerequisite refusal");
+  expect(projectAnalysisError(opened.error)).toMatchObject({ code: "capability_unavailable", details: { diagnostics: { command: "ps" } } });
+  await client.close();
 });
