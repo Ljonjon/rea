@@ -61,6 +61,7 @@ describe("Swift vtable coverage facts: unresolved Swift dispatch slots", () => {
       categoriesExamined: 0,
       truncated: false,
       objcListScanTruncated: false,
+      objcClassListScanTruncated: false,
       fixups: {
         kind: "none",
         formats: [],
@@ -167,6 +168,7 @@ describe("Swift vtable coverage facts: unsupported pointer fixup coverage", () =
       categoriesExamined: 0,
       truncated: false,
       objcListScanTruncated: false,
+      objcClassListScanTruncated: false,
       fixups: {
         kind: "chained",
         formats: ["format-99"],

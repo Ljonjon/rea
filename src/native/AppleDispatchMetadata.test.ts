@@ -642,6 +642,34 @@ describe("Apple dispatch unmapped protocol-list slot", () => {
       });
   });
 
+  it("marks class-dependent coverage partial when zero slots hide a later class", () => {
+    const bytes = image("neither");
+    bytes.writeBigUInt64LE(0n, 224);
+    bytes.writeBigUInt64LE(16n, 144);
+    bytes.writeBigUInt64LE(0n, 0x200);
+    bytes.writeBigUInt64LE(sectionBase + 0x400n, 0x208);
+    const result = decodeAppleDispatchMetadata(bytes, 1, provenance);
+    expect(result.objc_classes).toEqual([]);
+    for (const facet of [
+      "objc_class_method_ivar_metadata",
+      "objc_properties_categories",
+      "binary_relative_pointers",
+    ])
+      expect(
+        result.coverage.find((item) => item.facet === facet),
+      ).toMatchObject({
+        status: "partial",
+        reason: expect.stringContaining("max_records_reached"),
+      });
+    for (const facet of [
+      "swift_class_vtable_descriptors",
+      "swift_conformances_static_witness_slots",
+    ])
+      expect(
+        result.coverage.find((item) => item.facet === facet),
+      ).toMatchObject({ status: "complete" });
+  });
+
   it("bounds failed class-list slots by the record budget", () => {
     // Same file-declared-size hazard as the protocol list: a crafted image
     // can declare an arbitrarily large unmapped class list. Failed class

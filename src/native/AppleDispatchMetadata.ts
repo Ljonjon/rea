@@ -111,6 +111,7 @@ export const decodeAppleDispatchMetadata = (
     examined,
     categoriesExamined,
     objcListScanTruncated,
+    objcClassListScanTruncated,
   } = decodeObjcDispatchFacets({
     bytes,
     sections,
@@ -170,6 +171,7 @@ export const decodeAppleDispatchMetadata = (
     examined,
     categoriesExamined,
     objcListScanTruncated,
+    objcClassListScanTruncated,
     truncated: budget.truncated,
     fixups,
     vtables,

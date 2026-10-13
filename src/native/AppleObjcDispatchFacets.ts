@@ -76,6 +76,7 @@ export const decodeObjcDispatchFacets = (input: {
   examined: number;
   categoriesExamined: number;
   objcListScanTruncated: boolean;
+  objcClassListScanTruncated: boolean;
 } => {
   const {
     bytes,
@@ -206,6 +207,7 @@ export const decodeObjcDispatchFacets = (input: {
   // Record decoders retain their existing admission ownership.
   let listSlotsExamined = 0;
   let objcListScanTruncated = false;
+  let objcClassListScanTruncated = false;
   const readListSlot = (
     field: bigint,
   ): Result<bigint, "unmapped" | "exhausted"> => {
@@ -372,7 +374,10 @@ export const decodeObjcDispatchFacets = (input: {
       const pointer = readListSlot(field);
       if (pointer.ok || pointer.error === "unmapped") examined++;
       if (!pointer.ok) {
-        if (pointer.error === "exhausted") break;
+        if (pointer.error === "exhausted") {
+          objcClassListScanTruncated = true;
+          break;
+        }
         continue;
       }
       try {
@@ -405,5 +410,6 @@ export const decodeObjcDispatchFacets = (input: {
     examined,
     categoriesExamined,
     objcListScanTruncated,
+    objcClassListScanTruncated,
   };
 };
