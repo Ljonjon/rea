@@ -888,4 +888,60 @@ describe("Ghidra native decompiler admission", () => {
       remediation: expect.stringContaining("os/mac_arm_64/decompile"),
     });
   });
+
+  it("rejects a JDK whose os.arch selects a different native decompiler directory", () => {
+    const result = inspectGhidraInstallation(
+      {
+        environment: {},
+        installDir: INSTALL,
+        platform: "darwin",
+        architecture: "arm64",
+      },
+      host({
+        probeJava: () => ({ ...JAVA, osArch: "x86_64" }),
+      }),
+    );
+    expect(result.status).toBe("unavailable");
+    if (result.status !== "unavailable") return;
+    expect(
+      result.checks.find(({ name }) => name === "native_decompiler"),
+    ).toMatchObject({
+      status: "failed",
+      code: "executable_missing",
+      detail: expect.stringContaining(
+        "JVM reports os.arch=x86_64, so Ghidra selects its native decompiler from os/mac_x86_64",
+      ),
+      remediation: expect.stringContaining("JAVA_HOME"),
+    });
+  });
+
+  it("accepts a JDK whose os.arch selects the validated native decompiler directory", () => {
+    const result = inspectGhidraInstallation(
+      {
+        environment: {},
+        installDir: INSTALL,
+        platform: "darwin",
+        architecture: "arm64",
+      },
+      host({
+        probeJava: () => ({ ...JAVA, osArch: "aarch64" }),
+      }),
+    );
+    expect(result.status).toBe("available");
+  });
+
+  it("keeps an unrecognized JVM os.arch unknown instead of failing the install", () => {
+    const result = inspectGhidraInstallation(
+      {
+        environment: {},
+        installDir: INSTALL,
+        platform: "darwin",
+        architecture: "arm64",
+      },
+      host({
+        probeJava: () => ({ ...JAVA, osArch: "riscv64" }),
+      }),
+    );
+    expect(result.status).toBe("available");
+  });
 });
