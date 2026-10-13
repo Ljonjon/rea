@@ -262,6 +262,25 @@ CI owns coverage; aggregate and domain/contract thresholds are maintained in
 `vitest.config.ts`. They are glob-specific and never updated automatically.
 Coverage does not replace named boundary or real-provider scenarios.
 
+The `reverse-tools` coverage command enforces 100% statements and branches for
+the eleven TypeScript modules owning PR #1279's review-fix scope. Its mutation
+command enforces a 100% score on the production expressions that implement the
+reviewed corrections: signal-terminated one-shot commands, Cutter descriptor
+identity handling, shared debugger-process cleanup ownership, active GDB
+command exit and cancellation handling, and Rizin startup-frame,
+timeout-evidence, and process-exit handling. A second exhaustive pass runs the
+focused Cutter and Rizin timeout semantics tests against every compilable
+selected mutant to avoid relying on per-test mutation coverage associations;
+Stryker reports compile-error mutants separately because those cannot execute
+tests. Both passes resolve named syntax owners, scoped declarations, guards,
+callbacks, and reviewed expressions from the current TypeScript source; no
+hand-maintained line ranges select mutations. Missing, ambiguous, or malformed
+source targets stop configuration before mutation generation. The selections
+retain their review scope rather than expanding to whole source files. The focused
+suite also exercises affected MCP routes. Unchanged server registrations,
+contracts, and the Python Cutter bridge remain covered by their existing
+contract, integration, and real-provider lanes.
+
 CI runs six native Vitest shards without retries. Each shard emits a blob
 report; the merge job produces JUnit and JSON diagnostics, a module timing
 report, plus aggregate coverage during full qualification. It retains available
@@ -345,6 +364,17 @@ changes also require `npm run verify:package`. The full-gate benchmark measures
 that explicit lane, not the routine iteration requirement.
 
 ## Real-toolchain verification lanes
+
+Linux Rizin debugger ownership changes require a separate real-provider gate on
+Rizin 0.7.4. Run
+`npm run test:focused -- tests/boundary/providers/RizinInferiorTty.test.ts`.
+This test verifies the caller-selected TTY against the actual inferior's file
+descriptors, confirms `dbg.exitkills=false`, detaches through the `olj`/`o-`
+protocol, and checks that the target survives debugger close and writes to the
+selected TTY. The suite is included in the reverse-tools Vitest and mutation
+typecheck selections; its real-provider assertions skip when Rizin 0.7.4 is
+unavailable. Run the focused command above on a host with that provider for the
+explicit real-provider verification gate.
 
 Each real-toolchain command must require only the host tools needed to prove
 its stated claim. Use a host-native fixture for host/provider acceptance, and
