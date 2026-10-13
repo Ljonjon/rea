@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   artifactInventorySummaryViewResultSchema,
+  interfaceBuilderSummaryViewResultSchema,
   machoSummaryViewResultSchema,
   managedArtifactSummaryViewResultSchema,
 } from "../domain/analysisView/analysisView.js";
@@ -402,7 +403,12 @@ export const artifactOutputSchemas: Readonly<Record<string, z.ZodObject>> = {
     ]),
   ),
   extract_artifact: evidenceResultOf(artifactExtractionResultSchema),
-  decode_interface_builder: evidenceResultOf(interfaceBuilderAnalysisSchema),
+  decode_interface_builder: evidenceResultOf(
+    z.union([
+      interfaceBuilderAnalysisSchema,
+      interfaceBuilderSummaryViewResultSchema,
+    ]),
+  ),
   inspect_keyed_archive: evidenceResultOf(keyedArchiveResultSchema),
   inspect_asset_catalog: evidenceResultOf(appleAssetCatalogResultSchema),
   trace_dylib_resolution: evidenceResultOf(dylibResolutionResultSchema),

@@ -162,7 +162,8 @@ after target content was read.
 ## Retained application Evidence inputs
 
 `analyze_javascript_application`, `inspect_binary_layout`, `inspect_artifact`,
-`inspect_wasm_artifact`, and `inspect_macho` accept `detail`:
+`inspect_wasm_artifact`, `inspect_macho`, and `decode_interface_builder` accept
+`detail`:
 `complete` (default) returns the complete analysis Evidence; `summary` records
 that complete Evidence in the session and returns the derived
 `inspect_analysis_view` summary Evidence instead. Its
@@ -244,6 +245,17 @@ that unreturned symbols are absent. Large frameworks return megabytes of
 symbols (Electron Framework: 2.5 MB of imports and exports, 3.3 KB as a
 summary), so select `detail: "summary"` on the first call. Delivery detail
 never reaches the native tools or changes the source Evidence ID.
+
+Completed `decode_interface_builder` Evidence supports a summary and
+`view: {kind: "interface-builder", collection: "nodes", offset: 0, limit: 64}`.
+Collections are `documents`, `nodes`, `edges`, and `coverage`; for nodes and
+edges an optional `document` keeps rows whose evidence names that exact decoded
+`relative_path`, and an undecoded path is refused. The summary keeps every
+decoded document, the provider, node-kind, edge-relation and coverage-status
+counts, and whether the decoded graph is incomplete. Each page repeats `source_truncated`. A complete
+app graph often exceeds the default MCP response budget (XLD.app: 6.7 MB), so
+select `detail: "summary"` on the first call. Delivery detail never reaches the
+decoder or changes the source Evidence ID.
 
 `trace_application_feature`, `trace_javascript_semantics`,
 `compare_application_versions`, `compare_source_to_bundle`, and
