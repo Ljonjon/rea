@@ -33,6 +33,9 @@ import type { ArtifactResourceScope } from "../artifacts/ArtifactResourceScope.j
 interface ClientRegistrationStatusBase {
   readonly client: string;
   readonly config_path: string;
+  readonly registration_scope?: "user" | "local";
+  readonly project_directory?: string;
+  readonly requested_project_directory?: string;
 }
 
 type RegistrationCommand = readonly [string, ...string[]];
@@ -79,6 +82,8 @@ interface ClientRegistrationReadOptions {
   readonly platform?: NodeJS.Platform;
   readonly environment?: NodeJS.ProcessEnv;
   readonly resources?: ArtifactResourceScope;
+  /** Explicit diagnostic scope; maintenance continues to inspect user registrations. */
+  readonly workspaceDirectory?: string;
 }
 
 /** Registration facts shared by diagnostics and update maintenance. */
@@ -104,17 +109,23 @@ export const readClientRegistrationInspections = async (
   options: ClientRegistrationReadOptions = {},
 ): Promise<readonly ClientRegistrationInspection[]> => {
   const inspections: ClientRegistrationInspection[] = [];
-  const record = (
-    status: ClientRegistrationStatus,
-    activation: ClientRegistrationInspection["activation"] = "unknown",
-  ): void => {
-    inspections.push({ status, activation });
-  };
   for (const client of supportedClients(
     home,
     options.platform,
     options.environment,
   )) {
+    let claudeScope:
+      | Pick<
+          ClientRegistrationStatusBase,
+          "registration_scope" | "project_directory"
+        >
+      | undefined;
+    const record = (
+      status: ClientRegistrationStatus,
+      activation: ClientRegistrationInspection["activation"] = "unknown",
+    ): void => {
+      inspections.push({ status: { ...status, ...claudeScope }, activation });
+    };
     if (client.configPathError !== undefined) {
       record({
         client: client.name,
@@ -142,6 +153,12 @@ export const readClientRegistrationInspections = async (
       const files = await readClientConfigurationFiles(
         client,
         options.resources,
+        options.workspaceDirectory === undefined
+          ? {}
+          : {
+              workspaceDirectory: options.workspaceDirectory,
+              platform: options.platform ?? process.platform,
+            },
       );
       if (!files.ok) {
         record({
@@ -150,6 +167,18 @@ export const readClientRegistrationInspections = async (
           command: [],
           state: "invalid",
           remediation: files.error.detail,
+          ...(files.error.requested_project_directory === undefined
+            ? {}
+            : {
+                requested_project_directory:
+                  files.error.requested_project_directory,
+              }),
+          ...(files.error.registration_scope === undefined
+            ? {}
+            : { registration_scope: files.error.registration_scope }),
+          ...(files.error.project_directory === undefined
+            ? {}
+            : { project_directory: files.error.project_directory }),
         });
         continue;
       }
@@ -157,6 +186,24 @@ export const readClientRegistrationInspections = async (
       if (parsed === undefined) {
         record(unavailableStatus(client, "missing"));
         continue;
+      }
+      if (
+        client.name === "claude_code" &&
+        options.workspaceDirectory !== undefined
+      ) {
+        const local = parsed.serversPath[0] === "projects";
+        claudeScope = local
+          ? {
+              registration_scope: "local",
+              project_directory:
+                parsed.serversPath[1] ?? resolve(options.workspaceDirectory),
+            }
+          : {
+              registration_scope: "user",
+              ...(parsed.diagnosticProjectDirectory === undefined
+                ? {}
+                : { project_directory: parsed.diagnosticProjectDirectory }),
+            };
       }
       const policy = await readClientPolicyBlock(
         client,
@@ -191,7 +238,9 @@ export const readClientRegistrationInspections = async (
           });
           continue;
         }
-        record(unavailableStatus(client, "missing"));
+        record(
+          unavailableStatus(client, "missing", claudeScope?.registration_scope),
+        );
         continue;
       }
       const registration = parseRegistration(raw, client);
@@ -215,13 +264,21 @@ export const readClientRegistrationInspections = async (
             policyBlock === undefined
             ? "aligned"
             : "stale",
-          policyBlock,
+          policyBlock ??
+            (client.name === "claude_code" && activation === "disabled"
+              ? "REA is disabled for this Claude Code project. Re-enable it in /mcp, then rerun doctor."
+              : undefined),
+          claudeScope?.registration_scope,
         ),
         activation,
       );
     } catch (cause: unknown) {
       record(
-        unavailableStatus(client, isMissing(cause) ? "missing" : "invalid"),
+        unavailableStatus(
+          client,
+          isMissing(cause) ? "missing" : "invalid",
+          claudeScope?.registration_scope,
+        ),
       );
     }
   }
@@ -339,7 +396,9 @@ const parseRegistration = (
   if (client.format === "commandcode" && registration.transport !== "stdio")
     throw new TypeError("Expected an stdio registration");
   if (
-    (client.format === "omp" || client.format === "pi") &&
+    (client.format === "omp" ||
+      client.format === "pi" ||
+      client.name === "claude_code") &&
     registration.type !== undefined &&
     registration.type !== "stdio"
   )
@@ -348,7 +407,12 @@ const parseRegistration = (
 };
 
 /** A client that rewrites its file from memory must be quit before setup. */
-const remediation = (client: SetupClient): string => {
+const remediation = (
+  client: SetupClient,
+  scope?: ClientRegistrationStatusBase["registration_scope"],
+): string => {
+  if (scope === "local")
+    return "Run rea setup --client claude_code --scope local --project DIRECTORY using the reported project_directory, then restart the client.";
   if (client.quitBeforeSetup !== true)
     return "Run rea setup to refresh this registration, then restart the client.";
   const name = client.displayName ?? client.name;
@@ -360,6 +424,7 @@ const configuredStatus = (
   command: RegistrationCommand,
   state: "aligned" | "stale",
   policyRemediation?: string,
+  scope?: ClientRegistrationStatusBase["registration_scope"],
 ): ClientRegistrationStatus =>
   state === "aligned"
     ? {
@@ -374,18 +439,19 @@ const configuredStatus = (
         config_path: client.configPath,
         command,
         state,
-        remediation: policyRemediation ?? remediation(client),
+        remediation: policyRemediation ?? remediation(client, scope),
       };
 
 const unavailableStatus = (
   client: SetupClient,
   state: "missing" | "invalid",
+  scope?: ClientRegistrationStatusBase["registration_scope"],
 ): ClientRegistrationStatus => ({
   client: client.name,
   config_path: client.configPath,
   command: [],
   state,
-  remediation: remediation(client),
+  remediation: remediation(client, scope),
 });
 
 const clientEvidencePresent = async (client: SetupClient): Promise<boolean> => {

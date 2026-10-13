@@ -31,6 +31,7 @@ import {
   readRegularFileText,
 } from "./RegularFileRead.js";
 import { ArtifactResourceScope } from "../artifacts/ArtifactResourceScope.js";
+import { claudeCodeLocalClients } from "./ClaudeCodeProjectDirectory.js";
 import {
   appDataRedirection,
   manualRegistrationRemediation,
@@ -213,6 +214,7 @@ export const systemUninstallHost = (
   selectedFileSystem: UninstallFileSystem | undefined = undefined,
   environment: Readonly<NodeJS.ProcessEnv> = process.env,
   platform: NodeJS.Platform = process.platform,
+  options: { readonly claudeProjectDirectory?: string } = {},
 ): UninstallHost => {
   const home =
     selectedHome ?? homeDirectoryFromEnvironment(environment, platform);
@@ -227,16 +229,20 @@ export const systemUninstallHost = (
   const skillWriteBlocker = (path: string): string | undefined =>
     redirectedWriteBlocker(redirection, [path], "uninstall");
   return {
-    clients: () => {
+    clients: async () => {
       const clients = supportedClients(home, platform, environment);
       redirection = appDataRedirection(clients);
-      return Promise.resolve(
-        clients.flatMap((client) =>
-          uninstallConfigPaths(client).map((configPath) => ({
-            ...client,
-            configPath,
-          })),
-        ),
+      if (options.claudeProjectDirectory !== undefined)
+        return claudeCodeLocalClients(
+          clients,
+          options.claudeProjectDirectory,
+          resources,
+        );
+      return clients.flatMap((client) =>
+        uninstallConfigPaths(client).map((configPath) => ({
+          ...client,
+          configPath,
+        })),
       );
     },
     inspectClient: async (client) => {
@@ -256,6 +262,7 @@ export const systemUninstallHost = (
     removeClient: (client) =>
       removeClient(client, fileSystem, () => clientWriteBlocker(client)),
     inspectSkill: async () => {
+      if (options.claudeProjectDirectory !== undefined) return undefined;
       for (const destination of skillDestinations(
         home,
         undefined,
@@ -275,14 +282,27 @@ export const systemUninstallHost = (
       return undefined;
     },
     removeSkill: () =>
-      removeManagedSkills(
-        home,
-        fileSystem,
-        environment,
-        platform,
-        skillWriteBlocker,
-      ),
-    purgeData: () => purgeManagedData(join(home, ".rea"), fileSystem),
+      options.claudeProjectDirectory === undefined
+        ? removeManagedSkills(
+            home,
+            fileSystem,
+            environment,
+            platform,
+            skillWriteBlocker,
+          )
+        : Promise.resolve(
+            item(
+              "skill",
+              "retained",
+              "Local uninstall retains personal skills.",
+            ),
+          ),
+    purgeData: () =>
+      options.claudeProjectDirectory === undefined
+        ? purgeManagedData(join(home, ".rea"), fileSystem)
+        : Promise.resolve([
+            item("data", "retained", "Local uninstall retains shared data."),
+          ]),
     close: async () => {
       try {
         await resources.close();
@@ -370,7 +390,12 @@ const readClientConfiguration = async (
     );
   }
   try {
-    const parsed = parseClientConfiguration(original, client.format);
+    const parsed = parseClientConfiguration(
+      original,
+      client.format,
+      client.claudeProjectDirectory,
+      { preserveDisabledPolicy: true },
+    );
     return { kind: "configuration", transactionPath, original, parsed };
   } catch (cause: unknown) {
     return itemRead(
@@ -490,6 +515,8 @@ const removeClient = async (
     const readback = parseClientConfiguration(
       await fileSystem.readText(transactionPath),
       client.format,
+      client.claudeProjectDirectory,
+      { preserveDisabledPolicy: true },
     );
     if (
       (removeNative && Object.hasOwn(readback.servers, name)) ||
