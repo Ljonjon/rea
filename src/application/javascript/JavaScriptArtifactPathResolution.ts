@@ -1048,16 +1048,25 @@ const resolveFileCandidates = (
       (source === undefined ||
         target.container_sha256 === source.container_sha256)
     )
-      return isRuntimeDeclarationPath(input, path)
+      return target.kind === "unsupported"
         ? {
             resolvedPath: null,
             status: "unavailable",
             candidatePath: path,
             limitations: [
-              `The TypeScript declaration ${path} is compile-time evidence and cannot identify a runtime module implementation.`,
+              `The inventoried file ${path} has a source representation unsupported for static JavaScript analysis.`,
             ],
           }
-        : { resolvedPath: path, status: "resolved", limitations: [] };
+        : isRuntimeDeclarationPath(input, path)
+          ? {
+              resolvedPath: null,
+              status: "unavailable",
+              candidatePath: path,
+              limitations: [
+                `The TypeScript declaration ${path} is compile-time evidence and cannot identify a runtime module implementation.`,
+              ],
+            }
+          : { resolvedPath: path, status: "resolved", limitations: [] };
   }
   return null;
 };

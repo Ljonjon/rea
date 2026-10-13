@@ -21,6 +21,35 @@ import { createJavaScriptSourceAnalysis } from "../../../../src/artifacts/javasc
 import { analyzeAndAdoptJavaScriptArtifactFiles } from "../../../../src/application/javascript/JavaScriptArtifactAnalysis.js";
 import { createJavaScriptSemanticGraphProjection } from "../../../../src/application/javascript/JavaScriptSemanticGraphBuilder.js";
 
+it.each([undefined, ["main.js"], ["main.js", "compiled.jsc"]])(
+  "retains present cached JavaScript dependencies as unavailable with source selection %j",
+  async (source_paths) => {
+    const root = await createTestTempDirectory("rea-js-cached-dependency-");
+    await writeFile(join(root, "main.js"), "require('./compiled.jsc');");
+    await writeFile(join(root, "compiled.jsc"), Buffer.from([0xff, 0, 0x80]));
+    const result = await analyzeJavaScriptApplication({
+      input_path: root,
+      ...(source_paths === undefined ? {} : { source_paths }),
+    });
+    if (!result.ok) throw result.error;
+    const analysis = javascriptApplicationAnalysisResultSchema.parse(
+      result.value.normalized_result,
+    );
+    expect(
+      analysis.graph.edges.some(
+        ({ properties }) =>
+          properties.specifier === "./compiled.jsc" &&
+          properties.resolution_status === "unavailable",
+      ),
+    ).toBe(true);
+    expect(
+      analysis.graph.nodes.some(({ observations }) =>
+        observations.some(({ label }) => label === "compiled.jsc"),
+      ),
+    ).toBe(true);
+  },
+);
+
 describe("JavaScript source selection cancellation boundary", () => {
   it("keeps unselected files outside scope when the real worker cancels after the last selected file", async () => {
     const root = await createTestTempDirectory(
