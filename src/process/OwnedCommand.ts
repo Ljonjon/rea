@@ -20,18 +20,23 @@ import {
 /** A short-lived command failed its lifecycle or complete-output contract. */
 export class OwnedCommandFailure extends Error {
   readonly cleanupResult: ProcessCleanupFailure | undefined;
+  readonly collectionFailure: boolean;
 
   constructor(
     readonly reason: "cancelled" | "timeout" | "output-limit" | "process",
     message: string,
     readonly snapshot: ProviderProcessSnapshot | null = null,
     readonly cleanupFailure: string | null = null,
-    options?: ErrorOptions & { readonly cleanupResult?: ProcessCleanupFailure },
+    options?: ErrorOptions & {
+      readonly cleanupResult?: ProcessCleanupFailure;
+      readonly collectionFailure?: boolean;
+    },
     readonly resources: readonly string[] = [],
     readonly cleanupOwner?: ProviderProcessSupervisor,
   ) {
     super(message, options);
     this.cleanupResult = options?.cleanupResult;
+    this.collectionFailure = options?.collectionFailure ?? false;
   }
 }
 
@@ -57,6 +62,8 @@ export const runOwnedCommand = async (
   },
   options: {
     readonly signal?: AbortSignal;
+    /** Observe successful provider dispatch; callback must not throw. */
+    readonly onLaunched?: () => void;
     /** Synchronously accept unresolved cleanup ownership; execution still returns its original outcome. Must not throw. */
     readonly retainCleanup?: (owner: ProviderProcessSupervisor) => void;
     readonly launcher?: (
@@ -79,6 +86,7 @@ export const runOwnedCommand = async (
       deadline,
       callerSignal,
       options.retainCleanup,
+      options.onLaunched,
     );
   } finally {
     deadline.dispose();
@@ -98,6 +106,7 @@ const collectOwnedCommand = async (
   deadline: ProviderStartupDeadline,
   callerSignal?: AbortSignal,
   retainCleanup?: (owner: ProviderProcessSupervisor) => void,
+  onLaunched?: () => void,
 ): Promise<ProviderProcessSnapshot> => {
   const signal = deadline.signal;
   let launched: SpawnedOwnedProviderProcess;
@@ -141,6 +150,7 @@ const collectOwnedCommand = async (
   );
   let failure: OwnedCommandFailure | undefined;
   try {
+    onLaunched?.();
     while (!(await supervisor.waitForOutputClose(10))) {
       const interruption = deadline.interruption;
       if (interruption !== undefined)
@@ -156,7 +166,9 @@ const collectOwnedCommand = async (
           "Command diagnostic output exceeded its complete-output budget.",
         );
       if (processFailure !== undefined)
-        throw new OwnedCommandFailure("process", processFailure);
+        throw new OwnedCommandFailure("process", processFailure, null, null, {
+          collectionFailure: true,
+        });
       await waitForAbortableDelay(25, signal);
     }
     const snapshot = supervisor.snapshot();
@@ -191,6 +203,8 @@ const collectOwnedCommand = async (
         processFailure ??
           "Command failed; inspect its exit status and diagnostics.",
         snapshot,
+        null,
+        { collectionFailure: processFailure !== undefined },
       );
   } catch (cause: unknown) {
     failure =
@@ -219,6 +233,9 @@ const collectOwnedCommand = async (
         ...(stopped.cleanupResult === undefined
           ? {}
           : { cleanupResult: stopped.cleanupResult }),
+        ...(failure?.collectionFailure === true
+          ? { collectionFailure: true }
+          : {}),
       },
       ownedCommandResources(launched.ownership, spawn.cwd),
       supervisor,
@@ -234,6 +251,7 @@ const collectOwnedCommand = async (
         ...(failure.cleanupResult === undefined
           ? {}
           : { cleanupResult: failure.cleanupResult }),
+        ...(failure.collectionFailure ? { collectionFailure: true } : {}),
       },
       failure.resources,
     );
