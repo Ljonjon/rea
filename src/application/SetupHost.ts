@@ -33,15 +33,21 @@ import {
 } from "./SetupSkill.js";
 import {
   clientConfigurationAligned,
+  ClientConfigurationCleanupRollbackFailure,
   configureClientConfiguration,
   inspectClientConfiguration,
 } from "./SetupClientConfiguration.js";
+import { failedConfigurationMessage } from "./SetupClients.js";
 import { setupInstallFailure } from "./SetupInstallFailure.js";
 import {
   RegularFileCleanupFailure,
   retryRegularFileCleanup,
 } from "./RegularFileRead.js";
 import { providerRegistrationEnvironment } from "./SetupRegistrationEnvironment.js";
+import {
+  msixPackagesDirectory,
+  packagePrivateLauncherBlocker,
+} from "./MsixPackageStorage.js";
 import type {
   SetupHost,
   SetupInitialState,
@@ -63,6 +69,31 @@ export const setupRegistrationCommand = (
           "mcp",
         ]
       : [resolve(process.argv[1] ?? PRODUCT_IDENTITY.cliBinary), "mcp"];
+
+/**
+ * The launcher setup registers, and why it must not be registered when it
+ * exists only inside one MSIX package's private storage.
+ */
+const setupRegistration = (
+  platform: NodeJS.Platform,
+  homeDirectory: string,
+  environment: Readonly<NodeJS.ProcessEnv>,
+): Pick<SetupHost, "registrationCommand" | "registrationCommandBlocker"> => {
+  const registrationCommand = setupRegistrationCommand(
+    platform,
+    invokingPackageRunner(environment, platform),
+  );
+  const registrationCommandBlocker =
+    platform === "win32"
+      ? packagePrivateLauncherBlocker(
+          registrationCommand,
+          msixPackagesDirectory(homeDirectory, environment),
+        )
+      : undefined;
+  return registrationCommandBlocker === undefined
+    ? { registrationCommand }
+    : { registrationCommand, registrationCommandBlocker };
+};
 
 export const filterClientsNeedingConfigure = async (
   host: SetupHost,
@@ -115,10 +146,7 @@ export const systemSetupHost = (
     homeDirectory,
     skillDestinations: (clientIds) =>
       skillDestinations(homeDirectory, clientIds, environment, platform),
-    registrationCommand: setupRegistrationCommand(
-      platform,
-      invokingPackageRunner(environment, platform),
-    ),
+    ...setupRegistration(platform, homeDirectory, environment),
     nodeVersion: process.versions.node,
     macosVersion: () => doctorHost.macosVersion(),
     linuxDistribution: readLinuxDistribution,
@@ -275,8 +303,12 @@ const runClientConfigurationOperation = async <Value>(
           cleanup.outcome.kind === "failed"
             ? cleanup.outcome.cause
             : cause.cleanupCause;
+        const rollbackMessage =
+          cause instanceof ClientConfigurationCleanupRollbackFailure
+            ? ` ${failedConfigurationMessage(cause.configurationFailure)}`
+            : "";
         throw configurationCleanupError(
-          `Could not safely access client configuration at ${cause.path}: ${errorMessage(primary)}`,
+          `Could not safely access client configuration at ${cause.path}: ${errorMessage(primary)}.${rollbackMessage}`,
           cause,
           cleanup.cleanup,
         );
