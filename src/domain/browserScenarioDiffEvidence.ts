@@ -117,6 +117,33 @@ export const eventsFor = (
       event.kind === "request" ? [[event.transaction_id, event]] : [],
     ),
   );
+  // Capture-local IDs locate evidence only; the projected identity retains the
+  // predecessor's complete request, outcome and selected content before normalization.
+  const predecessorEvidence = new Map<string, unknown[]>();
+  for (const { sequence: _sequence, step_index: _step, ...event } of capture
+    .events.items) {
+    if (!("transaction_id" in event)) continue;
+    const id = event.transaction_id;
+    let evidence: unknown;
+    if (event.kind === "network-content") {
+      const {
+        transaction_id: _id,
+        source_event_sequence: _source,
+        ...content
+      } = event;
+      evidence = content;
+    } else {
+      const {
+        transaction_id: _id,
+        redirected_from_transaction_id: _predecessor,
+        ...network
+      } = event;
+      evidence = network;
+    }
+    const previous = predecessorEvidence.get(id);
+    if (previous === undefined) predecessorEvidence.set(id, [evidence]);
+    else previous.push(evidence);
+  }
   const events: unknown[] = [];
   const transactions = new Map<string, unknown[]>();
   const record = (transactionId: string, event: unknown) => {
@@ -157,13 +184,11 @@ export const eventsFor = (
       ...network
     } = event;
     const predecessor =
-      predecessorId === null ? undefined : requests.get(predecessorId);
+      predecessorId === null ? null : predecessorEvidence.get(predecessorId);
     record(transactionId, {
       ...network,
       redirected_from:
-        predecessor === undefined
-          ? null
-          : { method: predecessor.method, url: predecessor.url },
+        predecessor === undefined ? { state: "missing" } : predecessor,
     });
   }
   return { events, network_transactions: [...transactions.values()] };
@@ -183,7 +208,22 @@ export const orderNetworkTransactions = (value: unknown): unknown =>
     ? {
         ...value,
         network_transactions: digestEach(
-          value.network_transactions.map(digestEach),
+          value.network_transactions.map((transaction: unknown) =>
+            digestEach(
+              Array.isArray(transaction)
+                ? transaction.map((event: unknown) =>
+                    typeof event === "object" &&
+                    event !== null &&
+                    "redirected_from" in event
+                      ? {
+                          ...event,
+                          redirected_from: digestEach(event.redirected_from),
+                        }
+                      : event,
+                  )
+                : transaction,
+            ),
+          ),
         ),
       }
     : value;
