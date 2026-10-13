@@ -59,7 +59,7 @@ import {
 import { connectHopperSocketOnce } from "./HopperSocketConnection.js";
 import {
   hopperLauncherFailureDiagnostic,
-  nativeHopperApplicationWasNotFound,
+  hopperLauncherReportedApplicationNotFound,
   nativeHopperLaunchWasDenied,
 } from "./HopperProcessDiagnostic.js";
 import { DEFAULT_HOPPER_STARTUP_TIMEOUT_MS } from "../config/providerStartupTimeout.js";
@@ -769,8 +769,7 @@ export class HopperClient {
         launcherFailure,
       });
     }
-    if (nativeHopperApplicationWasNotFound(launcherFailure)) {
-      this.#resources.shutdownConfirmed = true;
+    if (hopperLauncherReportedApplicationNotFound(launcherFailure)) {
       return new HopperStartError({
         userMessage:
           "Hopper's launcher could not find Hopper because it relies on Spotlight. Enable Spotlight indexing for the volume that contains Hopper (for example: sudo mdutil -i on /System/Volumes/Data), wait for indexing to finish, then retry opening the target.",

@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 
 import type { HopperLauncherOutcome } from "../domain/hopperErrors.js";
 import {
-  nativeHopperApplicationWasNotFound,
+  hopperLauncherReportedApplicationNotFound,
   nativeHopperLaunchWasDenied,
 } from "./HopperProcessDiagnostic.js";
 
@@ -73,7 +73,7 @@ const notFound: HopperLauncherOutcome = {
 };
 
 it("recognizes the native helper's complete Spotlight not-found report", () => {
-  expect(nativeHopperApplicationWasNotFound(notFound)).toBe(true);
+  expect(hopperLauncherReportedApplicationNotFound(notFound)).toBe(true);
   expect(nativeHopperLaunchWasDenied(notFound)).toBe(false);
 });
 
@@ -91,10 +91,10 @@ it.each([
     },
   },
 ])(
-  "keeps document ownership unknown for other not-found shapes: %j",
+  "rejects other not-found diagnostic shapes: %j",
   (change) => {
-    expect(nativeHopperApplicationWasNotFound({ ...notFound, ...change })).toBe(
-      false,
-    );
+    expect(
+      hopperLauncherReportedApplicationNotFound({ ...notFound, ...change }),
+    ).toBe(false);
   },
 );

@@ -6,10 +6,8 @@ import type { ProviderProcessDiagnostic } from "../process/ProviderProcess.js";
 import { parseLinuxPrivateDisplayDiagnostic } from "./LinuxPrivateDisplayDiagnostic.js";
 import type { HopperLauncherOutcome } from "../domain/hopperErrors.js";
 
-/** Recognize native stderr signatures only with complete, empty stdout. */
-const hasCompleteNativeHelperOutput = (
-  outcome: HopperLauncherOutcome,
-): boolean =>
+/** Recognize launcher stderr signatures only with complete, empty stdout. */
+const hasCompleteLauncherOutput = (outcome: HopperLauncherOutcome): boolean =>
   outcome.output_closed &&
   !outcome.diagnostic_truncated &&
   outcome.stdout.text === "" &&
@@ -28,24 +26,23 @@ export const nativeHopperLaunchWasDenied = (
   outcome !== undefined &&
   outcome.exit_code === 2 &&
   outcome.signal === null &&
-  hasCompleteNativeHelperOutput(outcome) &&
+  hasCompleteLauncherOutput(outcome) &&
   /^Cannot launch Hopper!\r?\nNot authorized to send Apple events to [^\r\n]+\.\r?\n?$/u.test(
     outcome.stderr.text,
   );
 
 /**
- * Hopper's native helper locates the application through a fixed Spotlight
- * bundle-identifier query before any Apple event. Recognize its complete
- * "not found" report: no document can exist. Caller arguments do not reach
- * that query. Other output leaves ownership unknown.
+ * Recognize the launcher's complete Spotlight diagnostic for actionable setup
+ * guidance. Custom launchers may forward this report after a handoff, so the
+ * report does not establish whether a document exists or release ownership.
  */
-export const nativeHopperApplicationWasNotFound = (
+export const hopperLauncherReportedApplicationNotFound = (
   outcome: HopperLauncherOutcome | undefined,
 ): outcome is HopperLauncherOutcome =>
   outcome !== undefined &&
   outcome.exit_code === 3 &&
   outcome.signal === null &&
-  hasCompleteNativeHelperOutput(outcome) &&
+  hasCompleteLauncherOutput(outcome) &&
   /^Hopper has not been found\.\r?\nPlease make sure that Spotlight is active in order for this tool to find Hopper's executable\.\r?\n?$/u.test(
     outcome.stderr.text,
   );
