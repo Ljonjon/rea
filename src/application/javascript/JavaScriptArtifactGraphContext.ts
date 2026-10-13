@@ -13,6 +13,7 @@ import type {
   JavaScriptArtifactFile,
   JavaScriptArtifactFileSet,
   JavaScriptArtifactFileKind,
+  JavaScriptArtifactPathFact,
 } from "../../domain/javascript/javascriptArtifactFiles.js";
 import { JavaScriptArtifactGraphAccumulator } from "./JavaScriptArtifactGraphAccumulator.js";
 import {
@@ -22,6 +23,7 @@ import {
   unavailableAstEvidence,
 } from "./JavaScriptArtifactGraphEvidence.js";
 import {
+  artifactPathResolutionProperties,
   resolveArtifactPathByContext,
   type ArtifactPathResolution,
 } from "./JavaScriptArtifactPathResolution.js";
@@ -34,6 +36,7 @@ export interface JavaScriptArtifactGraphContext {
   readonly analysis: JavaScriptModuleArtifactAnalysis;
   readonly root: ApplicationNode;
   readonly filesByPath: ReadonlyMap<string, JavaScriptArtifactFile>;
+  readonly pathFacts: ReadonlyMap<string, JavaScriptArtifactPathFact>;
   readonly fileNodes: Map<string, ApplicationNode>;
   readonly assetNodes: Map<string, ApplicationNode>;
   readonly sourceModuleNodes: Map<string, ApplicationNode>;
@@ -268,6 +271,7 @@ export const createElectronRoleNode = (
       {
         label: input.resolution.resolved_path ?? input.resolution.declared_path,
         properties: {
+          ...artifactPathResolutionProperties(input.resolution),
           declared_path: input.resolution.declared_path,
           resolution_context: input.resolution.resolution_context,
           resolved_path: input.resolution.resolved_path,

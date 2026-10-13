@@ -6,7 +6,10 @@ import {
   type JavaScriptApplicationGraph,
 } from "../../domain/javascript/javascriptApplicationGraph.js";
 import type { JavaScriptModuleArtifactAnalysis } from "./JavaScriptArtifactAnalysisTypes.js";
-import type { JavaScriptArtifactFileSet } from "../../domain/javascript/javascriptArtifactFiles.js";
+import type {
+  JavaScriptArtifactFileSet,
+  JavaScriptArtifactPathFact,
+} from "../../domain/javascript/javascriptArtifactFiles.js";
 import { JavaScriptArtifactGraphAccumulator } from "./JavaScriptArtifactGraphAccumulator.js";
 import {
   selfReferenceOmissions,
@@ -97,6 +100,12 @@ function* buildJavaScriptArtifactGraphInputSteps(
     analysis,
     root,
     filesByPath: new Map(fileSet.files.map((file) => [file.path, file])),
+    pathFacts: new Map<string, JavaScriptArtifactPathFact>([
+      ...(fileSet.unavailable_files ?? []).map(
+        (file) => [file.path, file] as const,
+      ),
+      ...fileSet.files.map((file) => [file.path, file] as const),
+    ]),
     fileNodes: new Map(),
     assetNodes: new Map(),
     sourceModuleNodes: new Map(),
@@ -163,11 +172,13 @@ const graphCoverage = (context: JavaScriptArtifactGraphContext) => {
     context.analysis.packages.some(({ status }) => status !== "included") ||
     context.analysis.json_modules.some(({ status }) => status !== "included") ||
     context.analysis.source_maps.some(({ status }) => status === "invalid");
-  const partialJavaScript = context.analysis.files.some(
-    ({ javascript }) =>
-      javascript !== null && javascript.parse_status === "partial",
-  );
+  const partialJavaScript =
+    context.analysis.files.some(
+      ({ javascript }) =>
+        javascript !== null && javascript.parse_status === "partial",
+    ) || context.fileSet.files.some(({ kind }) => kind === "unsupported");
   const unknownGap =
+    (context.fileSet.unavailable_files?.length ?? 0) > 0 ||
     (context.fileSet.source_selection?.unselected_files ?? 0) > 0 ||
     context.analysis.files.some(
       ({ analysis_failure, application_projection_failure }) =>
@@ -245,11 +256,23 @@ const graphLimitations = (
   );
   return [
     ...context.analysis.limitations,
+    ...context.fileSet.files
+      .filter(({ kind }) => kind === "unsupported")
+      .map(
+        ({ path }) =>
+          `The inventoried source representation at ${path} is unsupported; its JavaScript semantics and relationships remain unavailable.`,
+      ),
     ...(context.fileSet.source_selection === undefined
       ? []
       : [
           `Caller-selected source analysis leaves ${String(context.fileSet.source_selection.unselected_files)} inventoried files outside analysis scope. Inventory identity covers the complete artifact; relationships through unselected sources remain unknown.`,
         ]),
+    ...context.fileSet.files
+      .filter(({ kind }) => kind === "unsupported")
+      .map(
+        ({ path }) =>
+          `The inventoried source representation at ${path} is unsupported; its JavaScript semantics and relationships remain unavailable.`,
+      ),
     ...context.snapshot.integrity_contradictions.map(
       ({ logical_path: path }) =>
         `Artifact integrity metadata contradicts observed bytes at ${path}; the observed bytes are untrusted.`,

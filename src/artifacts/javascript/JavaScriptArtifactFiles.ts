@@ -25,6 +25,7 @@ import type {
   JavaScriptArtifactFile,
   JavaScriptArtifactContainer,
   JavaScriptArtifactFileSet,
+  JavaScriptArtifactUnavailableFile,
 } from "../../domain/javascript/javascriptArtifactFiles.js";
 
 interface ExpectedFile {
@@ -140,6 +141,9 @@ export const readJavaScriptArtifactFiles = async (
   assertExpectedFilesWereVisited(expected, files);
   return {
     files,
+    unavailable_files: [...inventory.unavailableFiles.values()].sort(
+      (left, right) => compareUnicodeCodePoints(left.path, right.path),
+    ),
     containers: context.containers.sort((left, right) =>
       compareUnicodeCodePoints(left.path, right.path),
     ),
@@ -319,7 +323,10 @@ const readText = async (
     );
     return { included: false, reason: "outside-analysis-scope" };
   }
-  if (input.expected.kind === "native-addon") {
+  if (
+    input.expected.kind === "native-addon" ||
+    input.expected.kind === "unsupported"
+  ) {
     await verifyEntryBytes(
       await input.reader.open(input.entry, context.signal),
       input.expected,
@@ -379,23 +386,51 @@ const expectedInventory = (
 ): {
   readonly files: ReadonlyMap<string, ExpectedFile>;
   readonly containers: ReadonlyMap<string, ExpectedContainer>;
-  readonly unavailableFiles: ReadonlySet<string>;
+  readonly unavailableFiles: ReadonlyMap<
+    string,
+    JavaScriptArtifactUnavailableFile
+  >;
 } => {
   const nodes = new Map(snapshot.nodes.map((node) => [node.artifact_id, node]));
   const files = new Map<string, ExpectedFile>();
   const containers = new Map<string, ExpectedContainer>();
-  const unavailableFiles = new Set<string>();
+  const unavailableFiles = new Map<string, JavaScriptArtifactUnavailableFile>();
+  const occurrences = new Map(
+    snapshot.occurrences.map((occurrence) => [
+      occurrence.occurrence_id,
+      occurrence,
+    ]),
+  );
+  const containerDigest = (occurrence: ArtifactOccurrence): string => {
+    let parent = occurrence.parent_occurrence_id;
+    while (parent !== null) {
+      const ancestor = occurrences.get(parent);
+      if (ancestor === undefined) break;
+      if (
+        ancestor.artifact_format === "asar" &&
+        ancestor.artifact_id !== null
+      ) {
+        const node = nodes.get(ancestor.artifact_id);
+        if (node !== undefined) return node.sha256;
+      }
+      parent = ancestor.parent_occurrence_id;
+    }
+    return snapshot.manifest.root_sha256;
+  };
   for (const occurrence of snapshot.occurrences) {
     if (occurrence.logical_path === ".") continue;
     const isNestedAsar =
       occurrence.entry_kind === "file" &&
       occurrence.logical_path.toLowerCase().endsWith(".asar");
     if (occurrence.artifact_id === null) {
-      if (
-        occurrence.entry_kind === "file" &&
-        relevantKind(occurrence.logical_path) !== undefined
-      )
-        unavailableFiles.add(occurrence.logical_path);
+      const kind = relevantKind(occurrence.logical_path);
+      if (occurrence.entry_kind === "file" && kind !== undefined)
+        unavailableFiles.set(occurrence.logical_path, {
+          path: occurrence.logical_path,
+          container_sha256: containerDigest(occurrence),
+          kind,
+          text: { included: false, reason: "unavailable" },
+        });
       if (isNestedAsar)
         containers.set(occurrence.logical_path, {
           hash_status: occurrence.hash_status,
@@ -475,6 +510,7 @@ const relevantKind = (path: string): JavaScriptArtifactFileKind | undefined => {
   if (/\.html?$/u.test(lower)) return "html";
   if (lower.endsWith(".map")) return "source-map";
   if (lower.endsWith(".node")) return "native-addon";
+  if (lower.endsWith(".jsc")) return "unsupported";
   return undefined;
 };
 

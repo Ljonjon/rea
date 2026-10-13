@@ -160,6 +160,13 @@ export const analyzeAndAdoptJavaScriptArtifactFiles = async (
       if (signal?.aborted === true)
         throw new AnalysisCancelledError("analyze_javascript_application");
       await beforeFile(file, selectedFileIndex++, selectedFileCount);
+      if (file.kind === "unsupported")
+        projection.recordUnavailableFile(
+          file,
+          "The inventoried source representation is unsupported for static JavaScript analysis.",
+          null,
+          "incomplete-module",
+        );
       if (file.kind !== "javascript" || !file.text.included) {
         const steps = analyzeArtifactFileSteps(file, {
           state,
@@ -418,7 +425,7 @@ const classifyOutsideAnalysisScope = <
   if (file.text.included || file.text.reason !== "outside-analysis-scope")
     return false;
   state.files.push({ file, javascript: null, semantic: null });
-  if (file.kind === "javascript")
+  if (file.kind === "javascript" || file.kind === "unsupported")
     projection?.recordUnavailableFile(
       file,
       "Source was not analyzed because it is outside the caller-selected source_paths.",

@@ -141,6 +141,13 @@ export const buildJavaScriptSemanticGraph = ({
         analyzed.semantic.ir,
         analyzed.javascript?.electron.call_paths,
       );
+    else if (analyzed.file.kind === "unsupported")
+      projection.recordUnavailableFile(
+        analyzed.file,
+        "The inventoried source representation is unsupported for static JavaScript analysis.",
+        null,
+        "incomplete-module",
+      );
     else if (
       !analyzed.file.text.included &&
       analyzed.file.text.reason === "outside-analysis-scope"
