@@ -290,6 +290,7 @@ describe.skipIf(process.platform === "win32")(
               "application.version=12.1.4\napplication.java.min=21\n",
             executable: () => true,
             probeJava: () => ({
+              osArch: process.arch === "arm64" ? "aarch64" : "amd64",
               version: "21.0.12",
               major: 21,
               home: "/fixture/jdk",

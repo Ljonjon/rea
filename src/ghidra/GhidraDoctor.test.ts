@@ -19,6 +19,7 @@ const installationHost = (
   readText: () => "application.version=12.1.4\napplication.java.min=21\n",
   executable: () => true,
   probeJava: () => ({
+    osArch: "amd64",
     version: "21.0.11",
     major: 21,
     home: "/usr/lib/jvm/jdk-21",
@@ -129,6 +130,7 @@ describe("Ghidra doctor integration", () => {
         { installDir: INSTALL },
         {
           probeJava: () => ({
+            osArch: "amd64",
             version: "17.0.12",
             major: 17,
             home: "/usr/lib/jvm/jdk-17",

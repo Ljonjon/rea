@@ -644,17 +644,18 @@ const nativeDecompilerCheck = ({
   const osArch = coordinates.java?.osArch;
   const selectedDirectory = jvmOsArchNativeDirectory(platform, osArch);
   const validatedDirectory = NATIVE_PLATFORMS[platform]?.[architecture];
-  if (osArch !== undefined && selectedDirectory === undefined)
+  if (selectedDirectory === undefined)
     return installationCheck({
       name: "native_decompiler",
       passed: false,
       code: "executable_missing",
-      detail: `JVM reports unrecognized os.arch=${osArch}; its selected native decompiler directory is unknown and cannot be matched to the validated host directory`,
+      detail:
+        osArch === undefined
+          ? "The Java probe did not report os.arch; the JVM-selected native decompiler directory is unknown and cannot be matched to the validated host directory"
+          : `JVM reports unrecognized os.arch=${osArch}; its selected native decompiler directory is unknown and cannot be matched to the validated host directory`,
       remediation: `Point JAVA_HOME at a JDK whose reported architecture maps to the validated Ghidra decompiler (${validatedDirectory ?? "unsupported host"}). REA does not build or install native tools.`,
     });
   if (
-    osArch !== undefined &&
-    selectedDirectory !== undefined &&
     validatedDirectory !== undefined &&
     selectedDirectory !== validatedDirectory &&
     path !== null

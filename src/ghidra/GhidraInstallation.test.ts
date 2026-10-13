@@ -42,6 +42,7 @@ const headerProbe = (bytes: Buffer): GhidraExecutableHeaderProbe => ({
 });
 
 const JAVA: GhidraJavaObservation = {
+  osArch: "amd64",
   version: "21.0.11",
   major: SUPPORTED_GHIDRA_JAVA_MAJOR,
   home: "/usr/lib/jvm/jdk-21",
@@ -731,7 +732,10 @@ describe("Ghidra FAT native decompiler admission", () => {
         platform: "darwin",
         architecture: "arm64",
       },
-      host({ executableHeader: () => headerProbe(bytes) }),
+      host({
+        probeJava: () => ({ ...JAVA, osArch: "aarch64" }),
+        executableHeader: () => headerProbe(bytes),
+      }),
     );
     expect(result.status).toBe(status);
     expect(
@@ -749,7 +753,10 @@ describe("Ghidra FAT native decompiler admission", () => {
         platform: "darwin",
         architecture: "arm64",
       },
-      host({ executableHeader: () => headerProbe(bytes) }),
+      host({
+        probeJava: () => ({ ...JAVA, osArch: "aarch64" }),
+        executableHeader: () => headerProbe(bytes),
+      }),
     );
     expect(result.status).toBe("available");
     expect(
@@ -798,7 +805,13 @@ describe("Ghidra native decompiler admission", () => {
   ])("distinguishes $name", ({ options, executableHeader }) => {
     const result = inspectGhidraInstallation(
       options,
-      host({ executableHeader }),
+      host({
+        probeJava: () => ({
+          ...JAVA,
+          osArch: options.architecture === "arm64" ? "aarch64" : "amd64",
+        }),
+        executableHeader,
+      }),
     );
     expect(result.status).toBe("unavailable");
     expect(
@@ -859,6 +872,7 @@ describe("Ghidra native decompiler admission", () => {
         architecture: "arm64",
       },
       host({
+        probeJava: () => ({ ...JAVA, osArch: "aarch64" }),
         executableHeader: (path: string) =>
           path === MAC_DECOMPILER ? headerProbe(bytes) : undefined,
       }),
@@ -882,6 +896,7 @@ describe("Ghidra native decompiler admission", () => {
         architecture: "arm64",
       },
       host({
+        probeJava: () => ({ ...JAVA, osArch: "aarch64" }),
         executableHeader: (path: string) =>
           path === MAC_DECOMPILER ? headerProbe(elf(2, 1, 62)) : undefined,
       }),
@@ -938,6 +953,27 @@ describe("Ghidra native decompiler admission", () => {
       }),
     );
     expect(result.status).toBe("available");
+  });
+
+  it("rejects a successful Java probe that omits os.arch", () => {
+    const { osArch: _observedArchitecture, ...withoutArchitecture } = JAVA;
+    const result = inspectGhidraInstallation(
+      {
+        environment: {},
+        installDir: INSTALL,
+        platform: "darwin",
+        architecture: "arm64",
+      },
+      host({ probeJava: () => withoutArchitecture }),
+    );
+    expect(result.status).toBe("unavailable");
+    expect(
+      result.checks.find(({ name }) => name === "native_decompiler"),
+    ).toMatchObject({
+      status: "failed",
+      detail: expect.stringContaining("did not report os.arch"),
+    });
+    expect(projectGhidraDoctorInspection(result).available).toBe(false);
   });
 
   it.each(["riscv64", "sparcv9", ""])(
