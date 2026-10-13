@@ -14,7 +14,8 @@ const ghidraAnalyzerNamePattern = /^[A-Za-z0-9][A-Za-z0-9 ._-]*$/u;
  * Parse `REA_GHIDRA_DISABLED_ANALYZERS` into the Ghidra auto-analyzer names to
  * disable before default auto-analysis, such as
  * `Objective-C Message Analyzer`. Empty and blank entries are dropped; a list
- * without names selects no override.
+ * without names selects no override. Validated names are deduplicated and sorted
+ * once here so equivalent settings share profile and launcher semantics.
  */
 export const ghidraDisabledAnalyzersSchema = z
   .string()
@@ -39,4 +40,6 @@ export const ghidraDisabledAnalyzersSchema = z
     (names) => names.every((name) => ghidraAnalyzerNamePattern.test(name)),
     "must be Ghidra analyzer names starting with a letter or digit and containing only letters, digits, spaces, periods, underscores, and hyphens",
   )
-  .transform((names) => (names.length === 0 ? undefined : names));
+  .transform((names) =>
+    names.length === 0 ? undefined : [...new Set(names)].sort(),
+  );

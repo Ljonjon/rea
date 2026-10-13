@@ -27,7 +27,12 @@ describe("REA_GHIDRA_DISABLED_ANALYZERS", () => {
   it("splits a comma-separated list and trims each name", () => {
     expect(
       configured(" Objective-C Message Analyzer,Decompiler Switch Analysis "),
-    ).toEqual(["Objective-C Message Analyzer", "Decompiler Switch Analysis"]);
+    ).toEqual(["Decompiler Switch Analysis", "Objective-C Message Analyzer"]);
+  });
+
+  it("canonicalizes duplicate and reordered analyzer names", () => {
+    expect(configured("B,A,B, A ")).toEqual(["A", "B"]);
+    expect(configured("A,B")).toEqual(configured("B,A,A"));
   });
 
   it("treats an empty or blank list as unset", () => {
@@ -38,7 +43,7 @@ describe("REA_GHIDRA_DISABLED_ANALYZERS", () => {
   it("keeps empty names out of the list instead of failing", () => {
     expect(
       configured("Objective-C Message Analyzer,,Decompiler Switch Analysis"),
-    ).toEqual(["Objective-C Message Analyzer", "Decompiler Switch Analysis"]);
+    ).toEqual(["Decompiler Switch Analysis", "Objective-C Message Analyzer"]);
   });
 
   it.each([

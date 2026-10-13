@@ -682,6 +682,9 @@ override in `analyzer_preset` (for example
 open when its committed profile and the setting differ. A name starts with a
 letter or digit and contains only letters, digits, spaces, periods, underscores,
 and hyphens; at most 32 names are admitted, each at most 120 characters.
+Names are deduplicated and sorted before launching and recording the profile, so
+equivalent lists share the same analysis commitment. Older snapshots containing
+a different order or duplicate names can require fresh analysis.
 Names must identify analyzers registered for the selected program. Unknown names
 or options that remain enabled abort the headless import before auto-analysis
 and the bridge, so an unsuccessful override cannot produce a session claiming
