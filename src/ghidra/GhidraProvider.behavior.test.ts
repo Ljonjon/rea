@@ -43,6 +43,7 @@ const installationHost = (): GhidraInstallationHost => ({
   readText: () => "application.version=12.1.4\napplication.java.min=21\n",
   executable: () => true,
   probeJava: () => ({
+    osArch: "amd64",
     version: "21.0.11",
     major: 21,
     home: "/usr/lib/jvm/jdk-21",
@@ -112,6 +113,7 @@ describe("Ghidra provider", () => {
       probeJava: () => {
         probeCount += 1;
         return {
+          osArch: "amd64",
           version: "21.0.11",
           major: 21,
           home: "/usr/lib/jvm/jdk-21",
@@ -1784,6 +1786,7 @@ describe("compatible Ghidra builds", () => {
         readText: () =>
           "application.version=12.1.2\napplication.java.min=21\napplication.java.max=\n",
         probeJava: () => ({
+          osArch: "amd64",
           version: "27",
           major: 27,
           home: "/usr/lib/jvm/java-27-openjdk",
