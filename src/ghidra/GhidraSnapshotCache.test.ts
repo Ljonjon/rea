@@ -131,6 +131,40 @@ const open = async (session: ReturnType<typeof fixture>["session"]) => {
   expect((await session.openResolvedTarget(preview.value)).ok).toBe(true);
 };
 
+it("Ghidra snapshot cache refuses commitments before session-isolated direct JVM launch", async () => {
+  const initial = fixture();
+  await open(initial.session);
+  const snapshot = initial.session.exportAnalysisSnapshot();
+  if (!snapshot.ok) throw snapshot.error;
+  await initial.session.close();
+  const profile = snapshot.value.binding.analysis_profile;
+  const legacy = {
+    ...snapshot.value,
+    binding: {
+      ...snapshot.value.binding,
+      analysis_profile: createAnalysisProfile(profile.provider, {
+        ...profile.parameters,
+        process_launch: "inspected-jvm-launch-support-v1",
+      }),
+    },
+  };
+  const replay = fixture();
+  try {
+    const imported = replay.session.importAnalysisSnapshot(legacy);
+    if (!imported.ok) throw imported.error;
+    expect(await replay.session.previewTarget(TARGET)).toMatchObject({
+      ok: false,
+      error: {
+        _tag: "EvidenceIntegrityError",
+        message: expect.stringContaining("profile_mismatch"),
+      },
+    });
+    expect(replay.calls).toEqual([]);
+  } finally {
+    await replay.session.close();
+  }
+});
+
 describe("Ghidra snapshot cache", () => {
   it("refuses snapshots whose profile predates typed incoming references", async () => {
     const initial = fixture();
@@ -174,7 +208,7 @@ describe("Ghidra snapshot cache", () => {
       parameters: { procedure: "0x1000", document: "fixture" },
     },
   ] as const)(
-    "replays repeated $operation calls and imported snapshots despite private project writes",
+    "caches repeated $operation calls and respects source admission for imported snapshots",
     async ({ operation, parameters }) => {
       const initial = fixture();
       await open(initial.session);
@@ -210,7 +244,11 @@ describe("Ghidra snapshot cache", () => {
       expect(imported.ok && imported.value.result).toEqual(
         first.ok && first.value.result,
       );
-      expect(replay.calls).toEqual([]);
+      // Windows requires native source admission before imported Ghidra replay.
+      // This fake Linux provider cannot supply it, so a fresh query is required.
+      expect(replay.calls).toEqual(
+        process.platform === "win32" ? [operation] : [],
+      );
       await replay.session.close();
 
       const changed = fixture("12.1.5");
