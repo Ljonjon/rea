@@ -318,11 +318,20 @@ export const createJavaScriptRpcScan = (
         // lexical context. A dynamic interpolation may contain a comment,
         // block string or non-fragment definition, so later text stays unknown.
         const pieces: string[] = [];
-        const folded: t.Node[] = [];
+        const folded: {
+          node: t.Node;
+          operation: JavaScriptRpcEndpoint | undefined;
+        }[] = [];
         const report = (): JavaScriptRpcEndpoint | undefined => {
           const endpoint = graphqlOperationFromText(pieces.join(""));
           if (endpoint !== undefined)
-            for (const expression of folded) ownedGraphqlText.add(expression);
+            for (const expression of folded)
+              if (
+                expression.operation !== undefined &&
+                expression.operation.value === endpoint.value &&
+                expression.operation.mechanism === endpoint.mechanism
+              )
+                ownedGraphqlText.add(expression.node);
           return endpoint;
         };
         for (const [index, quasi] of node.quasis.entries()) {
@@ -336,8 +345,12 @@ export const createJavaScriptRpcScan = (
             // An already observed leading header survives an unknown suffix;
             // never resume scanning after this unresolved boundary.
             return report();
-          folded.push(unwrapJavaScriptExpression(expression).node);
-          pieces.push(String(literal.value));
+          const text = String(literal.value);
+          folded.push({
+            node: unwrapJavaScriptExpression(expression).node,
+            operation: graphqlOperationFromText(text),
+          });
+          pieces.push(text);
         }
         return report();
       }

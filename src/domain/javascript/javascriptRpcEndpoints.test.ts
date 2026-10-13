@@ -394,6 +394,21 @@ describe("GraphQL template reporting ownership", () => {
     ]);
   });
 
+  it.each([
+    { text: "query Second { g }", mechanism: "graphql:query" },
+    { text: "mutation Second { g }", mechanism: "graphql:mutation" },
+  ])(
+    "preserves distinct folded $mechanism operations",
+    ({ text, mechanism }) => {
+      const source =
+        "const doc = gql`query First { f } ${" + JSON.stringify(text) + "}`;";
+      expect(rpcEndpoints(source)).toEqual([
+        { kind: "network", value: "First", mechanism: "graphql:query" },
+        { kind: "network", value: "Second", mechanism },
+      ]);
+    },
+  );
+
   it("retains child observations when the enclosing template has no operation", () => {
     const source =
       'const doc = gql`fragment F on T { f } ${"query Child { f }"}`;';

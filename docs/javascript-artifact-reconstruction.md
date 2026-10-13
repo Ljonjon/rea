@@ -291,8 +291,8 @@ RPC client syntax also contributes network endpoint candidates, in both
   selection set starting with a field name — or in a precompiled
   `OperationDefinition` document object. Exact literal interpolations are
   folded into their template before inspecting its leading operation header;
-  their child literals are not reported again when that template supplies an
-  operation. An unresolved interpolation stops recovery at that boundary:
+  a child literal is not reported again when that template supplies the same
+  operation. Distinct child operations retain their own observations. An unresolved interpolation stops recovery at that boundary:
   an already observed leading header survives an unknown suffix, but later
   operations remain unknown. Fragment identifiers are not resolved or assumed
   safe, since their values may change the GraphQL lexical context. A graphql-tag
