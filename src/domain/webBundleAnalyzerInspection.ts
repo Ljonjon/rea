@@ -16,7 +16,7 @@ import {
 import type { JavaScriptOpenReceiverFact } from "./javascript/javascriptSemanticAnalysis.js";
 import { semanticStaticPropertyName } from "./javascript/javascriptAstValues.js";
 import {
-  calleeName,
+  calleeSegments,
   endpointArgument,
   stringValue,
 } from "./javascript/javascriptStaticAnalysisHelpers.js";
@@ -143,7 +143,8 @@ const inspectCall = (
   accumulator: AnalysisAccumulator,
   openReceiverFacts: ReadonlyMap<number, JavaScriptOpenReceiverFact>,
 ): void => {
-  const name = calleeName(node.callee);
+  const segments = calleeSegments(node.callee);
+  const name = segments.join(".");
   const first = stringValue(node.arguments[0]);
   if ((name === "require" || name.endsWith(".require")) && first !== undefined)
     addEdge({
@@ -181,7 +182,7 @@ const inspectCall = (
     });
   }
   const endpoint = endpointArgument(
-    name,
+    { name, segments },
     node.arguments,
     node.callee,
     openReceiverFacts.get(node.start ?? -1),

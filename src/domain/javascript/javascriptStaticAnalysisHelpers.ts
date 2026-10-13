@@ -545,9 +545,14 @@ const isKeyedCollectionReceiver = (callee: t.Node): boolean => {
   return property === "headers" || property === "searchParams";
 };
 
+export interface JavaScriptCalleePath {
+  readonly name: string;
+  readonly segments: readonly string[];
+}
+
 /** Select the literal URL argument for recognized network callees. */
 export const endpointArgument = (
-  name: string,
+  path: JavaScriptCalleePath,
   args: readonly (
     | t.Expression
     | t.SpreadElement
@@ -563,6 +568,7 @@ export const endpointArgument = (
     | "local-indexed-db"
     | "local-cache-storage",
 ): string | undefined => {
+  const { name, segments } = path;
   if (receiverFact === "window") return undefined;
   if (name === "fetch" || name.endsWith(".fetch") || name === "WebSocket")
     return stringValue(args[0]);
@@ -582,7 +588,7 @@ export const endpointArgument = (
       ? undefined
       : value;
   }
-  if (name.endsWith("loadURL")) return stringValue(args[0]);
+  if (segments.at(-1) === "loadURL") return stringValue(args[0]);
   return undefined;
 };
 
@@ -598,8 +604,8 @@ export const storageKind = (
   return undefined;
 };
 
-/** Produce a dotted callee name from member syntax. */
-export const calleeName = (node: t.Node): string => {
+/** Member segments of a callee, without joining dots that belong to one key. */
+export const calleeSegments = (node: t.Node): readonly string[] => {
   const segments: string[] = [];
   while (t.isMemberExpression(node) || t.isOptionalMemberExpression(node)) {
     // Dynamic keys retain their syntax identity instead of inventing a name.
@@ -615,7 +621,27 @@ export const calleeName = (node: t.Node): string => {
   segments.push(base);
   segments.reverse();
   const first = segments.findIndex((segment) => segment !== "");
-  return first === -1 ? "" : segments.slice(first).join(".");
+  return first === -1 ? [] : segments.slice(first);
+};
+
+/** Produce a dotted callee name from member syntax. */
+export const calleeName = (node: t.Node): string =>
+  calleeSegments(node).join(".");
+
+/**
+ * Match an already parsed callee path against exact member segments.
+ * A dot inside one computed key stays one segment, so `api["fake.loadURL"]`
+ * does not match `loadURL`, and `uploadFile` does not match `loadFile`.
+ */
+export const calleeSegmentsEndWith = (
+  segments: readonly string[],
+  expected: readonly string[],
+): boolean => {
+  if (expected.length === 0 || expected.length > segments.length) return false;
+  const offset = segments.length - expected.length;
+  return expected.every(
+    (segment, index) => segments[offset + index] === segment,
+  );
 };
 
 /** Read a member property only when its syntax commits an exact name. */
