@@ -286,6 +286,32 @@ describe("binary target I/O: filesystem and app bundle target resolution", () =>
     );
   });
 
+  it("recognizes WebAssembly bytes before inferring a database from .hop", async () => {
+    const directory = await createTestTempDirectory("rea-wasm-hop-");
+    const wasm = Buffer.from([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
+    await writeFile(join(directory, "module.hop"), wasm);
+    await writeFile(join(directory, "module.wasm"), wasm);
+    const constraint = {
+      ok: false,
+      error: {
+        _tag: "BinaryTargetError",
+        constraint: "wasm_requires_static_inspection",
+      },
+    };
+    expect(
+      await parseBinaryTarget("module.wasm", { cwd: directory }),
+    ).toMatchObject(constraint);
+    expect(
+      await parseBinaryTarget("module.hop", { cwd: directory }),
+    ).toMatchObject(constraint);
+    expect(
+      await parseBinaryTarget("module.hop", {
+        cwd: directory,
+        targetKind: "database",
+      }),
+    ).toMatchObject({ ok: true, value: { kind: "database" } });
+  });
+
   it.skipIf(process.platform === "win32" || process.getuid?.() === 0)(
     "reports an unreadable target as a host read denial",
     async () => {
