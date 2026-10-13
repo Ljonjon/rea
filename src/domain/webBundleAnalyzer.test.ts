@@ -215,9 +215,15 @@ describe("web bundle static-analysis parity", () => {
       "/dynamic-method",
       "/shadowed-parent-xhr",
       "/xhr-get",
-      "api/relative",
       "https://xhr.example.test/submit",
     ]);
+    expect(result.inferences).toContainEqual(
+      expect.objectContaining({
+        kind: "endpoint_candidate",
+        value: "api/relative",
+        confidence: "low",
+      }),
+    );
   });
 });
 
@@ -314,15 +320,75 @@ describe("web bundle API classification parity", () => {
       "/search",
       "/users",
       "/v1/headers",
-      "cache-key",
       "https://api.example.test/headers",
       "https://api.example.test/users",
-      "users",
     ]);
+    expect(
+      result.inferences
+        .filter(({ kind }) => kind === "endpoint_candidate")
+        .map(({ value }) => value)
+        .sort(),
+    ).toEqual(["cache-key", "users"]);
   });
 });
 
 describe("web bundle configuration and navigation parity", () => {
+  it("keeps ambiguous HTTP-method arguments as candidates instead of endpoint observations", () => {
+    const source = `
+      fetch("login");
+      api.get("/api/users");
+      api.get("users");
+      form.get("passwordControl");
+      translate.get("ADDRESS_ADDED");
+      cookieService.put("token", value);
+      http.request("POST", target);
+      snackBar.open(message, "X");
+      xhr.open(method, "login");
+      xhr.open("GET", "ping");
+    `;
+    const result = analyzeCapturedWebBundle(inspection(source));
+    expect(
+      result.observations.endpoints.map(({ value }) => value).sort(),
+    ).toEqual(["/api/users", "login", "ping"]);
+    const candidates = result.inferences.filter(
+      ({ kind }) => kind === "endpoint_candidate",
+    );
+    expect(candidates.map(({ value }) => value).sort()).toEqual([
+      "ADDRESS_ADDED",
+      "POST",
+      "X",
+      "login",
+      "passwordControl",
+      "token",
+      "users",
+    ]);
+    expect(
+      candidates.every(
+        ({ confidence, basis }) =>
+          confidence === "low" &&
+          basis.length === 1 &&
+          basis[0]?.artifact_sha256 ===
+            createWebTextArtifact(source, "text/javascript").sha256 &&
+          basis[0]?.line !== null &&
+          basis[0]?.detector.startsWith("call:"),
+      ),
+    ).toBe(true);
+    const staticEndpoints = analyzeJavaScriptStaticSource(source).endpoints;
+    expect(
+      staticEndpoints
+        .filter(({ interpretation }) => interpretation === "candidate")
+        .map(({ value }) => value)
+        .sort(),
+    ).toEqual(candidates.map(({ value }) => value).sort());
+    expect(
+      staticEndpoints
+        .filter(({ interpretation }) => interpretation === undefined)
+        .map(({ value }) => value)
+        .sort(),
+    ).toEqual(result.observations.endpoints.map(({ value }) => value).sort());
+    expect(webBundleAnalysisSchema.parse(result)).toEqual(result);
+  });
+
   it("keeps configuration setting reads out of endpoints in both analyzers", () => {
     const source = `
       import vscodeDefault from "vscode";
@@ -366,11 +432,16 @@ describe("web bundle configuration and navigation parity", () => {
       "shadowed",
       "users",
     ];
+    const web = analyzeCapturedWebBundle(inspection(source));
+    expect(web.observations.endpoints.map(({ value }) => value)).toEqual([
+      "/v1/settings",
+    ]);
     expect(
-      analyzeCapturedWebBundle(inspection(source))
-        .observations.endpoints.map(({ value }) => value)
+      web.inferences
+        .filter(({ kind }) => kind === "endpoint_candidate")
+        .map(({ value }) => value)
         .sort(),
-    ).toEqual(expected);
+    ).toEqual(expected.slice(1));
     expect(
       analyzeJavaScriptStaticSource(source)
         .endpoints.map(({ value }) => value)
