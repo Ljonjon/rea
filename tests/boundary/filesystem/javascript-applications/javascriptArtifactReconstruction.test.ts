@@ -72,7 +72,7 @@ it("reports file progress and honors cancellation before the next source", async
   expect(progress[0]).not.toBe(progress[1]);
 });
 
-it("preserves graph commitments and export shapes when consuming file-local IR", async () => {
+it("preserves graph commitments, endpoint certainty and export shapes when consuming file-local IR", async () => {
   const root = await fixtureDirectory();
   await writeFile(
     join(root, "exports.mjs"),
@@ -82,6 +82,10 @@ it("preserves graph commitments and export shapes when consuming file-local IR",
     export function create(value) { return { value, nested: { enabled: true } }; }
     export function configured(condition) { return { values: [1, null, undefined], choice: condition ? 1 : 2, ...external }; }
     function unexported() { return "private"; }
+    client.get("passwordControl");
+    fetch("login");
+    client.get("login");
+    client.get("/api/profile");
   `,
   );
   const snapshot = await scanCanonicalArtifactInventory(root, {});
@@ -98,6 +102,7 @@ it("preserves graph commitments and export shapes when consuming file-local IR",
     expect(buildJavaScriptArtifactGraph(snapshot, files, compact)).toEqual(
       graph,
     );
+    assertEndpointInterpretations(graph);
     const semantic = projection.finish(snapshot.manifest.root_sha256, graph);
     expect(semantic).toEqual(
       buildJavaScriptSemanticGraph({
@@ -194,6 +199,55 @@ it("preserves graph commitments and export shapes when consuming file-local IR",
     await reader.close();
   }
 });
+
+const assertEndpointInterpretations = (
+  graph: ReturnType<typeof buildJavaScriptArtifactGraph>,
+): void => {
+  const endpointObservations = graph.nodes
+    .filter(({ kind }) => kind === "endpoint")
+    .flatMap(({ observations }) => observations);
+  const candidates = endpointObservations.filter(
+    ({ properties }) => properties.interpretation === "candidate",
+  );
+  expect(candidates.map(({ properties }) => properties.value).sort()).toEqual([
+    "login",
+    "passwordControl",
+  ]);
+  for (const candidate of candidates) {
+    expect(candidate.evidence).toMatchObject({
+      authority: "static-relationship-inference",
+      state: "inferred",
+      confidence: "low",
+      limitations: expect.arrayContaining([
+        expect.stringContaining("does not establish a network receiver"),
+      ]),
+    });
+  }
+  expect(
+    endpointObservations
+      .filter(({ properties }) => properties.interpretation === undefined)
+      .map(({ properties, evidence }) => ({
+        value: properties.value,
+        state: evidence.state,
+        confidence: evidence.confidence,
+      })),
+  ).toEqual(
+    expect.arrayContaining([
+      { value: "login", state: "observed", confidence: "exact" },
+      { value: "/api/profile", state: "observed", confidence: "exact" },
+    ]),
+  );
+  const candidateEdges = graph.edges.filter(
+    ({ properties }) => properties.interpretation === "candidate",
+  );
+  expect(candidateEdges).toHaveLength(2);
+  expect(
+    candidateEdges.every(
+      ({ evidence }) =>
+        evidence.state === "inferred" && evidence.confidence === "low",
+    ),
+  ).toBe(true);
+};
 
 const rejectInvalidTransfer = async (
   wirePath: string,

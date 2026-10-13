@@ -292,8 +292,9 @@ const inspectEndpointCall = (
     addEndpoint(context, {
       node,
       kind: "network",
-      value: endpoint,
+      value: endpoint.value,
       mechanism: `call:${name}`,
+      ...(endpoint.kind === "candidate" ? { interpretation: "candidate" } : {}),
     });
 };
 
@@ -401,12 +402,15 @@ export const addReference = (
 const addEndpoint = (context: FindingContext, input: EndpointInput): void =>
   addLocatedFinding(context, {
     collection: context.accumulator.endpoints,
-    key: `endpoint\0${input.kind}\0${input.value}`,
+    key: `endpoint\0${input.kind}\0${input.interpretation ?? "literal"}\0${input.value}`,
     node: input.node,
     value: {
       kind: input.kind,
       value: sanitizeEndpointCandidate(input.value),
       mechanism: input.mechanism,
+      ...(input.interpretation === undefined
+        ? {}
+        : { interpretation: input.interpretation }),
       module_key: null,
       location: range(input.node),
     },

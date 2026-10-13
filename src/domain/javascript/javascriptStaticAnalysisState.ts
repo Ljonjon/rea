@@ -83,6 +83,7 @@ export interface JavaScriptEndpointInput {
   readonly kind: JavaScriptStaticEndpoint["kind"];
   readonly value: string;
   readonly mechanism: string;
+  readonly interpretation?: "candidate";
 }
 
 /** Values required to append one module-attributable static finding. */

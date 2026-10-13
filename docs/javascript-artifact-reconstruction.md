@@ -241,6 +241,17 @@ while locally shadowed receivers can still contribute network endpoint
 candidates. A template recovered with a parser error and no cooked value stays
 dynamic; its raw spelling is not treated as a valid JavaScript string.
 
+Generic `get`, `post`, `put`, `patch`, `delete`, and `request` names do not
+establish an HTTP receiver. A bare string argument such as `form.get("name")`
+or `client.get("users")` remains available with `interpretation: "candidate"`;
+its application-graph observation and call edge carry low-confidence inference
+Evidence. Captured web bundles return these values under
+`inferences` with `kind: "endpoint_candidate"`, preserving the script digest,
+source location and detector instead of adding them to `observations.endpoints`.
+Explicit URL/path literals and `fetch("login")` retain their existing syntax
+findings. Neither establishes a network request at runtime. Dynamic receivers,
+computed URLs and request overloads still need independent evidence.
+
 RPC client syntax also contributes network endpoint candidates, in both
 `analyze_javascript_application` and `analyze_web_bundle`, distinguished by
 `mechanism`:
