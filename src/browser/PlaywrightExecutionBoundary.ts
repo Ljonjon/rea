@@ -2,6 +2,17 @@ import {
   AnalysisCancelledError,
   AnalysisTimeoutError,
 } from "../domain/analysisErrorCore.js";
+import { WEB_RUNTIME_LIMITS } from "../domain/webRuntime.js";
+
+export const PLAYWRIGHT_NETWORK_READ_TIMEOUT_MS = 5_000;
+
+// Cleanup drains bounded content reads before closing Chrome and removing its
+// profile. Cover those stages and retain the observed 30-second allowance for
+// slow persistent-context close on shared runners.
+export const PLAYWRIGHT_SCENARIO_CLEANUP_TIMEOUT_MS = Math.max(
+  30_000,
+  PLAYWRIGHT_NETWORK_READ_TIMEOUT_MS + WEB_RUNTIME_LIMITS.cleanupTimeoutMs,
+);
 
 const OPERATION = "capture_browser_scenario" as const;
 

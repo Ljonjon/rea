@@ -8,13 +8,12 @@ import type { BrowserScenario } from "../domain/browserScenario.js";
 import { AnalysisError } from "../domain/analysisErrorBase.js";
 import { isLiteralLoopbackHostname } from "../domain/browserObservation.js";
 import { BrowserObservationError } from "../domain/browserObservationError.js";
-import { withPlaywrightExecutionBoundary } from "./PlaywrightExecutionBoundary.js";
+import {
+  PLAYWRIGHT_SCENARIO_CLEANUP_TIMEOUT_MS,
+  withPlaywrightExecutionBoundary,
+} from "./PlaywrightExecutionBoundary.js";
 
 const OPERATION = "capture_browser_scenario" as const;
-// Closing a real Chrome persistent context can take several seconds even when
-// it succeeds. The shorter operation deadline must not misreport cleanup.
-const CLEANUP_CONFIRMATION_TIMEOUT_MS = 30_000;
-
 const throwIfScenarioCancelled = (signal: AbortSignal | undefined): void => {
   if (signal?.aborted === true)
     throw new BrowserObservationError(OPERATION, "cancelled");
@@ -76,7 +75,7 @@ export class PlaywrightScenarioBrowserCleanupOwner {
     try {
       await withPlaywrightExecutionBoundary(
         () => cleanup,
-        CLEANUP_CONFIRMATION_TIMEOUT_MS,
+        PLAYWRIGHT_SCENARIO_CLEANUP_TIMEOUT_MS,
         signal,
       );
     } catch (cause: unknown) {

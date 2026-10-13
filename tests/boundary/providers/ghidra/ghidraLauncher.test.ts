@@ -488,7 +488,7 @@ describe("Ghidra Windows launcher", () => {
   });
 });
 
-describe("Ghidra Windows launcher runtime", () => {
+describe("Ghidra Windows runtime isolation", () => {
   it.skipIf(process.platform !== "win32").each([
     {
       properties:
