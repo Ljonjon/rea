@@ -1,9 +1,10 @@
-import { readdir, readFile } from "node:fs/promises";
+import { open, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import { DOMParser, onWarningStopParsing } from "@xmldom/xmldom";
 
 import type { GhidraLanguageOverride } from "../config/ghidraLanguageOverride.js";
 import { ConfigurationError } from "../domain/configurationErrors.js";
+import { readBoundedFileBytes } from "../process/BoundedFileBytes.js";
 
 /** One language definition and the compiler specs it declares. */
 export interface GhidraLanguageDefinition {
@@ -59,6 +60,18 @@ const languageDirectories = async (installDir: string): Promise<string[]> => {
   return directories;
 };
 
+/** Read at most the catalog limit; undefined marks an oversized file. */
+const readLanguageDefinitionFile = async (
+  path: string,
+): Promise<Buffer | undefined> => {
+  const handle = await open(path, "r");
+  try {
+    return await readBoundedFileBytes(handle, MAX_LDEFS_BYTES);
+  } finally {
+    await handle.close();
+  }
+};
+
 /** Read every language definition shipped by one Ghidra installation. */
 export const readGhidraLanguageCatalog = async (
   installDir: string,
@@ -73,8 +86,8 @@ export const readGhidraLanguageCatalog = async (
     }
     for (const entry of entries.sort()) {
       if (!entry.endsWith(".ldefs")) continue;
-      const bytes = await readFile(join(directory, entry));
-      if (bytes.length > MAX_LDEFS_BYTES) continue;
+      const bytes = await readLanguageDefinitionFile(join(directory, entry));
+      if (bytes === undefined) continue;
       // XML 1.0 section 4.3.3: a leading UTF-8 BOM is an encoding signature,
       // not document content; TextDecoder consumes it, Buffer#toString does not.
       definitions.push(
