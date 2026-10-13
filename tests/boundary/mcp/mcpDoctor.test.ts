@@ -10,6 +10,7 @@ import { createTestTempDirectory } from "../../fixtures/temporaryDirectory.js";
 import {
   compareInventory,
   runProductionMcpDoctor,
+  runProductionMcpDoctorCli,
 } from "../../../src/mcpDoctor.js";
 import { CATALOG_IDENTITY } from "../../../src/catalogIdentity.js";
 
@@ -171,6 +172,83 @@ describe("production MCP doctor", () => {
     expect(result.checks[0]?.detail).toMatch(/deadline|abort|timed/iu);
     await expect(waitForExit(pid)).resolves.toBeUndefined();
   }, 10_000);
+});
+
+describe("mcp doctor full-output envelope", () => {
+  it.each([
+    { arguments: ["--json", "--bogus", "--full-output"] },
+    { arguments: ["--bogus", "--full-output", "--json"] },
+    { arguments: ["--format", "invalid", "--full-output", "--json"] },
+  ])(
+    "collects output selectors after validation errors: %j",
+    async ({ arguments: args }) => {
+      const result = await runProductionMcpDoctorCli(args, {
+        dispatcherPath: "not-started",
+        packageRoot: process.cwd(),
+      });
+      expect(result.exitCode).toBe(1);
+      expect(JSON.parse(result.output)).toMatchObject({
+        ok: false,
+        error: { code: "VALIDATION_ERROR" },
+      });
+    },
+  );
+
+  it.each([{ arguments: ["--bogus"] }, { arguments: ["--format", "invalid"] }])(
+    "preserves full-output through validation: %j",
+    async ({ arguments: suffix }) => {
+      const result = await runProductionMcpDoctorCli(
+        ["--json", "--full-output", ...suffix],
+        { dispatcherPath: "not-started", packageRoot: process.cwd() },
+      );
+      expect(result.exitCode).toBe(1);
+      expect(JSON.parse(result.output)).toMatchObject({
+        ok: false,
+        error: { code: "VALIDATION_ERROR" },
+      });
+    },
+  );
+
+  it("wraps the diagnostic report when the envelope is requested", async () => {
+    const input = {
+      dispatcherPath: resolve("tests/fixtures/mcpDoctorExit.mjs"),
+      packageRoot: process.cwd(),
+    };
+    const bare = await runProductionMcpDoctorCli(["--json"], input);
+    const full = await runProductionMcpDoctorCli(
+      ["--json", "--full-output"],
+      input,
+    );
+    expect(bare.exitCode).toBe(1);
+    expect(full.exitCode).toBe(1);
+    const bareReport = JSON.parse(bare.output) as Record<string, unknown>;
+    expect(bareReport).toMatchObject({ healthy: false });
+    expect(bareReport).not.toHaveProperty("ok");
+    expect(JSON.parse(full.output)).toEqual({
+      ok: false,
+      error: bareReport,
+      meta: {
+        command: "mcp doctor",
+        duration: expect.stringMatching(/^\d+ms$/u),
+      },
+    });
+  }, 30_000);
+
+  it("wraps a healthy diagnostic report in the requested envelope", async () => {
+    const full = await runProductionMcpDoctorCli(["--json", "--full-output"], {
+      dispatcherPath: resolve("scripts/rea.mjs"),
+      packageRoot: process.cwd(),
+    });
+    expect(full.exitCode).toBe(0);
+    const envelope = JSON.parse(full.output) as Record<string, unknown>;
+    expect(envelope.ok).toBe(true);
+    expect(envelope).not.toHaveProperty("error");
+    expect(envelope.data).toMatchObject({ healthy: true });
+    expect(envelope.meta).toEqual({
+      command: "mcp doctor",
+      duration: expect.stringMatching(/^\d+ms$/u),
+    });
+  }, 60_000);
 });
 
 const waitForExit = async (pid: number): Promise<void> => {
