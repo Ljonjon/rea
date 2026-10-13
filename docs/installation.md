@@ -69,6 +69,15 @@ Detected provider settings replace only matching environment keys.
 Setup and doctor report a malformed REA environment map or invalid runtime
 setting before setup writes files. Repair the named setting in the client
 configuration; setup does not silently discard the rest of the map.
+This includes malformed loader/exclusion JSON arrays and a Ghidra compiler
+specification without its required language identifier. Valid overrides keep
+their original strings, including empty Hopper arguments. DeepSeek Harness
+`!!js` environment expressions remain unevaluated and preserved; registration
+alignment does not verify the runtime values those expressions will produce.
+For layered OpenCode files, each file's values are checked before merging, while
+setting dependencies are checked against the effective merged environment.
+Setup preserves each layer's overrides instead of copying inherited settings
+into the file it updates.
 
 After setup, REA reports which agents, analysis tools, and workflow files passed
 its final checks. Restart any agent named in the completion message, then begin

@@ -1,11 +1,10 @@
 import { accessSync, constants } from "node:fs";
 import { join } from "node:path";
 
-import { ConfigurationError } from "../domain/configurationErrors.js";
-import { err, ok, type Result } from "../domain/result.js";
+import type { ConfigurationError } from "../domain/configurationErrors.js";
+import { ok, type Result } from "../domain/result.js";
 import { parseEnvironment } from "./environment.js";
 import { homeDirectoryFromEnvironment } from "./homeDirectory.js";
-import { parseStringArray, parseLoaderArgs } from "./parsers.js";
 import type { AppConfig } from "./types.js";
 
 const DEFAULT_HOPPER_LAUNCHER_PATH =
@@ -39,28 +38,6 @@ export const parseConfig = (
   const parsed = parseEnvironment(environment);
   if (!parsed.ok) return parsed;
   const env = parsed.value;
-  const loaderArgs = parseLoaderArgs(env.HOPPER_LOADER_ARGS_JSON);
-  if (!loaderArgs.ok) return loaderArgs;
-  const secretPatterns = parseStringArray(
-    env.REA_REFERENCE_SECRET_PATTERNS_JSON,
-    "REA_REFERENCE_SECRET_PATTERNS_JSON",
-  );
-  if (!secretPatterns.ok) return secretPatterns;
-  // Ghidra's analyzeHeadless accepts -cspec only together with -processor.
-  if (
-    env.REA_GHIDRA_COMPILER_SPEC_ID !== undefined &&
-    env.REA_GHIDRA_LANGUAGE_ID === undefined
-  )
-    return err(
-      new ConfigurationError("Invalid REA environment configuration", {
-        settings: [
-          {
-            setting: "REA_GHIDRA_COMPILER_SPEC_ID",
-            constraint: "requires REA_GHIDRA_LANGUAGE_ID",
-          },
-        ],
-      }),
-    );
   return ok({
     ...(env.REA_MCP_MAX_RESPONSE_BYTES === undefined
       ? {}
@@ -104,8 +81,10 @@ export const parseConfig = (
     hopperStartupTimeoutMs: env.REA_HOPPER_STARTUP_TIMEOUT_MS,
     hopperTargetPath: env.HOPPER_TARGET_PATH,
     hopperTargetKind: env.HOPPER_TARGET_KIND,
-    hopperLoaderArgs: loaderArgs.value,
+    hopperLoaderArgs: env.loaderArgs,
     logLevel: env.REA_LOG_LEVEL,
-    referenceSourcePolicy: { secretPatterns: secretPatterns.value },
+    referenceSourcePolicy: {
+      secretPatterns: env.referenceSecretPatterns,
+    },
   });
 };

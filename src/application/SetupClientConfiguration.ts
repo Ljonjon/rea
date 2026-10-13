@@ -1,6 +1,7 @@
 import { readClientPolicyBlock } from "./GeminiClientSettings.js";
 import {
   readClientConfigurationFiles,
+  effectiveClientConfiguration,
   readConfigurationText,
 } from "./ClientConfigurationFiles.js";
 import { err, ok, type Result } from "../domain/result.js";
@@ -35,7 +36,10 @@ import {
   readRegularFileText,
   RegularFileCleanupFailure,
 } from "./RegularFileRead.js";
-import type { ClientConfigurationFileError } from "./ClientConfigurationFiles.js";
+import type {
+  ClientConfigurationFileError,
+  ClientConfigurationSource,
+} from "./ClientConfigurationFiles.js";
 import type {
   ClientConfigurationInspection,
   ClientConfigurationResult,
@@ -90,7 +94,9 @@ const configureClientDocument = async (
     throwCleanupFailure(files.error);
     return { status: "failed", reason: "readback" };
   }
-  const existing = files.value.at(-1);
+  const existing = files.value.find(
+    ({ sourcePath }) => sourcePath === client.configPath,
+  );
   const editabilityError =
     existing?.dialect === "dsh"
       ? dshDocument(existing.document).editabilityError
@@ -104,7 +110,8 @@ const configureClientDocument = async (
       client,
       environment,
       command,
-      files.value.at(-1),
+      existing,
+      files.value,
     ),
   );
   if (!policy.ok) {
@@ -137,7 +144,13 @@ const configureClientDocument = async (
     const policy = await readClientPolicyBlock(
       client,
       parsed,
-      clientConfigurationDesired(client, environment, command, parsed),
+      clientConfigurationDesired(
+        client,
+        environment,
+        command,
+        parsed,
+        files.value,
+      ),
     );
     if (!policy.ok) {
       throwCleanupFailure(policy.error);
@@ -156,10 +169,16 @@ const configureClientDocument = async (
     throwCleanupFailure(fallback.error);
     return { status: "failed", reason: "readback" };
   }
-  const desired = clientConfigurationDesired(client, environment, command, {
-    ...parsed,
-    servers: { ...fallback.value, ...parsed.servers },
-  });
+  const desired = clientConfigurationDesired(
+    client,
+    environment,
+    command,
+    {
+      ...parsed,
+      servers: { ...fallback.value, ...parsed.servers },
+    },
+    files.value,
+  );
   if (registrationCurrent(parsed, desired)) return { status: "unchanged" };
   return persistClientConfiguration({
     client,
@@ -338,7 +357,13 @@ export const clientConfigurationAligned = async (
     const policy = await readClientPolicyBlock(
       client,
       parsed,
-      clientConfigurationDesired(client, providerEnvironment, command, parsed),
+      clientConfigurationDesired(
+        client,
+        providerEnvironment,
+        command,
+        parsed,
+        files.value,
+      ),
     );
     if (!policy.ok) {
       throwCleanupFailure(policy.error);
@@ -353,6 +378,7 @@ export const clientConfigurationAligned = async (
           providerEnvironment,
           command,
           parsed,
+          files.value,
         ),
       )
     );
@@ -400,7 +426,9 @@ const inspectClientDocument = async (
       remediation: files.error.detail,
     };
   }
-  const existing = files.value.at(-1);
+  const existing = files.value.find(
+    ({ sourcePath }) => sourcePath === client.configPath,
+  );
   const editabilityError =
     existing?.dialect === "dsh"
       ? dshDocument(existing.document).editabilityError
@@ -413,7 +441,13 @@ const inspectClientDocument = async (
   const policy = await readClientPolicyBlock(
     client,
     undefined,
-    clientConfigurationDesired(client, providerEnvironment, command, existing),
+    clientConfigurationDesired(
+      client,
+      providerEnvironment,
+      command,
+      existing,
+      files.value,
+    ),
   );
   if (!policy.ok) {
     throwCleanupFailure(policy.error);
@@ -456,7 +490,13 @@ const inspectClientDocument = async (
     const policy = await readClientPolicyBlock(
       client,
       parsed,
-      clientConfigurationDesired(client, providerEnvironment, command, parsed),
+      clientConfigurationDesired(
+        client,
+        providerEnvironment,
+        command,
+        parsed,
+        files.value,
+      ),
     );
     if (!policy.ok) {
       throwCleanupFailure(policy.error);
@@ -472,6 +512,7 @@ const inspectClientDocument = async (
       providerEnvironment,
       command,
       parsed,
+      files.value,
     );
     if (registrationCurrent(parsed, desired))
       return { status: "already_current" };
@@ -678,8 +719,18 @@ const clientConfigurationDesired = (
   client: SetupClient,
   providerEnvironment: SetupProviderEnvironment,
   command: readonly string[],
-  parsed?: ClientConfigurationDocument,
+  parsed: ClientConfigurationDocument | undefined,
+  sources: readonly ClientConfigurationSource[],
 ) => {
+  const effective = effectiveClientConfiguration(sources, {
+    client,
+    document: parsed,
+  });
+  const validated = clientRegistrationEnvironment(
+    effective,
+    providerEnvironment,
+  );
+  if (!validated.ok) throw validated.error;
   const format = parsed?.dialect ?? client.format ?? "json";
   const launcher =
     command.length === 0 ? [PRODUCT_IDENTITY.cliBinary, "mcp"] : command;
@@ -697,6 +748,7 @@ const clientConfigurationDesired = (
   const environment = clientRegistrationEnvironment(
     parsed,
     providerEnvironment,
+    "fragment",
   );
   if (!environment.ok) throw environment.error;
   const registration = clientRegistrationEntry(
