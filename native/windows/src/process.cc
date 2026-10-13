@@ -468,6 +468,7 @@ napi_value inspect(napi_env env, std::unique_ptr<Runtime>& probe) {
   set(env, result, "killOnOwnerClose", boolean(env, true));
   set(env, result, "protocolStdin", boolean(env, true));
   set(env, result, "jobMemoryLimit", boolean(env, true));
+  set(env, result, "windowCapture", boolean(env, true));
   return result;
 }
 

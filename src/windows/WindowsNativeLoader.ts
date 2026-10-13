@@ -46,6 +46,8 @@ const inspectionSchema = z.strictObject({
   protocolStdin: z.boolean().optional(),
   /** Absent from artifacts built before owned Job Object commit limits. */
   jobMemoryLimit: z.literal(true).optional(),
+  /** Older compatible artifacts still support other controls, but not capture. */
+  windowCapture: z.literal(true).optional(),
 });
 
 type NativeCall = (

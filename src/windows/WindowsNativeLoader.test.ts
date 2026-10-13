@@ -8,7 +8,11 @@ import {
 } from "./WindowsNativeLoader.js";
 
 const fixture = (
-  capabilities: { protocolStdin?: boolean; jobMemoryLimit?: unknown } = {},
+  capabilities: {
+    protocolStdin?: boolean;
+    jobMemoryLimit?: unknown;
+    windowCapture?: unknown;
+  } = {},
 ) => {
   const bytes = Buffer.alloc(128);
   bytes.write("MZ");
@@ -62,6 +66,22 @@ const fixture = (
 };
 
 describe("packaged Windows native admission", () => {
+  it("retains capture support as an affirmative artifact observation", () => {
+    expect(
+      loadWindowsNativeAuthority(fixture({ windowCapture: true }).host),
+    ).toMatchObject({
+      available: true,
+      authority: { inspection: { windowCapture: true } },
+    });
+    const earlier = loadWindowsNativeAuthority(fixture().host);
+    if (!earlier.available) throw new Error(earlier.reason);
+    expect(earlier.authority.inspection.windowCapture).toBeUndefined();
+    expect(
+      loadWindowsNativeAuthority(fixture({ windowCapture: false }).host)
+        .available,
+    ).toBe(false);
+  });
+
   it.each([true, false])(
     "preserves protocol stdin capability %s alongside existing job controls",
     (protocolStdin) => {

@@ -149,19 +149,30 @@ export class AnalysisTimeoutError extends AnalysisError {
   }
 }
 
-/** Host filesystem permissions denied the selected read; this is not malformed caller input. */
+/** Host permissions denied a selected filesystem read or process/window request. */
 export class AnalysisAccessDeniedError extends AnalysisError {
   readonly _tag = "AnalysisAccessDeniedError";
+  readonly processWindow:
+    | { readonly pid: number; readonly windowHandle: string }
+    | undefined;
   constructor(
     readonly operation: string,
     readonly path: string,
     readonly systemCode: "EACCES" | "EPERM",
-    options?: AnalysisErrorOptions,
+    options?: AnalysisErrorOptions & {
+      readonly processWindow?: {
+        readonly pid: number;
+        readonly windowHandle: string;
+      };
+    },
   ) {
     super(
-      `Host filesystem read access denied (${systemCode}) for ${path} during ${operation}`,
+      options?.processWindow === undefined
+        ? `Host filesystem read access denied (${systemCode}) for ${path} during ${operation}`
+        : `Host process/window access denied (${systemCode}) during ${operation}`,
       options,
     );
+    this.processWindow = options?.processWindow;
   }
 }
 

@@ -97,6 +97,11 @@ export const analysisErrorRemediationAction = (
   )
     return `For static inspection, call inspect_wasm_artifact with ${JSON.stringify({ path: error.path })} or run \`rea inspect-wasm-artifact <path> --format json\`. This separate lane requires caller-supplied WABT 1.0.42 via absolute REA_WABT_BIN_DIRECTORY; check its availability in binary_session. REA does not execute WASM or install tools, and the header alone does not establish that the complete module is valid.`;
   if (
+    error instanceof AnalysisAccessDeniedError &&
+    error.processWindow !== undefined
+  )
+    return "Check the current process's permission to query the selected process and request its window paint handler, then retry the same selected window.";
+  if (
     error instanceof AnalysisAccessDeniedError ||
     (error instanceof BinaryTargetError && error.systemCode !== undefined)
   )
@@ -213,6 +218,11 @@ export const analysisErrorUserMessage = (error: AnalysisError): string => {
   if (error instanceof AnalysisSnapshotMismatchError) return error.message;
   if (error instanceof AnalysisUnsupportedTargetError) return error.message;
   if (error instanceof AnalysisResourceConstraintError) return error.reason;
+  if (
+    error instanceof AnalysisAccessDeniedError &&
+    error.processWindow !== undefined
+  )
+    return "Windows denied access to the selected process or window.";
   if (error instanceof AnalysisAccessDeniedError)
     return "Host filesystem permissions denied read access to the selected path.";
   if (error instanceof AnalysisArtifactChangedError)

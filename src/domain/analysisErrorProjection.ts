@@ -265,6 +265,17 @@ const requestErrorDetails = (
       reason: error.reason,
       boundary: "stable-artifact-read",
     };
+  if (
+    error instanceof AnalysisAccessDeniedError &&
+    error.processWindow !== undefined
+  )
+    return {
+      operation: error.operation,
+      pid: error.processWindow.pid,
+      window_handle: error.processWindow.windowHandle,
+      system_code: error.systemCode,
+      boundary: "process-window",
+    };
   if (error instanceof AnalysisAccessDeniedError)
     return {
       operation: error.operation,

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   AnalysisCapabilityUnavailableError,
+  AnalysisAccessDeniedError,
   AnalysisUnsupportedTargetError,
   AnalysisInputError,
   AnalysisOutputError,
@@ -795,4 +796,29 @@ describe("analysis error projection: evidence files", () => {
       expect(analysisErrorProjectionSchema.parse(projected)).toEqual(projected);
     },
   );
+});
+
+it("preserves process/window access refusal without inventing a filesystem path", () => {
+  const projected = projectAnalysisError(
+    new AnalysisAccessDeniedError(
+      "capture_windows_window_screenshot",
+      "",
+      "EACCES",
+      { processWindow: { pid: 42, windowHandle: "0x1234" } },
+    ),
+  );
+  expect(projected).toMatchObject({
+    code: "access_denied",
+    category: "unavailable",
+    details: {
+      boundary: "process-window",
+      pid: 42,
+      window_handle: "0x1234",
+      system_code: "EACCES",
+    },
+  });
+  expect(projected.details).not.toHaveProperty("path");
+  expect(projected.remediation.action).toContain("selected process");
+  expect(projected.remediation.action).not.toContain("readable local file");
+  expect(analysisErrorProjectionSchema.safeParse(projected).success).toBe(true);
 });
