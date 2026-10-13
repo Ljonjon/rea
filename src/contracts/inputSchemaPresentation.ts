@@ -171,19 +171,6 @@ const flattenRootObjectUnion = (
       variants.set(name, known);
     }
   const required = sharedRequiredProperties(branches);
-  // A field unique to a group still needs that group's required partners.
-  // Counting properties alone would let optional fields pad an incomplete pair.
-  const dependencies = Object.fromEntries(
-    [...variants.keys()].flatMap((name) => {
-      const owners = branches.filter((branch) =>
-        Object.hasOwn(branch.properties ?? {}, name),
-      );
-      const partners = sharedRequiredProperties(owners).filter(
-        (partner) => partner !== name && !required.includes(partner),
-      );
-      return partners.length > 0 ? [[name, partners]] : [];
-    }),
-  );
   const fewestRequired = Math.min(
     ...branches.map((branch) => requiredProperties(branch).length),
   );
@@ -206,14 +193,10 @@ const flattenRootObjectUnion = (
       ]),
     ),
     ...(required.length > 0 ? { required } : {}),
+    // Partner fields stay in the group description rather than in
+    // dependentRequired or dependencies: Gemini function declarations reject
+    // both, and one unknown keyword fails the client's whole tool catalog.
     ...(fewestRequired > 0 ? { minProperties: fewestRequired } : {}),
-    ...(Object.keys(dependencies).length > 0
-      ? {
-          [root.$schema === "http://json-schema.org/draft-07/schema#"
-            ? "dependencies"
-            : "dependentRequired"]: dependencies,
-        }
-      : {}),
     ...(branches.every((branch) => branch.additionalProperties === false)
       ? { additionalProperties: false }
       : {}),

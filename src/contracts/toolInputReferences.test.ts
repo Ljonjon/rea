@@ -235,21 +235,29 @@ describe("root input presentation", () => {
         { before: "first" },
         { unexpected: true },
         { before_scenario: 1, after_scenario: "wrong" },
-        { before_scenario: 1, normalization: true },
-        { after_scenario: 2, normalization: true },
       ]) {
         expect(schema.safeParse(input).success).toBe(false);
         expect(validate(input)).toBe(false);
       }
-      // Cross-group exclusion is enforced only by the canonical runtime parser.
-      const mixed = {
-        before: "first",
-        after: "second",
-        before_scenario: 1,
-        after_scenario: 2,
-      };
-      expect(validate(mixed)).toBe(true);
-      expect(schema.safeParse(mixed).success).toBe(false);
+      // Gemini function declarations reject dependentRequired and
+      // dependencies, so partner fields are advertised only as guidance.
+      for (const keyword of ["dependentRequired", "dependencies"])
+        expect(advertised).not.toHaveProperty(keyword);
+      // Cross-group exclusion and an optional field padding an incomplete
+      // group are enforced only by the canonical runtime parser.
+      for (const input of [
+        {
+          before: "first",
+          after: "second",
+          before_scenario: 1,
+          after_scenario: 2,
+        },
+        { before_scenario: 1, normalization: true },
+        { after_scenario: 2, normalization: true },
+      ]) {
+        expect(validate(input)).toBe(true);
+        expect(schema.safeParse(input).success).toBe(false);
+      }
     },
   );
 
