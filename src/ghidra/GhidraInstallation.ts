@@ -644,6 +644,14 @@ const nativeDecompilerCheck = ({
   const osArch = coordinates.java?.osArch;
   const selectedDirectory = jvmOsArchNativeDirectory(platform, osArch);
   const validatedDirectory = NATIVE_PLATFORMS[platform]?.[architecture];
+  if (osArch !== undefined && selectedDirectory === undefined)
+    return installationCheck({
+      name: "native_decompiler",
+      passed: false,
+      code: "executable_missing",
+      detail: `JVM reports unrecognized os.arch=${osArch}; its selected native decompiler directory is unknown and cannot be matched to the validated host directory`,
+      remediation: `Point JAVA_HOME at a JDK whose reported architecture maps to the validated Ghidra decompiler (${validatedDirectory ?? "unsupported host"}). REA does not build or install native tools.`,
+    });
   if (
     osArch !== undefined &&
     selectedDirectory !== undefined &&
@@ -674,8 +682,8 @@ const nativeDecompilerCheck = ({
 
 /**
  * Map a JVM os.arch value to the Ghidra native directory that JVM selects.
- * Unknown values stay unknown: they must not fail an installation the other
- * checks already accept.
+ * Unknown values stay unknown; admission must not treat them as aligned with
+ * the validated host directory.
  */
 const jvmOsArchNativeDirectory = (
   platform: NodeJS.Platform,

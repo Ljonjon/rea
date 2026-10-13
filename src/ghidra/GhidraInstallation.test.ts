@@ -22,8 +22,7 @@ import {
 // the real probeJava against captured `-XshowSettings:properties` output.
 // Every other test overrides probeJava, so the stub never fires for them.
 vi.mock("node:child_process", async (importOriginal) => {
-  const original =
-    await importOriginal<typeof import("node:child_process")>();
+  const original = await importOriginal<typeof import("node:child_process")>();
   return { ...original, spawnSync: vi.fn() };
 });
 
@@ -941,20 +940,30 @@ describe("Ghidra native decompiler admission", () => {
     expect(result.status).toBe("available");
   });
 
-  it("keeps an unrecognized JVM os.arch unknown instead of failing the install", () => {
-    const result = inspectGhidraInstallation(
-      {
-        environment: {},
-        installDir: INSTALL,
-        platform: "darwin",
-        architecture: "arm64",
-      },
-      host({
-        probeJava: () => ({ ...JAVA, osArch: "riscv64" }),
-      }),
-    );
-    expect(result.status).toBe("available");
-  });
+  it.each(["riscv64", "sparcv9", ""])(
+    "refuses an unrecognized JVM os.arch (%s) instead of assuming alignment",
+    (osArch) => {
+      const result = inspectGhidraInstallation(
+        {
+          environment: {},
+          installDir: INSTALL,
+          platform: "darwin",
+          architecture: "arm64",
+        },
+        host({
+          probeJava: () => ({ ...JAVA, osArch }),
+        }),
+      );
+      expect(result.status).toBe("unavailable");
+      if (result.status !== "unavailable") return;
+      expect(
+        result.checks.find(({ name }) => name === "native_decompiler"),
+      ).toMatchObject({
+        status: "failed",
+        detail: expect.stringContaining("unrecognized os.arch="),
+      });
+    },
+  );
 });
 
 describe("Ghidra Java probe os.arch extraction", () => {
