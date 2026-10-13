@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 
 import {
+  formatCommandForDisplay,
   installLinuxHopper,
   linuxHopperLauncherDigestSupported,
   linuxPackageManagerCommands,
@@ -12,7 +13,22 @@ import {
   type LinuxHopperInstallHost,
   type LinuxHopperLauncherStatus,
   type LinuxPackageFamily,
+  type LinuxPackageInstallFailure,
+  type LinuxPackageInstallOutcome,
 } from "./LinuxHopper.js";
+
+describe("Linux package-manager command display", () => {
+  it("preserves argument boundaries for paths with spaces and quotes", () => {
+    expect(
+      formatCommandForDisplay("pkexec", [
+        "pacman",
+        "-U",
+        "/tmp/rea test/hopper.arch",
+        "apostrophe'path",
+      ]),
+    ).toBe('pkexec pacman -U "/tmp/rea test/hopper.arch" "apostrophe\'path"');
+  });
+});
 
 class RecordingLinuxHost implements LinuxHopperInstallHost {
   distributionValue: LinuxDistribution | undefined = {
@@ -24,6 +40,13 @@ class RecordingLinuxHost implements LinuxHopperInstallHost {
   archive = new Uint8Array([1, 2, 3]);
   archiveOk = true;
   installSucceeds = true;
+  packageFailure: LinuxPackageInstallFailure = {
+    command: "pacman -U --noconfirm /tmp/rea test/hopper.arch",
+    exitCode: 1,
+    stdout: "",
+    stderr: "error: failed to prepare transaction",
+    outputTruncated: false,
+  };
   launcherStatusValue: LinuxHopperLauncherStatus = "ready";
   downloads: string[] = [];
   installed: Array<{ family: LinuxPackageFamily; archive: string }> = [];
@@ -41,9 +64,12 @@ class RecordingLinuxHost implements LinuxHopperInstallHost {
   installPackage = (
     family: LinuxPackageFamily,
     archive: string,
-  ): Promise<boolean> => {
+  ): Promise<LinuxPackageInstallOutcome> => {
     this.installed.push({ family, archive });
-    return Promise.resolve(this.installSucceeds);
+    const outcome: LinuxPackageInstallOutcome = this.installSucceeds
+      ? { status: "installed" }
+      : { status: "failed", failure: this.packageFailure };
+    return Promise.resolve(outcome);
   };
   launcherStatus = (): Promise<LinuxHopperLauncherStatus> =>
     Promise.resolve(this.launcherStatusValue);
@@ -207,9 +233,31 @@ describe("Linux Hopper installation", () => {
     expect(await installFixture(host)).toEqual({
       status: "failed",
       reason,
+      ...(scenario === "package manager failure"
+        ? { packageFailure: host.packageFailure }
+        : {}),
     });
     if (host.installed.length > 0)
       expect(host.cleaned).toEqual(["/tmp/rea test"]);
+  });
+
+  it("preserves the failing package-manager command and its output", async () => {
+    const host = new RecordingLinuxHost();
+    host.installSucceeds = false;
+    host.packageFailure = {
+      command: "pkexec pacman -U --noconfirm /tmp/rea test/hopper.arch",
+      exitCode: 1,
+      stdout: "loading packages...",
+      stderr:
+        "\u001b[31merror: unresolvable package conflicts detected\u001b[0m",
+      outputTruncated: false,
+    };
+    expect(await installFixture(host)).toEqual({
+      status: "failed",
+      reason: "authorization_or_package_manager",
+      packageFailure: host.packageFailure,
+    });
+    expect(host.cleaned).toEqual(["/tmp/rea test"]);
   });
 
   it("cancels before network or mutation", async () => {

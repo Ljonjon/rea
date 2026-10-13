@@ -339,6 +339,16 @@ host mount and the rest of `/tmp` remain unchanged; this fallback never invokes
 `sudo`. `rea doctor --provider hopper --json` reports the selected
 strategy and both host and effective mount facts.
 
+When the package-manager step fails, setup reports the failing command and the
+output it produced, so a rejected package is distinguishable from a refused
+authorization. The dependency check can fail on a host that provides a required
+library only through an unversioned compatibility package: on CachyOS,
+`zlib-ng-compat` provides `zlib` without a version, so pacman offers to replace
+it with the conflicting `zlib` package, which non-interactive setup declines
+rather than changing an unrelated system package. Resolve that conflict in the
+package manager, or install Hopper's official package yourself, then rerun
+`rea setup`.
+
 The supported Linux demo forwards additional launches into its existing
 application, even across private displays. REA therefore reserves one Linux
 Hopper application per user across cooperating REA processes. A competing

@@ -1,3 +1,4 @@
+import type { LinuxPackageInstallFailure } from "./LinuxHopper.js";
 import { HOPPER_PUBLISHER } from "./MacHopper.js";
 
 export type SetupFailureCode =
@@ -45,9 +46,81 @@ export type HopperInstallFailureReason =
   | "publisher_verification_failed"
   | "copy";
 
+/** Longest package-manager excerpt quoted in one setup remediation line. */
+const PACKAGE_FAILURE_EXCERPT_LIMIT = 400;
+
+/** Terminal escape sequences, removed before output is quoted back to a user. */
+const TERMINAL_ESCAPE =
+  /\u001b(?:\[[0-9;?]*[ -/]*[@-~]|\([0-9A-Za-z]|[@-Z\\^_])/gu;
+
+/** Control characters that would otherwise break a single-line remediation. */
+const CONTROL_CHARACTER = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/gu;
+
+/** Remove terminal formatting without changing the captured stream order. */
+const normalizedOutput = (output: string): string =>
+  output
+    .replaceAll(TERMINAL_ESCAPE, "")
+    .replaceAll(CONTROL_CHARACTER, "")
+    .replaceAll(/\s+/gu, " ")
+    .trim();
+
+/** Keep the start and the final diagnostic within a display budget. */
+const boundedExcerpt = (text: string, limit: number): string => {
+  if (text.length <= limit) return text;
+  const headLength = Math.floor(limit / 3);
+  const head = text
+    .slice(0, headLength)
+    .replace(/\s\S*$/u, "")
+    .trimEnd();
+  const tailLength = limit - head.length - 3;
+  const tail = text
+    .slice(-tailLength)
+    .replace(/^\S*\s/u, "")
+    .trimStart();
+  return `${head || text.slice(0, headLength)} … ${tail || text.slice(-tailLength)}`;
+};
+
+/** Collapse one failing command's output into a bounded, single-line excerpt. */
+const packageFailureExcerpt = (failure: LinuxPackageInstallFailure): string => {
+  const stderr = normalizedOutput(failure.stderr);
+  const stdout = normalizedOutput(failure.stdout);
+  if (stderr === "" && stdout === "") return "";
+  const excerpt =
+    stderr.length >= PACKAGE_FAILURE_EXCERPT_LIMIT - 40 || stdout === ""
+      ? boundedExcerpt(stderr, PACKAGE_FAILURE_EXCERPT_LIMIT)
+      : stderr === ""
+        ? boundedExcerpt(stdout, PACKAGE_FAILURE_EXCERPT_LIMIT)
+        : `${stderr} ${boundedExcerpt(stdout, PACKAGE_FAILURE_EXCERPT_LIMIT - stderr.length - 1)}`;
+  return failure.outputTruncated ? `${excerpt} (output truncated)` : excerpt;
+};
+
+/**
+ * Report what the package-manager step actually did. An authorization prompt
+ * and a package-manager rejection both fail at this step, so the remediation
+ * quotes the failing command and its output instead of assuming which one
+ * happened.
+ */
+const packageManagerRemediation = (
+  failure: LinuxPackageInstallFailure | undefined,
+): string => {
+  if (failure === undefined)
+    return "Allow the system package-manager operation or install the planned Hopper package and Linux runtime dependencies, then rerun rea setup.";
+  const guidance =
+    "Resolve the reported problem, grant the authorization the command needs, or install the planned Hopper package and Linux runtime dependencies manually, then rerun rea setup.";
+  const exitStatus =
+    failure.exitCode === null
+      ? "no exit status"
+      : `exit ${String(failure.exitCode)}`;
+  const excerpt = packageFailureExcerpt(failure);
+  const observed =
+    excerpt === "" ? "no output was captured." : `its output: ${excerpt}`;
+  return `The system package-manager command failed (${failure.command}; ${exitStatus}); ${observed} ${guidance}`;
+};
+
 /** Map provider installer failures to stable setup codes and safe recovery. */
 export const setupInstallFailure = (
   reason: HopperInstallFailureReason,
+  packageFailure?: LinuxPackageInstallFailure,
 ): SetupHopperInstallResult => {
   switch (reason) {
     case "unsupported_host":
@@ -67,8 +140,7 @@ export const setupInstallFailure = (
       return {
         status: "failed",
         code: "authorization_or_package_manager_failed",
-        remediation:
-          "Allow the system package-manager operation or install the planned Hopper package and Linux runtime dependencies, then rerun rea setup.",
+        remediation: packageManagerRemediation(packageFailure),
       };
     case "launcher_missing":
       return {

@@ -151,7 +151,7 @@ export const systemSetupHost = (
         );
         return result.status === "installed"
           ? result
-          : setupInstallFailure(result.reason);
+          : setupInstallFailure(result.reason, result.packageFailure);
       }
       if (macHopperHost === undefined)
         return setupInstallFailure("unsupported_host");
