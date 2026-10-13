@@ -104,13 +104,23 @@ export const compareArtifacts = (
   const right = parseArtifactInventoryEvidence(rightEvidence);
   const leftComplete = left.inventory.complete;
   const rightComplete = right.inventory.complete;
-  const leftCovered = hasCompleteInventoryCoverage(left.inventory);
-  const rightCovered = hasCompleteInventoryCoverage(right.inventory);
+  const sameScope =
+    left.inventory.coverage.scope === right.inventory.coverage.scope;
+  const leftCovered = sameScope && hasCompleteInventoryCoverage(left.inventory, left.inventory.coverage.scope);
+  const rightCovered =
+    sameScope && hasCompleteInventoryCoverage(right.inventory, right.inventory.coverage.scope);
   const limitations = [
     ...left.inventory.limitations.map((item) => `Left: ${item}`),
     ...right.inventory.limitations.map((item) => `Right: ${item}`),
     ...(leftComplete ? [] : ["Left artifact inventory is incomplete."]),
     ...(rightComplete ? [] : ["Right artifact inventory is incomplete."]),
+    ...(sameScope ? [] : ["Artifact inventory scopes differ."]),
+    ...(left.inventory.coverage.status === "complete"
+      ? []
+      : ["Left artifact inventory traversal coverage is unknown."]),
+    ...(right.inventory.coverage.status === "complete"
+      ? []
+      : ["Right artifact inventory traversal coverage is unknown."]),
   ];
   const changes = compareOccurrences(
     left.inventory,

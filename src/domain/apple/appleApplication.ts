@@ -169,9 +169,9 @@ export const projectAppleApplication = (
   );
   const uninventoriedImage =
     rootFormat === "dmg" && inventory.occurrences.length === 1;
-  const inventoryComplete = hasCompleteInventoryCoverage(inventory);
+  const inventoryComplete = hasCompleteInventoryCoverage(inventory, "container-entries");
   const complete = inventoryComplete && !uninventoriedImage;
-  const limitations = projectionLimitations({
+  const limitations = [...inventory.limitations, ...projectionLimitations({
     complete: inventoryComplete,
     uninventoriedImage,
     roots,
@@ -180,7 +180,7 @@ export const projectAppleApplication = (
     symlinks: entries.some(({ kind }) => kind === "symlink"),
     unattributed,
     bridgeCandidateCoverage: bridgeProjection.coverage,
-  });
+  })];
   const withoutId = {
     root_sha256: inventory.manifest.root_sha256,
     root_format: rootFormat,

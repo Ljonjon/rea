@@ -99,7 +99,8 @@ export const projectAndroidApplication = (
   );
   const components = classified;
   const limitations = [
-    ...(!hasCompleteInventoryCoverage(inventory)
+    ...inventory.limitations,
+    ...(!hasCompleteInventoryCoverage(inventory, "container-entries")
       ? ["Source inventory coverage is partial; absence is unknown."]
       : []),
     "Manifest, resource, signing, and bytecode semantics require a dedicated Android provider; this projection reports exact inventory paths and hashes only.",
