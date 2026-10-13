@@ -1,3 +1,4 @@
+import { classifyJavaScriptArtifactFilePath } from "./javascript/javascriptArtifactFiles.js";
 import { z } from "zod";
 
 import {
@@ -299,7 +300,86 @@ const probesFor = (
   inventory: ArtifactInventoryResult,
 ): ArtifactInspectionResult["next_probes"] => {
   const format = inventory.manifest.root_format;
-  if (["asar", "javascript-bundle", "directory"].includes(format))
+  return format === "directory"
+    ? directoryProbes(inventory)
+    : probesForFormat(format);
+};
+
+// An application bundle directory is only a container, so its probes follow
+// the formats it holds: a bundle of Mach-O executables is not a JavaScript tree.
+// Formats are ordered so a repeated operation keeps its most general rationale.
+const DIRECTORY_MEMBER_FORMATS: readonly ArtifactInventoryResult["manifest"]["root_format"][] =
+  ["asar", "mach-o-universal", "mach-o", "elf", "pe", "plist"];
+
+// A direct path can cross directory ancestors, never a packed container file.
+// Content-addressed node state is insufficient: identical bytes can occur both
+// on disk and inside an archive. Keep this applicability tied to occurrences.
+const directFilesystemFormats = (inventory: ArtifactInventoryResult) => {
+  const byId = new Map(
+    inventory.occurrences.map((entry) => [entry.occurrence_id, entry]),
+  );
+  const directories = new Map<string, boolean>();
+  const directParent = (id: string | null): boolean => {
+    const pending = new Set<string>();
+    let direct = true;
+    while (id !== null) {
+      const known = directories.get(id);
+      if (known !== undefined) {
+        direct = known;
+        break;
+      }
+      const parent = byId.get(id);
+      if (
+        parent === undefined ||
+        parent.entry_kind !== "directory" ||
+        pending.has(id)
+      ) {
+        direct = false;
+        break;
+      }
+      pending.add(id);
+      id = parent.parent_occurrence_id;
+    }
+    for (const ancestor of pending) directories.set(ancestor, direct);
+    return direct;
+  };
+  return new Set(
+    inventory.occurrences
+      .filter((entry) => directParent(entry.parent_occurrence_id))
+      .map((entry) => entry.artifact_format),
+  );
+};
+
+const directoryProbes = (
+  inventory: ArtifactInventoryResult,
+): ArtifactInspectionResult["next_probes"] => {
+  const present = new Set(
+    inventory.occurrences.map(({ artifact_format }) => artifact_format),
+  );
+  const directFormats = directFilesystemFormats(inventory);
+  const hasJavaScriptMember = inventory.occurrences.some(
+    ({ entry_kind, logical_path }) =>
+      entry_kind === "file" &&
+      classifyJavaScriptArtifactFilePath(logical_path) !== undefined,
+  );
+  const members = DIRECTORY_MEMBER_FORMATS.filter((format) =>
+    format === "asar" ? present.has(format) : directFormats.has(format),
+  );
+  const probes = [
+    ...(hasJavaScriptMember ? probesForFormat("javascript-bundle") : []),
+    ...members.flatMap(probesForFormat),
+  ];
+  return probes.filter(
+    (probe, index) =>
+      probes.findIndex(({ operation }) => operation === probe.operation) ===
+      index,
+  );
+};
+
+const probesForFormat = (
+  format: ArtifactInventoryResult["manifest"]["root_format"],
+): ArtifactInspectionResult["next_probes"] => {
+  if (["asar", "javascript-bundle"].includes(format))
     return [
       {
         operation: "analyze_javascript_application",
