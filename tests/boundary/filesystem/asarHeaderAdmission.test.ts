@@ -89,6 +89,7 @@ it("rejects contradictory and unsigned-boundary extents before decoding", async 
 it("separates the header decode budget from container validity at its exact boundary", async () => {
   const root = await createTestTempDirectory("rea-asar-header-budget-");
   const archive = join(root, "budget.asar");
+  expect(MAX_ASAR_HEADER_BYTES).toBe(16 * 1024 * 1024);
   for (const headerBytes of [
     MAX_ASAR_HEADER_BYTES,
     MAX_ASAR_HEADER_BYTES + 4,
