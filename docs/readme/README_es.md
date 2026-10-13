@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Sitio web](https://rea.tools/es/) · [Guías](https://rea.tools/es/guides/) · [Casos prácticos](https://rea.tools/es/showcase/)**
+**[Sitio web](https://rea.tools/es/) · [Guías](https://rea.tools/es/guides/) · [Demos reproducibles](https://rea.tools/es/demos/) · [Casos prácticos](https://rea.tools/es/showcase/)**
 
 [Inicio rápido](#inicio-rápido) · [Cómo funciona REA](#cómo-funciona-rea) · [Qué puedes analizar](#qué-puedes-analizar) · [Casos prácticos](#casos-prácticos) · [Preguntas frecuentes](#preguntas-frecuentes) · [Documentación](#documentación)
 
@@ -250,6 +250,8 @@ Si usas un agente, completa la [actualización de la configuración](#actualiza-
 ## Documentación
 
 Empieza con las [guías prácticas](https://rea.tools/es/guides/) del sitio web. Para opciones exactas, requisitos y contratos de resultados:
+
+[Demos reproducibles](https://rea.tools/es/demos/)
 
 - [Instalación y configuración](../installation.md): registro de agentes, configuración de proveedores, actualizaciones y desinstalación.
 - [Preparación y resolución de problemas](../installation.md#check-readiness-for-your-task): diagnóstico de un agente o motor de análisis concreto.

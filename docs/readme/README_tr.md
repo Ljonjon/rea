@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Web sitesi](https://rea.tools/tr/) · [Rehberler](https://rea.tools/tr/guides/) · [Örnek çalışmalar](https://rea.tools/tr/showcase/)**
+**[Web sitesi](https://rea.tools/tr/) · [Rehberler](https://rea.tools/tr/guides/) · [Tekrarlanabilir demolar](https://rea.tools/tr/demos/) · [Örnek çalışmalar](https://rea.tools/tr/showcase/)**
 
 [Hızlı başlangıç](#hızlı-başlangıç) · [REA nasıl çalışır](#rea-nasıl-çalışır) · [Neleri analiz edebilirsiniz](#neleri-analiz-edebilirsiniz) · [Örnek çalışmalar](#örnek-çalışmalar) · [Sık sorulan sorular](#sık-sorulan-sorular) · [Belgeler](#belgeler)
 
@@ -250,6 +250,8 @@ Ajan kullanıyorsanız [kurulum yenilemesini](#reayı-güncelleyin) tamamlayın 
 ## Belgeler
 
 Web sitesindeki [uygulamalı rehberlerden](https://rea.tools/tr/guides/) başlayın. Kesin seçenekler, ön koşullar ve sonuç sözleşmeleri için:
+
+[Tekrarlanabilir demolar](https://rea.tools/tr/demos/)
 
 - [Yükleme ve kurulum](../installation.md): ajan kaydı, sağlayıcı yapılandırması, güncellemeler ve kaldırma.
 - [Hazırlık ve sorun giderme](../installation.md#check-readiness-for-your-task): belirli bir ajanı veya analiz motorunu tanılama.

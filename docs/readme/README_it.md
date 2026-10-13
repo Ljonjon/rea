@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Sito web](https://rea.tools/it/) · [Guide](https://rea.tools/it/guides/) · [Showcase](https://rea.tools/it/showcase/)**
+**[Sito web](https://rea.tools/it/) · [Guide](https://rea.tools/it/guides/) · [Demo riproducibili](https://rea.tools/it/demos/) · [Showcase](https://rea.tools/it/showcase/)**
 
 [Avvio rapido](#avvio-rapido) · [Come funziona REA](#come-funziona-rea) · [Cosa puoi analizzare](#cosa-puoi-analizzare) · [Showcase](#showcase) · [FAQ](#faq) · [Documentazione](#documentazione)
 
@@ -254,6 +254,8 @@ Se stai usando un agente, completa l'[aggiornamento della configurazione](#aggio
 ## Documentazione
 
 Inizia dalle [guide pratiche](https://rea.tools/it/guides/) del sito web. Per opzioni esatte, prerequisiti e contratti dei risultati:
+
+[Demo riproducibili](https://rea.tools/it/demos/)
 
 - [Installazione e configurazione](../installation.md): registrazione agente, configurazione provider, aggiornamenti e disinstallazione.
 - [Pronto all'uso e risoluzione dei problemi](../installation.md#check-readiness-for-your-task): diagnostica un agente o un motore di analisi.

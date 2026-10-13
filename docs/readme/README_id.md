@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Situs Web](https://rea.tools/id/) · [Panduan](https://rea.tools/id/guides/) · [Contoh Penggunaan](https://rea.tools/id/showcase/)**
+**[Situs Web](https://rea.tools/id/) · [Panduan](https://rea.tools/id/guides/) · [Demo yang dapat direproduksi](https://rea.tools/id/demos/) · [Contoh Penggunaan](https://rea.tools/id/showcase/)**
 
 [Mulai Cepat](#mulai-cepat) · [Cara Kerja REA](#cara-kerja-rea) · [Hal yang Dapat Anda Analisis](#hal-yang-dapat-anda-analisis) · [Contoh Penggunaan](#contoh-penggunaan) · [FAQ](#faq) · [Dokumentasi](#dokumentasi)
 
@@ -273,6 +273,8 @@ Coba kembali tugas yang sama. Jika masalah masih terjadi, [buat issue](https://g
 ## Dokumentasi
 
 Mulailah dengan [panduan praktik di situs web](https://rea.tools/id/guides/).
+
+[Demo yang dapat direproduksi](https://rea.tools/id/demos/)
 
 Untuk mengetahui opsi, prasyarat, dan kontrak hasil secara tepat:
 

@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[الموقع](https://rea.tools/ar/) · [الأدلة](https://rea.tools/ar/guides/) · [دراسات الحالة](https://rea.tools/ar/showcase/)**
+**[الموقع](https://rea.tools/ar/) · [الأدلة](https://rea.tools/ar/guides/) · [عروض توضيحية قابلة لإعادة الإنتاج](https://rea.tools/ar/demos/) · [دراسات الحالة](https://rea.tools/ar/showcase/)**
 
 [البدء السريع](#البدء-السريع) · [كيف يعمل REA](#كيف-يعمل-rea) · [ما الذي يمكنك تحليله](#ما-الذي-يمكنك-تحليله) · [دراسات الحالة](#دراسات-الحالة) · [الأسئلة الشائعة](#الأسئلة-الشائعة) · [التوثيق](#التوثيق)
 
@@ -252,6 +252,8 @@ npx rea-agents@latest setup
 ## التوثيق
 
 ابدأ بـ [الأدلة العملية](https://rea.tools/ar/guides/) على الموقع. للخيارات الدقيقة والمتطلبات وعقود النتائج:
+
+[عروض توضيحية قابلة لإعادة الإنتاج](https://rea.tools/ar/demos/)
 
 - [التثبيت والإعداد](../installation.md): تسجيل الوكلاء، وتهيئة الموفّرين، والتحديثات، وإلغاء التثبيت.
 - [الجاهزية واستكشاف الأخطاء](../installation.md#check-readiness-for-your-task): تشخيص وكيل أو محرك تحليل محدد.

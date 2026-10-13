@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[เว็บไซต์](https://rea.tools/th/) · [คู่มือ](https://rea.tools/th/guides/) · [ตัวอย่างการใช้งาน](https://rea.tools/th/showcase/)**
+**[เว็บไซต์](https://rea.tools/th/) · [คู่มือ](https://rea.tools/th/guides/) · [เดโมที่ทำซ้ำได้](https://rea.tools/th/demos/) · [ตัวอย่างการใช้งาน](https://rea.tools/th/showcase/)**
 
 [เริ่มต้นอย่างรวดเร็ว](#เริ่มต้นอย่างรวดเร็ว) · [REA ทำงานอย่างไร](#rea-ทำงานอย่างไร) · [สิ่งที่วิเคราะห์ได้](#สิ่งที่วิเคราะห์ได้) · [ตัวอย่างการใช้งาน](#ตัวอย่างการใช้งาน) · [คำถามที่พบบ่อย](#คำถามที่พบบ่อย) · [เอกสาร](#เอกสาร)
 
@@ -250,6 +250,8 @@ npx rea-agents@latest setup
 ## เอกสาร
 
 เริ่มจาก[คู่มือพร้อมตัวอย่าง](https://rea.tools/th/guides/) บนเว็บไซต์ สำหรับตัวเลือก ข้อกำหนดเบื้องต้น และสัญญาผลลัพธ์ที่แน่นอน:
+
+[เดโมที่ทำซ้ำได้](https://rea.tools/th/demos/)
 
 - [การติดตั้งและตั้งค่า](../installation.md): การลงทะเบียนเอเจนต์ การตั้งค่าผู้ให้บริการ การอัปเดต และการถอนการติดตั้ง
 - [ความพร้อมใช้งานและการแก้ไขปัญหา](../installation.md#check-readiness-for-your-task): ตรวจวินิจฉัยเอเจนต์หรือเอนจินวิเคราะห์หนึ่งตัว

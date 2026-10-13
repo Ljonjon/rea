@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Сайт](https://rea.tools/ru/) · [Руководства](https://rea.tools/ru/guides/) · [Примеры](https://rea.tools/ru/showcase/)**
+**[Сайт](https://rea.tools/ru/) · [Руководства](https://rea.tools/ru/guides/) · [Воспроизводимые демонстрации](https://rea.tools/ru/demos/) · [Примеры](https://rea.tools/ru/showcase/)**
 
 [Быстрый старт](#быстрый-старт) · [Как работает REA](#как-работает-rea) · [Что можно анализировать](#что-можно-анализировать) · [Примеры](#примеры) · [Частые вопросы](#частые-вопросы) · [Документация](#документация)
 
@@ -250,6 +250,8 @@ npx rea-agents@latest setup
 ## Документация
 
 Начните с [практических руководств](https://rea.tools/ru/guides/) на сайте. Точные параметры, требования и контракты результатов описаны здесь:
+
+[Воспроизводимые демонстрации](https://rea.tools/ru/demos/)
 
 - [Установка и настройка](../installation.md): регистрация агентов, настройка провайдеров, обновление и удаление.
 - [Готовность и устранение неполадок](../installation.md#check-readiness-for-your-task): диагностика конкретного агента или движка анализа.

@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Site](https://rea.tools/pt-BR/) · [Guias](https://rea.tools/pt-BR/guides/) · [Casos de uso](https://rea.tools/pt-BR/showcase/)**
+**[Site](https://rea.tools/pt-BR/) · [Guias](https://rea.tools/pt-BR/guides/) · [Demonstrações reproduzíveis](https://rea.tools/pt-BR/demos/) · [Casos de uso](https://rea.tools/pt-BR/showcase/)**
 
 [Início rápido](#início-rápido) · [Como o REA funciona](#como-o-rea-funciona) · [O que você pode analisar](#o-que-você-pode-analisar) · [Casos de uso](#casos-de-uso) · [Perguntas frequentes](#perguntas-frequentes) · [Documentação](#documentação)
 
@@ -250,6 +250,8 @@ Se você usa um agente, conclua a [atualização da configuração](#atualize-o-
 ## Documentação
 
 Comece pelos [guias práticos](https://rea.tools/pt-BR/guides/) do site. Para opções exatas, pré-requisitos e contratos dos resultados:
+
+[Demonstrações reproduzíveis](https://rea.tools/pt-BR/demos/)
 
 - [Instalação e configuração](../installation.md): registro de agentes, configuração de provedores, atualizações e desinstalação.
 - [Prontidão e solução de problemas](../installation.md#check-readiness-for-your-task): diagnóstico de um agente ou motor de análise específico.

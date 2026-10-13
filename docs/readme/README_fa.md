@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55" /></a>
 
-**[وب‌سایت](https://rea.tools/fa/) · [راهنماها](https://rea.tools/fa/guides/) · [نمونه‌های عملی](https://rea.tools/fa/showcase/)**
+**[وب‌سایت](https://rea.tools/fa/) · [راهنماها](https://rea.tools/fa/guides/) · [دموهای قابل بازتولید](https://rea.tools/fa/demos/) · [نمونه‌های عملی](https://rea.tools/fa/showcase/)**
 
 [شروع سریع](#شروع-سریع) · [REA چگونه کار می‌کند؟](#rea-چگونه-کار-می‌کند) · [چه چیزهایی را میتوان تحلیل کرد؟](#چه-چیزهایی-را-می‌توان-تحلیل-کرد) · [نمونه‌های عملی](#نمونه‌های-عملی) · [پرسش‌های متداول](#پرسش‌های-متداول) · [مستندات](#مستندات)
 
@@ -235,6 +235,8 @@ npx rea-agents@latest setup
 ## مستندات
 
 از [راهنماهای عملی وب‌سایت](https://rea.tools/fa/guides/) شروع کنید. برای گزینه‌های دقیق، پیش‌نیازها و قراردادهای خروجی:
+
+[دموهای قابل بازتولید](https://rea.tools/fa/demos/)
 
 - [نصب و راه‌اندازی](../installation.md): ثبت ایجنت، پیکربندی ارائه‌دهنده، به‌روزرسانی و حذف نصب.
 - [آمادگی و رفع اشکال](../installation.md#check-readiness-for-your-task): عیب‌یابی یک ایجنت یا موتور تحلیل.

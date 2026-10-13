@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[網站](https://rea.tools/zh-TW/) · [指南](https://rea.tools/zh-TW/guides/) · [案例](https://rea.tools/zh-TW/showcase/)**
+**[網站](https://rea.tools/zh-TW/) · [指南](https://rea.tools/zh-TW/guides/) · [可重現示範](https://rea.tools/zh-TW/demos/) · [案例](https://rea.tools/zh-TW/showcase/)**
 
 [快速開始](#快速開始) · [REA 的工作原理](#rea-的工作原理) · [可以分析什麼](#可以分析什麼) · [案例](#案例) · [常見問題](#常見問題) · [文件](#文件)
 
@@ -252,6 +252,8 @@ npx rea-agents@latest setup
 ## 文件
 
 可以先閱讀網站上的[實操指南](https://rea.tools/zh-TW/guides/)。具體選項、前提條件和結果契約見：
+
+[可重現示範](https://rea.tools/zh-TW/demos/)
 
 - [安裝與設定](../installation.md)：AI 代理註冊、提供者組態、更新和卸載。
 - [就緒檢查與故障排查](../installation.md#check-readiness-for-your-task)：診斷特定 AI 代理或分析引擎。

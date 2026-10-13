@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[웹사이트](https://rea.tools/ko/) · [가이드](https://rea.tools/ko/guides/) · [사례](https://rea.tools/ko/showcase/)**
+**[웹사이트](https://rea.tools/ko/) · [가이드](https://rea.tools/ko/guides/) · [재현 가능한 데모](https://rea.tools/ko/demos/) · [사례](https://rea.tools/ko/showcase/)**
 
 [빠른 시작](#빠른-시작) · [REA의 작동 방식](#rea의-작동-방식) · [분석할 수 있는 대상](#분석할-수-있는-대상) · [사례](#사례) · [자주 묻는 질문](#자주-묻는-질문) · [문서](#문서)
 
@@ -252,6 +252,8 @@ npx rea-agents@latest setup
 ## 문서
 
 웹사이트의 [실습 가이드](https://rea.tools/ko/guides/)부터 읽어 보세요. 정확한 옵션, 사전 요구 사항, 결과 계약은 다음 문서를 참고하세요.
+
+[재현 가능한 데모](https://rea.tools/ko/demos/)
 
 - [설치 및 설정](../installation.md): 에이전트 등록, 제공자 설정, 업데이트, 제거.
 - [준비 상태 확인 및 문제 해결](../installation.md#check-readiness-for-your-task): 특정 에이전트 또는 분석 엔진 진단.

@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[ウェブサイト](https://rea.tools/ja/) · [ガイド](https://rea.tools/ja/guides/) · [事例](https://rea.tools/ja/showcase/)**
+**[ウェブサイト](https://rea.tools/ja/) · [ガイド](https://rea.tools/ja/guides/) · [再現可能なデモ](https://rea.tools/ja/demos/) · [事例](https://rea.tools/ja/showcase/)**
 
 [クイックスタート](#クイックスタート) · [REA の仕組み](#rea-の仕組み) · [分析できる対象](#分析できる対象) · [事例](#事例) · [よくある質問](#よくある質問) · [ドキュメント](#ドキュメント)
 
@@ -252,6 +252,8 @@ npx rea-agents@latest setup
 ## ドキュメント
 
 まずはウェブサイトの[実践ガイド](https://rea.tools/ja/guides/)を参照してください。正確なオプション、前提条件、結果の契約については、以下を参照してください。
+
+[再現可能なデモ](https://rea.tools/ja/demos/)
 
 - [インストールとセットアップ](../installation.md)：エージェントの登録、プロバイダーの設定、更新、アンインストール。
 - [準備状況の確認とトラブルシューティング](../installation.md#check-readiness-for-your-task)：特定のエージェントや分析エンジンを診断。

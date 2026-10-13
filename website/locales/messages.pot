@@ -14,8 +14,8 @@ msgstr ""
 #: website/public/blog/index.html:113
 #: website/public/blog/reverse-engineering-models/index.html:113
 #: website/public/blog/touhou-reconstruction/index.html:113
-#: website/public/examples/dino-lab/index.html:114 website/public/faq/index.html:113
-#: website/public/first-investigation/index.html:113
+#: website/public/demos/index.html:113 website/public/examples/dino-lab/index.html:114
+#: website/public/faq/index.html:113 website/public/first-investigation/index.html:113
 #: website/public/get-started/index.html:113
 #: website/public/guides/browser/index.html:113 website/public/guides/index.html:113
 #: website/public/guides/javascript/index.html:113
@@ -32,8 +32,8 @@ msgstr ""
 #: website/public/blog/index.html:114
 #: website/public/blog/reverse-engineering-models/index.html:114
 #: website/public/blog/touhou-reconstruction/index.html:114
-#: website/public/examples/dino-lab/index.html:115 website/public/faq/index.html:114
-#: website/public/first-investigation/index.html:114
+#: website/public/demos/index.html:114 website/public/examples/dino-lab/index.html:115
+#: website/public/faq/index.html:114 website/public/first-investigation/index.html:114
 #: website/public/get-started/index.html:114
 #: website/public/guides/browser/index.html:114 website/public/guides/index.html:114
 #: website/public/guides/javascript/index.html:114
@@ -50,8 +50,8 @@ msgstr ""
 #: website/public/blog/index.html:115
 #: website/public/blog/reverse-engineering-models/index.html:115
 #: website/public/blog/touhou-reconstruction/index.html:115
-#: website/public/examples/dino-lab/index.html:116 website/public/faq/index.html:115
-#: website/public/first-investigation/index.html:115
+#: website/public/demos/index.html:115 website/public/examples/dino-lab/index.html:116
+#: website/public/faq/index.html:115 website/public/first-investigation/index.html:115
 #: website/public/get-started/index.html:115
 #: website/public/guides/browser/index.html:115 website/public/guides/index.html:115
 #: website/public/guides/javascript/index.html:115
@@ -68,8 +68,8 @@ msgstr ""
 #: website/public/blog/index.html:116
 #: website/public/blog/reverse-engineering-models/index.html:116
 #: website/public/blog/touhou-reconstruction/index.html:116
-#: website/public/examples/dino-lab/index.html:117 website/public/faq/index.html:116
-#: website/public/first-investigation/index.html:116
+#: website/public/demos/index.html:116 website/public/examples/dino-lab/index.html:117
+#: website/public/faq/index.html:116 website/public/first-investigation/index.html:116
 #: website/public/get-started/index.html:116
 #: website/public/guides/browser/index.html:116 website/public/guides/index.html:116
 #: website/public/guides/javascript/index.html:116
@@ -157,10 +157,10 @@ msgstr ""
 #: website/public/blog/index.html:236
 #: website/public/blog/reverse-engineering-models/index.html:875
 #: website/public/blog/touhou-reconstruction/index.html:1072
-#: website/public/examples/dino-lab/index.html:467 website/public/faq/index.html:565
-#: website/public/first-investigation/index.html:515
+#: website/public/demos/index.html:470 website/public/examples/dino-lab/index.html:467
+#: website/public/faq/index.html:565 website/public/first-investigation/index.html:515
 #: website/public/get-started/index.html:874
-#: website/public/guides/browser/index.html:499 website/public/guides/index.html:274
+#: website/public/guides/browser/index.html:499 website/public/guides/index.html:286
 #: website/public/guides/javascript/index.html:495
 #: website/public/guides/native/index.html:501 website/public/index.html:1183
 #: website/public/showcase/aegis/index.html:800
@@ -175,10 +175,10 @@ msgstr ""
 #: website/public/blog/index.html:237
 #: website/public/blog/reverse-engineering-models/index.html:876
 #: website/public/blog/touhou-reconstruction/index.html:1073
-#: website/public/examples/dino-lab/index.html:468 website/public/faq/index.html:566
-#: website/public/first-investigation/index.html:516
+#: website/public/demos/index.html:471 website/public/examples/dino-lab/index.html:468
+#: website/public/faq/index.html:566 website/public/first-investigation/index.html:516
 #: website/public/get-started/index.html:875
-#: website/public/guides/browser/index.html:500 website/public/guides/index.html:275
+#: website/public/guides/browser/index.html:500 website/public/guides/index.html:287
 #: website/public/guides/javascript/index.html:496
 #: website/public/guides/native/index.html:502 website/public/index.html:1184
 #: website/public/showcase/aegis/index.html:801
@@ -193,10 +193,10 @@ msgstr ""
 #: website/public/blog/index.html:238
 #: website/public/blog/reverse-engineering-models/index.html:877
 #: website/public/blog/touhou-reconstruction/index.html:1074
-#: website/public/examples/dino-lab/index.html:469 website/public/faq/index.html:567
-#: website/public/first-investigation/index.html:517
+#: website/public/demos/index.html:472 website/public/examples/dino-lab/index.html:469
+#: website/public/faq/index.html:567 website/public/first-investigation/index.html:517
 #: website/public/get-started/index.html:876
-#: website/public/guides/browser/index.html:501 website/public/guides/index.html:276
+#: website/public/guides/browser/index.html:501 website/public/guides/index.html:288
 #: website/public/guides/javascript/index.html:497
 #: website/public/guides/native/index.html:503 website/public/index.html:1185
 #: website/public/showcase/aegis/index.html:802
@@ -211,10 +211,10 @@ msgstr ""
 #: website/public/blog/index.html:239
 #: website/public/blog/reverse-engineering-models/index.html:878
 #: website/public/blog/touhou-reconstruction/index.html:1075
-#: website/public/examples/dino-lab/index.html:470 website/public/faq/index.html:568
-#: website/public/first-investigation/index.html:518
+#: website/public/demos/index.html:473 website/public/examples/dino-lab/index.html:470
+#: website/public/faq/index.html:568 website/public/first-investigation/index.html:518
 #: website/public/get-started/index.html:877
-#: website/public/guides/browser/index.html:502 website/public/guides/index.html:277
+#: website/public/guides/browser/index.html:502 website/public/guides/index.html:289
 #: website/public/guides/javascript/index.html:498
 #: website/public/guides/native/index.html:504 website/public/index.html:1186
 #: website/public/showcase/aegis/index.html:803
@@ -231,10 +231,10 @@ msgstr ""
 #: website/public/blog/index.html:244
 #: website/public/blog/reverse-engineering-models/index.html:883
 #: website/public/blog/touhou-reconstruction/index.html:1080
-#: website/public/examples/dino-lab/index.html:475 website/public/faq/index.html:573
-#: website/public/first-investigation/index.html:523
+#: website/public/demos/index.html:478 website/public/examples/dino-lab/index.html:475
+#: website/public/faq/index.html:573 website/public/first-investigation/index.html:523
 #: website/public/get-started/index.html:882
-#: website/public/guides/browser/index.html:507 website/public/guides/index.html:282
+#: website/public/guides/browser/index.html:507 website/public/guides/index.html:294
 #: website/public/guides/javascript/index.html:503
 #: website/public/guides/native/index.html:509 website/public/index.html:1191
 #: website/public/showcase/aegis/index.html:808
@@ -264,6 +264,7 @@ msgstr ""
 #: website/public/blog/reverse-engineering-models/index.html:88
 #: website/public/blog/touhou-reconstruction/index.html:75
 #: website/public/blog/touhou-reconstruction/index.html:88
+#: website/public/demos/index.html:75 website/public/demos/index.html:88
 #: website/public/examples/dino-lab/index.html:75
 #: website/public/examples/dino-lab/index.html:88 website/public/faq/index.html:75
 #: website/public/faq/index.html:88 website/public/first-investigation/index.html:75
@@ -290,8 +291,8 @@ msgstr ""
 #: website/public/blog/index.html:108
 #: website/public/blog/reverse-engineering-models/index.html:108
 #: website/public/blog/touhou-reconstruction/index.html:108
-#: website/public/examples/dino-lab/index.html:109 website/public/faq/index.html:108
-#: website/public/first-investigation/index.html:108
+#: website/public/demos/index.html:108 website/public/examples/dino-lab/index.html:109
+#: website/public/faq/index.html:108 website/public/first-investigation/index.html:108
 #: website/public/get-started/index.html:108
 #: website/public/guides/browser/index.html:108 website/public/guides/index.html:108
 #: website/public/guides/javascript/index.html:108
@@ -308,8 +309,8 @@ msgstr ""
 #: website/public/blog/index.html:112
 #: website/public/blog/reverse-engineering-models/index.html:112
 #: website/public/blog/touhou-reconstruction/index.html:112
-#: website/public/examples/dino-lab/index.html:113 website/public/faq/index.html:112
-#: website/public/first-investigation/index.html:112
+#: website/public/demos/index.html:112 website/public/examples/dino-lab/index.html:113
+#: website/public/faq/index.html:112 website/public/first-investigation/index.html:112
 #: website/public/get-started/index.html:112
 #: website/public/guides/browser/index.html:112 website/public/guides/index.html:112
 #: website/public/guides/javascript/index.html:112
@@ -326,8 +327,8 @@ msgstr ""
 #: website/public/blog/index.html:130
 #: website/public/blog/reverse-engineering-models/index.html:130
 #: website/public/blog/touhou-reconstruction/index.html:130
-#: website/public/examples/dino-lab/index.html:131 website/public/faq/index.html:130
-#: website/public/first-investigation/index.html:130
+#: website/public/demos/index.html:130 website/public/examples/dino-lab/index.html:131
+#: website/public/faq/index.html:130 website/public/first-investigation/index.html:130
 #: website/public/get-started/index.html:130
 #: website/public/guides/browser/index.html:130 website/public/guides/index.html:130
 #: website/public/guides/javascript/index.html:130
@@ -344,8 +345,8 @@ msgstr ""
 #: website/public/blog/index.html:150
 #: website/public/blog/reverse-engineering-models/index.html:150
 #: website/public/blog/touhou-reconstruction/index.html:150
-#: website/public/examples/dino-lab/index.html:151 website/public/faq/index.html:150
-#: website/public/first-investigation/index.html:150
+#: website/public/demos/index.html:150 website/public/examples/dino-lab/index.html:151
+#: website/public/faq/index.html:150 website/public/first-investigation/index.html:150
 #: website/public/get-started/index.html:150
 #: website/public/guides/browser/index.html:150 website/public/guides/index.html:150
 #: website/public/guides/javascript/index.html:150
@@ -362,8 +363,8 @@ msgstr ""
 #: website/public/blog/index.html:169
 #: website/public/blog/reverse-engineering-models/index.html:169
 #: website/public/blog/touhou-reconstruction/index.html:169
-#: website/public/examples/dino-lab/index.html:170 website/public/faq/index.html:169
-#: website/public/first-investigation/index.html:169
+#: website/public/demos/index.html:169 website/public/examples/dino-lab/index.html:170
+#: website/public/faq/index.html:169 website/public/first-investigation/index.html:169
 #: website/public/get-started/index.html:169
 #: website/public/guides/browser/index.html:169 website/public/guides/index.html:169
 #: website/public/guides/javascript/index.html:169
@@ -2600,6 +2601,414 @@ msgstr ""
 
 #: website/public/blog/touhou-reconstruction/index.html:1080
 msgctxt "page:blog/touhou-reconstruction/index.html"
+msgid "Back to top"
+msgstr ""
+
+#: website/public/demos/index.html:103
+msgctxt "page:demos/index.html"
+msgid "Skip to content"
+msgstr ""
+
+#. {ph0}: <a href="../">
+#. {ph1}: </a>
+#: website/public/demos/index.html:194
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid "{ph0}Home{ph1} / Demos"
+msgstr ""
+
+#: website/public/demos/index.html:195 website/public/demos/index.html:6
+msgctxt "page:demos/index.html"
+msgid "Reproducible REA demos"
+msgstr ""
+
+#: website/public/demos/index.html:196
+msgctxt "page:demos/index.html"
+msgid ""
+"Three starter investigations, with source-owned targets, runnable commands and the "
+"limits of the evidence collected so far."
+msgstr ""
+
+#: website/public/demos/index.html:203
+msgctxt "page:demos/index.html"
+msgid "Current status"
+msgstr ""
+
+#: website/public/demos/index.html:204
+msgctxt "page:demos/index.html"
+msgid ""
+"These records separate a completed local workflow from an agent transcript or provider"
+" run that has not been captured. A verifier result is not a product benchmark or a "
+"recording."
+msgstr ""
+
+#: website/public/demos/index.html:212
+msgctxt "page:demos/index.html"
+msgid "Demo"
+msgstr ""
+
+#: website/public/demos/index.html:213
+msgctxt "page:demos/index.html"
+msgid "Status"
+msgstr ""
+
+#: website/public/demos/index.html:214
+msgctxt "page:demos/index.html"
+msgid "Evidence"
+msgstr ""
+
+#: website/public/demos/index.html:219
+msgctxt "page:demos/index.html"
+msgid "D01 · Electron CSV export"
+msgstr ""
+
+#: website/public/demos/index.html:220
+msgctxt "page:demos/index.html"
+msgid "CLI verified; agent transcript not verified"
+msgstr ""
+
+#: website/public/demos/index.html:221
+msgctxt "page:demos/index.html"
+msgid "Application analysis and a complete feature trace"
+msgstr ""
+
+#: website/public/demos/index.html:224
+msgctxt "page:demos/index.html"
+msgid "D02 · Native function"
+msgstr ""
+
+#: website/public/demos/index.html:225
+msgctxt "page:demos/index.html"
+msgid "Blocked by missing BYO analysis provider"
+msgstr ""
+
+#: website/public/demos/index.html:226
+msgctxt "page:demos/index.html"
+msgid "Source fixture and reproduction recipe are available"
+msgstr ""
+
+#: website/public/demos/index.html:229
+msgctxt "page:demos/index.html"
+msgid "D03 · Browser behavior"
+msgstr ""
+
+#: website/public/demos/index.html:230
+msgctxt "page:demos/index.html"
+msgid "Verified with real Chrome"
+msgstr ""
+
+#: website/public/demos/index.html:231
+msgctxt "page:demos/index.html"
+msgid "Two captures show a deliberate DOM change"
+msgstr ""
+
+#. {ph0}: <a
+#. href="https://github.com/morluto/rea/blob/main/website/evidence/reproducible-
+#. demos.md" >
+#. {ph1}: </a >
+#: website/public/demos/index.html:235
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"The complete measurements, environment and run boundaries are in {ph0}the evidence "
+"record{ph1}."
+msgstr ""
+
+#: website/public/demos/index.html:245
+msgctxt "page:demos/index.html"
+msgid "D01 · Trace an Electron CSV export"
+msgstr ""
+
+#: website/public/demos/index.html:246
+msgctxt "page:demos/index.html"
+msgid ""
+"Which files handle the Notes app’s Export notes action, and how does the renderer "
+"reach the CSV writer? The checked-in six-file fixture is a static analysis target; it "
+"does not require Electron to launch."
+msgstr ""
+
+#. {ph0}: <code>/absolute/path/to/rea</code>
+#. {ph1}: <code>npx</code>
+#: website/public/demos/index.html:251
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"Run the pinned npm package from a working directory outside the repository checkout. "
+"Replace {ph0} with the checkout's absolute path; output JSON files are written to the "
+"current directory. This avoids {ph1} resolving a checkout with the same package name "
+"and version:"
+msgstr ""
+
+#. {ph0}: <code>npm ci</code>
+#. {ph1}: <code>npm run build</code>
+#. {ph2}: <code>node scripts/rea.mjs</code>
+#. {ph3}: <code>npx</code>
+#: website/public/demos/index.html:276
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"To run the checkout's source instead, work from its root after {ph0} and {ph1}, and "
+"use {ph2} in place of each pinned {ph3} command."
+msgstr ""
+
+#. {ph0}: <code>notes:export</code>
+#. {ph1}: <code>invoke</code>
+#. {ph2}: <code>notes:export</code>
+#. {ph3}: <code>renderer.js</code>
+#. {ph4}: <code>preload.js</code>
+#. {ph5}: <code>main.js</code>
+#. {ph6}: <code>csv.js</code>
+#. {ph7}: <code>window.notes.exportCsv()</code>
+#. {ph8}: <code>notes:export</code>
+#. {ph9}: <code>notes.csv</code>
+#. {ph10}: <code>id,title</code>
+#: website/public/demos/index.html:282
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"The trace connects the renderer, preload bridge, literal {ph0} channel and main-"
+"process handler. On the recorded run, the application graph contained 29 nodes and 42 "
+"edges; the feature trace covered all 29 nodes and 42 edges. A semantic query seeded by"
+" the {ph1} property was ambiguous, with one relevant unknown and partial coverage. A "
+"literal semantic query for {ph2} found no seed; the exact IPC channel comes from the "
+"application graph. The source-backed path is {ph3} to {ph4} to {ph5} and {ph6}: the "
+"renderer calls {ph7}, the preload invokes {ph8}, and the main handler writes {ph9} "
+"under Electron's Downloads path. The CSV writer emits the {ph10} header and note rows;"
+" the handler returns the destination for the renderer's status message. Static "
+"analysis does not establish that a click or file write occurred, or resolve the actual"
+" Downloads path."
+msgstr ""
+
+#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/testing.md#real-
+#. toolchain-verification-lanes" >
+#. {ph1}: </a >
+#: website/public/demos/index.html:301
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"The recorded source-checkout run also required the package-matched Windows native "
+"artifact. The Windows build lane uses Linux and MinGW-w64; released packages bundle "
+"the matching artifact. See the {ph0}Windows native verification notes{ph1} before "
+"repeating the analysis from a Windows source checkout."
+msgstr ""
+
+#. {ph0}: <a href="../guides/javascript/">
+#. {ph1}: </a>
+#: website/public/demos/index.html:311
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"The agent evaluation now asks for the analysis, feature trace and semantic query in "
+"that order. This host did not produce a usable Codex transcript, so the requested "
+"agent interaction remains unverified. No agent answer is presented as a captured "
+"result. Compare the static findings with the {ph0}JavaScript and Electron guide{ph1}."
+msgstr ""
+
+#: website/public/demos/index.html:322
+msgctxt "page:demos/index.html"
+msgid "D02 · Find a native function"
+msgstr ""
+
+#. {ph0}: <code>REA_C_ENTRY</code>
+#. {ph1}: <a
+#. href="https://github.com/morluto/rea/blob/main/tests/conformance/c/fixture.c" >
+#. {ph2}: <code>tests/conformance/c/fixture.c</code>
+#. {ph3}: </a >
+#. {ph4}: <code>rea_entry</code>
+#. {ph5}: <code>rea_branch</code>
+#. {ph6}: <code>rea_leaf</code>
+#: website/public/demos/index.html:323
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"Which function prints {ph0}, and which calls lead from it to the leaf calculation? The"
+" source-owned C fixture is {ph1}{ph2}{ph3}. Its {ph4} function calls {ph5}, which "
+"calls {ph6}."
+msgstr ""
+
+#. {ph0}: <code>build/conformance/</code>
+#: website/public/demos/index.html:332
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"Fixture generation is supported on macOS and Linux with a C toolchain. It writes "
+"ignored files under {ph0} and verifies their source and binary hashes:"
+msgstr ""
+
+#: website/public/demos/index.html:340
+msgctxt "page:demos/index.html"
+msgid ""
+"With Ghidra configured, the equivalent CLI investigation uses the same target and "
+"provider for each standalone command:"
+msgstr ""
+
+#. {ph0}: <code>_rea_entry</code>
+#. {ph1}: <code>_rea_branch</code>
+#. {ph2}: <code>_rea_leaf</code>
+#. {ph3}: <code>xrefs</code>
+#: website/public/demos/index.html:348
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"On macOS, the fixture's exported symbols have a leading underscore: use {ph0}, {ph1}, "
+"and {ph2} in symbol queries. Linux uses the spellings shown above. You can also pass "
+"the address returned by the provider to {ph3}."
+msgstr ""
+
+#. {ph0}: <code>rea_branch</code>
+#. {ph1}: <code>rea_leaf</code>
+#. {ph2}: <code>xrefs</code>
+#. {ph3}: <code>rea_entry</code>
+#. {ph4}: <code>rea_branch</code>
+#. {ph5}: <code>xrefs</code>
+#. {ph6}: <code>close_binary</code>
+#: website/public/demos/index.html:355
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"The {ph0} query shows the next call to {ph1}. CLI {ph2} accepts a symbol name and "
+"resolves it to an address; the MCP operation takes an address (Ghidra requires it "
+"explicitly). In MCP, open the binary, search for the marker and procedures, inspect "
+"{ph3} and {ph4}, pass the resolved address to {ph5}, then call {ph6}. The MCP "
+"lifecycle must report successful cleanup. The CLI commands use separate processes and "
+"release their own analysis resources when each command exits."
+msgstr ""
+
+#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/installation.md#hopper"
+#. >
+#. {ph1}: </a >
+#. {ph2}: <a href="https://github.com/morluto/rea/blob/main/docs/cli.md#native-analysis"
+#. >
+#. {ph3}: </a >
+#: website/public/demos/index.html:367
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"This Windows host has no configured Ghidra, IDA or Hopper provider, so no pseudocode, "
+"assembly or reference result is claimed. The provider run remains blocked until one of"
+" those bring-your-own engines is available. See the {ph0}provider setup guide{ph1} and"
+" {ph2}native CLI guide{ph3}."
+msgstr ""
+
+#: website/public/demos/index.html:385
+msgctxt "page:demos/index.html"
+msgid "D03 · Compare a browser action"
+msgstr ""
+
+#: website/public/demos/index.html:386
+msgctxt "page:demos/index.html"
+msgid ""
+"What changes after clicking Export notes? The real-browser verifier starts its source-"
+"owned loopback page in Chrome, clicks the button, waits for an explicit ready state "
+"and captures the DOM. It repeats the same steps for a changed variant, then compares "
+"the two captures with the public CLI."
+msgstr ""
+
+#. {ph0}: <code>npm ci</code>
+#. {ph1}: <code>REA_BROWSER_EXECUTABLE</code>
+#: website/public/demos/index.html:393
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"From the repository root, install the pinned dependencies with {ph0}. Linux and macOS "
+"use the verifier’s standard Chrome paths. On Windows, set {ph1} to the installed "
+"Chrome executable before running the command:"
+msgstr ""
+
+#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/testing.md#real-
+#. toolchain-verification-lanes" >
+#. {ph1}: </a >
+#: website/public/demos/index.html:399
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"A Windows source checkout also needs the package-matched native addon used by the "
+"verifier's JavaScript worker. Normal runtime builds do not produce that ignored "
+"artifact. Follow the {ph0}Windows native verification setup{ph1} before running the "
+"browser verifier; released packages include the matching artifact."
+msgstr ""
+
+#. {ph0}: <code>Exported 2 notes</code>
+#. {ph1}: <code>Exported 3 notes</code>
+#. {ph2}: <code>changed</code>
+#: website/public/demos/index.html:412
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"The baseline displays {ph0}; the changed variant displays {ph1}. The captures align by"
+" their step IDs, the comparison reports {ph2}, and the result step contains one "
+"changed DOM artifact. This shows a controlled fixture difference, not behavior from an"
+" external site."
+msgstr ""
+
+#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/scripts/verify-real-
+#. browser.mjs" >
+#. {ph1}: <code>scripts/verify-real-browser.mjs</code>
+#. {ph2}: </a >
+#. {ph3}: <a href="../guides/browser/">
+#. {ph4}: </a>
+#: website/public/demos/index.html:419
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"The verified run used Chrome 154. REA terminated the browser processes it launched, "
+"removed their temporary profiles, closed the loopback fixture and removed the "
+"temporary comparison inputs. The source and verifier are in {ph0}{ph1}{ph2}. The "
+"browser guide explains the MCP capture contract and its {ph3}worked example{ph4}."
+msgstr ""
+
+#: website/public/demos/index.html:433
+msgctxt "page:demos/index.html"
+msgid "What remains"
+msgstr ""
+
+#: website/public/demos/index.html:435
+msgctxt "page:demos/index.html"
+msgid ""
+"Capture a real D01 agent transcript with a working local Codex login, and retain the "
+"full Evidence references used in its answer."
+msgstr ""
+
+#: website/public/demos/index.html:439
+msgctxt "page:demos/index.html"
+msgid ""
+"Run D02 on a declared host with a configured BYO provider; record the actual function "
+"result, source references and cleanup outcome."
+msgstr ""
+
+#: website/public/demos/index.html:443
+msgctxt "page:demos/index.html"
+msgid ""
+"Record the walkthroughs and test the published instructions from a clean user setup."
+msgstr ""
+
+#: website/public/demos/index.html:447
+msgctxt "page:demos/index.html"
+msgid ""
+"Measure time to first result, full scenario duration, process-tree CPU/RSS and "
+"temporary disk use before making resource claims. Those measurements are currently "
+"unknown."
+msgstr ""
+
+#. {ph0}: <a href="https://github.com/morluto/rea/issues/778" >
+#. {ph1}: </a >
+#: website/public/demos/index.html:453
+#, python-brace-format
+msgctxt "page:demos/index.html"
+msgid ""
+"These missing runs keep the issue open. The {ph0}tracking issue{ph1} remains the place"
+" to link later transcripts, provider results and recordings."
+msgstr ""
+
+#: website/public/demos/index.html:7
+msgctxt "page:demos/index.html"
+msgid ""
+"Reproduce selected REA investigations across JavaScript applications, native binaries "
+"and browser behavior."
+msgstr ""
+
+#: website/public/demos/index.html:478
+msgctxt "page:demos/index.html"
 msgid "Back to top"
 msgstr ""
 
@@ -5424,149 +5833,172 @@ msgstr ""
 
 #: website/public/guides/index.html:203
 msgctxt "page:guides/index.html"
-msgid "First investigation"
+msgid "Demos · Reproducible workflows"
 msgstr ""
 
 #: website/public/guides/index.html:205
 msgctxt "page:guides/index.html"
-msgid "Set up REA"
+msgid "Reproduce three REA investigations"
 msgstr ""
 
 #: website/public/guides/index.html:206
 msgctxt "page:guides/index.html"
-msgid "Connect your coding agent or use REA from the terminal."
-msgstr ""
-
-#: website/public/guides/index.html:207
-msgctxt "page:guides/index.html"
-msgid "Get started with REA"
+msgid ""
+"Trace an Electron feature, prepare a native analysis target and compare a browser "
+"action. Each entry records the verified result and what still needs a real provider or"
+" agent run."
 msgstr ""
 
 #: website/public/guides/index.html:211
 msgctxt "page:guides/index.html"
+msgid "Open the demo portfolio"
+msgstr ""
+
+#: website/public/guides/index.html:215
+msgctxt "page:guides/index.html"
+msgid "First investigation"
+msgstr ""
+
+#: website/public/guides/index.html:217
+msgctxt "page:guides/index.html"
+msgid "Set up REA"
+msgstr ""
+
+#: website/public/guides/index.html:218
+msgctxt "page:guides/index.html"
+msgid "Connect your coding agent or use REA from the terminal."
+msgstr ""
+
+#: website/public/guides/index.html:219
+msgctxt "page:guides/index.html"
+msgid "Get started with REA"
+msgstr ""
+
+#: website/public/guides/index.html:223
+msgctxt "page:guides/index.html"
 msgid "Native binaries"
 msgstr ""
 
-#: website/public/guides/index.html:213
+#: website/public/guides/index.html:225
 msgctxt "page:guides/index.html"
 msgid "Recover a sound-pan calculation"
 msgstr ""
 
-#: website/public/guides/index.html:214
+#: website/public/guides/index.html:226
 msgctxt "page:guides/index.html"
 msgid ""
 "Start with a Windows game executable. Inspect instructions, follow a caller, read "
 "numeric constants and check the recovered C."
 msgstr ""
 
-#: website/public/guides/index.html:219
+#: website/public/guides/index.html:231
 msgctxt "page:guides/index.html"
 msgid "Instructions"
 msgstr ""
 
-#: website/public/guides/index.html:220
+#: website/public/guides/index.html:232
 msgctxt "page:guides/index.html"
 msgid "Caller"
 msgstr ""
 
-#: website/public/guides/index.html:221
+#: website/public/guides/index.html:233
 msgctxt "page:guides/index.html"
 msgid "Constants"
 msgstr ""
 
-#: website/public/guides/index.html:222
+#: website/public/guides/index.html:234
 msgctxt "page:guides/index.html"
 msgid "C function"
 msgstr ""
 
-#: website/public/guides/index.html:224
+#: website/public/guides/index.html:236
 msgctxt "page:guides/index.html"
 msgid "Native analysis guide"
 msgstr ""
 
-#: website/public/guides/index.html:228
+#: website/public/guides/index.html:240
 msgctxt "page:guides/index.html"
 msgid "JavaScript & Electron"
 msgstr ""
 
-#: website/public/guides/index.html:230
+#: website/public/guides/index.html:242
 msgctxt "page:guides/index.html"
 msgid "Follow a CSV export"
 msgstr ""
 
-#: website/public/guides/index.html:231
+#: website/public/guides/index.html:243
 msgctxt "page:guides/index.html"
 msgid ""
 "A small Notes app spreads one feature across the renderer, preload and main process. "
 "Use REA to connect the API, IPC channel and file writer."
 msgstr ""
 
-#: website/public/guides/index.html:237
+#: website/public/guides/index.html:249
 msgctxt "page:guides/index.html"
 msgid "Button"
 msgstr ""
 
-#: website/public/guides/index.html:238
+#: website/public/guides/index.html:250
 msgctxt "page:guides/index.html"
 msgid "Preload API"
 msgstr ""
 
-#: website/public/guides/index.html:239
+#: website/public/guides/index.html:251
 msgctxt "page:guides/index.html"
 msgid "IPC"
 msgstr ""
 
-#: website/public/guides/index.html:239
+#: website/public/guides/index.html:251
 msgctxt "page:guides/index.html"
 msgid "CSV file"
 msgstr ""
 
-#: website/public/guides/index.html:241
+#: website/public/guides/index.html:253
 msgctxt "page:guides/index.html"
 msgid "JavaScript & Electron guide"
 msgstr ""
 
 #. {ph0}: <a href="../showcase/notion/">
 #. {ph1}: </a>
-#: website/public/guides/index.html:244
+#: website/public/guides/index.html:256
 #, python-brace-format
 msgctxt "page:guides/index.html"
 msgid "For a larger packaged app, follow {ph0}Notion's clipboard bridge{ph1}."
 msgstr ""
 
-#: website/public/guides/index.html:251
+#: website/public/guides/index.html:263
 msgctxt "page:guides/index.html"
 msgid "Browser behavior"
 msgstr ""
 
-#: website/public/guides/index.html:253
+#: website/public/guides/index.html:265
 msgctxt "page:guides/index.html"
 msgid "Observe a click"
 msgstr ""
 
-#: website/public/guides/index.html:254
+#: website/public/guides/index.html:266
 msgctxt "page:guides/index.html"
 msgid ""
 "Open a working Notes example, capture an export request and find the code that turns "
 "its response into a download."
 msgstr ""
 
-#: website/public/guides/index.html:259
+#: website/public/guides/index.html:271
 msgctxt "page:guides/index.html"
 msgid "Your click"
 msgstr ""
 
-#: website/public/guides/index.html:260
+#: website/public/guides/index.html:272
 msgctxt "page:guides/index.html"
 msgid "Captured request"
 msgstr ""
 
-#: website/public/guides/index.html:261
+#: website/public/guides/index.html:273
 msgctxt "page:guides/index.html"
 msgid "Export script"
 msgstr ""
 
-#: website/public/guides/index.html:263
+#: website/public/guides/index.html:275
 msgctxt "page:guides/index.html"
 msgid "Browser observation guide"
 msgstr ""
@@ -5583,7 +6015,7 @@ msgid ""
 "and a browser request."
 msgstr ""
 
-#: website/public/guides/index.html:282
+#: website/public/guides/index.html:294
 msgctxt "page:guides/index.html"
 msgid "Back to top"
 msgstr ""

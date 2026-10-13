@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Website](https://rea.tools/de/) · [Anleitungen](https://rea.tools/de/guides/) · [Fallstudien](https://rea.tools/de/showcase/)**
+**[Website](https://rea.tools/de/) · [Anleitungen](https://rea.tools/de/guides/) · [Reproduzierbare Demos](https://rea.tools/de/demos/) · [Fallstudien](https://rea.tools/de/showcase/)**
 
 [Schnellstart](#schnellstart) · [So funktioniert REA](#so-funktioniert-rea) · [Was du analysieren kannst](#was-du-analysieren-kannst) · [Fallstudien](#fallstudien) · [Häufige Fragen](#häufige-fragen) · [Dokumentation](#dokumentation)
 
@@ -250,6 +250,8 @@ Wenn du einen Agenten verwendest, schließe die [Aktualisierung der Einrichtung]
 ## Dokumentation
 
 Beginne mit den [praxisnahen Anleitungen](https://rea.tools/de/guides/) auf der Website. Genaue Optionen, Voraussetzungen und Ergebniskontrakte findest du hier:
+
+[Reproduzierbare Demos](https://rea.tools/de/demos/)
 
 - [Installation und Einrichtung](../installation.md): Agentenregistrierung, Provider-Konfiguration, Updates und Deinstallation.
 - [Bereitschaft und Fehlerbehebung](../installation.md#check-readiness-for-your-task): Diagnose eines bestimmten Agenten oder einer Analyse-Engine.

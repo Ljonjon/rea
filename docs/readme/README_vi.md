@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[Trang web](https://rea.tools/vi/) · [Hướng dẫn](https://rea.tools/vi/guides/) · [Các nghiên cứu điển hình](https://rea.tools/vi/showcase/)**
+**[Trang web](https://rea.tools/vi/) · [Hướng dẫn](https://rea.tools/vi/guides/) · [Bản demo có thể tái hiện](https://rea.tools/vi/demos/) · [Các nghiên cứu điển hình](https://rea.tools/vi/showcase/)**
 
 [Bắt đầu nhanh](#bắt-đầu-nhanh) · [Cách REA hoạt động](#cách-rea-hoạt-động) · [Những gì bạn có thể phân tích](#những-gì-bạn-có-thể-phân-tích) · [Các nghiên cứu điển hình](#các-nghiên-cứu-điển-hình) · [Câu hỏi thường gặp](#câu-hỏi-thường-gặp) · [Tài liệu](#tài-liệu)
 
@@ -250,6 +250,8 @@ Nếu dùng tác nhân, hãy hoàn tất [làm mới thiết lập](#cập-nhậ
 ## Tài liệu
 
 Bắt đầu với [hướng dẫn thực hành](https://rea.tools/vi/guides/) trên trang web. Để biết tùy chọn cụ thể, điều kiện tiên quyết và hợp đồng kết quả:
+
+[Bản demo có thể tái hiện](https://rea.tools/vi/demos/)
 
 - [Cài đặt và thiết lập](../installation.md): đăng ký tác nhân, cấu hình trình phân tích, cập nhật và gỡ cài đặt.
 - [Kiểm tra mức sẵn sàng và khắc phục sự cố](../installation.md#check-readiness-for-your-task): chẩn đoán một tác nhân hoặc bộ máy phân tích cụ thể.

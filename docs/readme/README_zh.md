@@ -17,7 +17,7 @@
 
 <a href="https://trendshift.io/repositories/82054?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-82054" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/82054" alt="morluto%2Frea | Trendshift" width="250" height="55"/></a>
 
-**[网站](https://rea.tools/zh-CN/) · [指南](https://rea.tools/zh-CN/guides/) · [案例](https://rea.tools/zh-CN/showcase/)**
+**[网站](https://rea.tools/zh-CN/) · [指南](https://rea.tools/zh-CN/guides/) · [可复现演示](https://rea.tools/zh-CN/demos/) · [案例](https://rea.tools/zh-CN/showcase/)**
 
 [快速开始](#快速开始) · [REA 的工作原理](#rea-的工作原理) · [可以分析什么](#可以分析什么) · [案例](#案例) · [常见问题](#常见问题) · [文档](#文档)
 
@@ -252,6 +252,8 @@ npx rea-agents@latest setup
 ## 文档
 
 可以先阅读网站上的[实操指南](https://rea.tools/zh-CN/guides/)。具体选项、前提条件和结果契约见：
+
+[可复现演示](https://rea.tools/zh-CN/demos/)
 
 - [安装与设置](../installation.md)：智能体注册、提供方配置、更新和卸载。
 - [就绪检查与故障排查](../installation.md#check-readiness-for-your-task)：诊断特定智能体或分析引擎。
