@@ -97,6 +97,12 @@
     "dir": "rtl"
   },
   {
+    "code": "ckb",
+    "name": "کوردی ناوەندی",
+    "readme": "docs/readme/README_ckb.md",
+    "dir": "rtl"
+  },
+  {
     "code": "id",
     "name": "Bahasa Indonesia",
     "readme": "docs/readme/README_id.md",
