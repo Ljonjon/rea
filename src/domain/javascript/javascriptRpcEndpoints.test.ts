@@ -252,7 +252,7 @@ describe("GraphQL operation recognition", () => {
     ]);
   });
 
-  it("recognizes operations that follow leading fragment interpolations", () => {
+  it("keeps operations after unresolved interpolation prefixes unknown", () => {
     expect(
       rpcEndpoints(`
         const GET_POST = gql\`
@@ -265,10 +265,7 @@ describe("GraphQL operation recognition", () => {
         \`;
         const NOT_FIRST = \`\${prefix} text query Hidden { users { id } }\`;
       `),
-    ).toEqual([
-      { kind: "network", value: "CommentsForPost", mechanism: "graphql:query" },
-      { kind: "network", value: "AddComment", mechanism: "graphql:mutation" },
-    ]);
+    ).toEqual([]);
   });
 
   it("does not claim text that an interpolation may leave inside a comment", () => {
@@ -280,8 +277,18 @@ describe("GraphQL operation recognition", () => {
         const NEXT_LINE = gql\`# fragments \${F}
           query Shown { f }\`;
       `),
-    ).toEqual([
-      { kind: "network", value: "Shown", mechanism: "graphql:query" },
+    ).toEqual([]);
+  });
+
+  it("recognizes an operation after an exact ignored interpolation prefix", () => {
+    const source =
+      "const doc = gql`" +
+      "${" +
+      JSON.stringify("# prefix\n") +
+      "}" +
+      "query Known { f }`;";
+    expect(rpcEndpoints(source)).toEqual([
+      { kind: "network", value: "Known", mechanism: "graphql:query" },
     ]);
   });
 

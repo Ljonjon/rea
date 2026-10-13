@@ -316,35 +316,21 @@ export const createJavaScriptRpcScan = (
           ? undefined
           : graphqlOperationFromText(node.value);
       if (t.isTemplateLiteral(node)) {
-        // Fold exact interpolation values before interpreting GraphQL lexical
-        // boundaries: a newline cannot end a block string supplied by a literal.
-        const chunks: string[] = [""];
+        // Only exact syntax-level values can establish the combined document's
+        // lexical context. A dynamic interpolation may contain a comment,
+        // block string or non-fragment definition, so later text stays unknown.
+        const pieces: string[] = [];
         for (const [index, quasi] of node.quasis.entries()) {
           const cooked = quasi.value.cooked;
           if (cooked === undefined || cooked === null) return undefined;
-          chunks[chunks.length - 1] += cooked;
+          pieces.push(cooked);
           const expression = node.expressions[index];
           if (expression === undefined) continue;
           const literal = readExactJavaScriptLiteral(expression);
-          if (literal.found) chunks[chunks.length - 1] += String(literal.value);
-          else chunks.push("");
+          if (!literal.found) return undefined;
+          pieces.push(String(literal.value));
         }
-        // Unknown interpolation boundaries retain the existing conservative
-        // same-line rule; exact literals stay within their surrounding chunk.
-        let afterInterpolation = false;
-        for (let text of chunks) {
-          if (afterInterpolation) {
-            const lineEnd = text.search(/[\n\r]/u);
-            const line = lineEnd < 0 ? text : text.slice(0, lineEnd);
-            if (skipGraphqlIgnored(line) < line.length) return undefined;
-            if (lineEnd < 0) continue;
-            text = text.slice(lineEnd);
-          }
-          if (skipGraphqlIgnored(text) < text.length)
-            return graphqlOperationFromText(text);
-          afterInterpolation = true;
-        }
-        return undefined;
+        return graphqlOperationFromText(pieces.join(""));
       }
       return undefined;
     },
