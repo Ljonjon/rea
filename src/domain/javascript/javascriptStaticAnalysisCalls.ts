@@ -10,8 +10,9 @@ import {
   STATIC_ROUTE_CALL_NAMES,
   argumentNode,
   argumentValue,
-  calleeName,
+  calleeSegments,
   calleeSegmentsEndWith,
+  type JavaScriptCalleePath,
   endpointArgument as endpointArgumentHelper,
   prefixedArgument,
   range,
@@ -41,6 +42,8 @@ import {
   isUnmodifiedImportMetaUrl,
 } from "./javascriptSemanticAmbientWrites.js";
 
+const SERVICE_WORKER_CALLEE = ["serviceWorker", "register"] as const;
+
 type JavaScriptCallLike =
   | t.CallExpression
   | t.OptionalCallExpression
@@ -54,7 +57,8 @@ export const inspectCall = (
   bindings: JavaScriptSemanticAnalysisState,
 ): void => {
   const { accumulator } = context;
-  const name = calleeName(node.callee);
+  const segments = calleeSegments(node.callee);
+  const name = segments.join(".");
   const first = stringValue(node.arguments[0]);
   const module = context.accumulator.moduleRangeIndex.find(node.start);
   const moduleRequireName = module?.requireName ?? null;
@@ -95,13 +99,13 @@ export const inspectCall = (
           ? undefined
           : workerUrlSpecifier(worker, bindings)),
     });
-  if (calleeSegmentsEndWith(node.callee, "serviceWorker.register"))
+  if (calleeSegmentsEndWith(segments, SERVICE_WORKER_CALLEE))
     addReference(context, { node, kind: "service-worker", specifier: first });
-  inspectEndpointCall(node, name, first, context);
+  inspectEndpointCall(node, { name, segments }, first, context);
   inspectStorageCall(node, name, first, context);
   if (first === "audio" || first === "video")
     noteMediaElementPreloads(node, accumulator);
-  if (calleeSegmentsEndWith(node.callee, "loadFile") && first !== undefined)
+  if (segments.at(-1) === "loadFile" && first !== undefined)
     addLocatedFinding(context, {
       collection: accumulator.roles,
       key: `role\0renderer\0${first}`,
@@ -115,7 +119,7 @@ export const inspectCall = (
         location: range(node),
       },
     });
-  if (calleeSegmentsEndWith(node.callee, "loadURL") && first !== undefined)
+  if (segments.at(-1) === "loadURL" && first !== undefined)
     addLocatedFinding(context, {
       collection: accumulator.roles,
       key: `role\0renderer\0${first}`,
@@ -268,10 +272,11 @@ const vitePreloadDependencyTable = (source: string): readonly string[] => {
 
 const inspectEndpointCall = (
   node: JavaScriptCallLike,
-  name: string,
+  path: JavaScriptCalleePath,
   first: string | undefined,
   context: FindingContext,
 ): void => {
+  const { name } = path;
   const route = STATIC_ROUTE_CALL_NAMES.some(
     (candidate) => name === candidate || name.endsWith(`.${candidate}`),
   );
@@ -284,7 +289,7 @@ const inspectEndpointCall = (
     });
   const receiverFact = context.openReceiverFacts?.get(node.start ?? -1);
   const endpoint = endpointArgumentHelper(
-    name,
+    path,
     node.arguments,
     node.callee,
     receiverFact,

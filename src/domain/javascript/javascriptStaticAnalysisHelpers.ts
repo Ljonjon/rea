@@ -517,9 +517,14 @@ const isKeyedCollectionReceiver = (callee: t.Node): boolean => {
   return property === "headers" || property === "searchParams";
 };
 
+export interface JavaScriptCalleePath {
+  readonly name: string;
+  readonly segments: readonly string[];
+}
+
 /** Select the literal URL argument for recognized network callees. */
 export const endpointArgument = (
-  name: string,
+  path: JavaScriptCalleePath,
   args: readonly (
     | t.Expression
     | t.SpreadElement
@@ -535,6 +540,7 @@ export const endpointArgument = (
     | "local-indexed-db"
     | "local-cache-storage",
 ): string | undefined => {
+  const { name, segments } = path;
   if (receiverFact === "window") return undefined;
   if (name === "fetch" || name.endsWith(".fetch") || name === "WebSocket")
     return stringValue(args[0]);
@@ -554,7 +560,7 @@ export const endpointArgument = (
       ? undefined
       : value;
   }
-  if (calleeSegmentsEndWith(callee, "loadURL")) return stringValue(args[0]);
+  if (segments.at(-1) === "loadURL") return stringValue(args[0]);
   return undefined;
 };
 
@@ -595,16 +601,14 @@ export const calleeName = (node: t.Node): string =>
   calleeSegments(node).join(".");
 
 /**
- * True when the callee's AST member segments end with `member` split on `.`.
+ * Match an already parsed callee path against exact member segments.
  * A dot inside one computed key stays one segment, so `api["fake.loadURL"]`
  * does not match `loadURL`, and `uploadFile` does not match `loadFile`.
  */
 export const calleeSegmentsEndWith = (
-  node: t.Node,
-  member: string,
+  segments: readonly string[],
+  expected: readonly string[],
 ): boolean => {
-  const expected = member.split(".");
-  const segments = calleeSegments(node);
   if (expected.length === 0 || expected.length > segments.length) return false;
   const offset = segments.length - expected.length;
   return expected.every(
