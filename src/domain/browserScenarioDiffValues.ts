@@ -132,6 +132,7 @@ export const BROWSER_SCENARIO_BUILT_IN_NORMALIZATION_RULES = [
   "ignore_capture_local_network_transaction_ids",
   "attribute_network_transactions_to_request_step",
   "compare_network_transactions_as_unordered_collection",
+  "preserve_redirect_transaction_ancestry",
 ] as const;
 const builtInNormalizationSchema = z.enum(
   BROWSER_SCENARIO_BUILT_IN_NORMALIZATION_RULES,

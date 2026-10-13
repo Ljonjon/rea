@@ -306,8 +306,18 @@ by normalized text. Network events are grouped by transaction without their
 capture-local transaction IDs, attributed to the step that sent the request,
 and compared as an unordered collection after caller rules apply, because
 concurrent responses arrive in any order and can land in a later step; a
-redirect keeps its predecessor's method and URL. Other events keep receipt
-order. Optional caller rules are bounded exact-literal
+redirect retains the complete predecessor ancestry, including each hop's own
+request, response outcome, and selected network content. Each transaction's
+capture-local IDs, sequence/index fields, and content source-sequence anchor
+are removed. Caller rules normalize retained strings before hashing. The
+`preserve_redirect_transaction_ancestry` built-in rule fingerprints each hop
+as canonical SHA-256 of `{ events, redirected_from }`: `events` is the sorted
+list of its normalized event SHA-256 digests, and `redirected_from` is its
+predecessor fingerprint or null for a root. Selected transaction fingerprints
+are sorted for the step's network comparison. Temporary numeric graph indices
+are lookup references only and do not enter the final digest. Missing or cyclic
+predecessor evidence yields unknown comparability instead of an unchanged claim.
+Other events keep receipt order. Optional caller rules are bounded exact-literal
 replacements over named artifact kinds. Rules and artifact-kind lists are
 sorted canonically before application, making the same policy reproducible
 regardless of input order. Rules operate only on already-redacted durable

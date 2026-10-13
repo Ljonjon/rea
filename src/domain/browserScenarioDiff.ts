@@ -1,3 +1,4 @@
+import { scenarioNetworkCoverageReason } from "./browserScenarioNetworkComparison.js";
 import type { BrowserScenarioCapture } from "./browserScenarioCapture.js";
 import type { BrowserScenarioStep } from "./browserScenarioCaptureValues.js";
 import {
@@ -350,6 +351,8 @@ const eventCoverageReason = (
   const reasons = [
     eventFamilyCoverageReason(before, after),
     networkContentCoverageReason(before, after),
+    scenarioNetworkCoverageReason(before),
+    scenarioNetworkCoverageReason(after),
   ].filter((reason) => reason !== undefined);
   return reasons.length === 0 ? undefined : reasons.join(" ");
 };
