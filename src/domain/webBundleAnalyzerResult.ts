@@ -191,6 +191,7 @@ const buildCompleteness = (
 });
 
 const bundleLimitations = (): WebBundleAnalysis["limitations"] => [
+  "Static bundle analysis covers page scripts only; worker sources are available through inspect_web_page and script export, and are not analyzed here.",
   "Static bundle findings are observations or bounded inferences; REA does not execute captured JavaScript.",
   "String-built routes and endpoints, encrypted configuration, and server-side behavior may remain unknown.",
   "Page-declared WebMCP metadata is untrusted and is never registered or invoked as an REA tool.",

@@ -249,12 +249,26 @@ const networkIdentity = (
 ): string =>
   `net_${digestCanonicalValue({ method: request.method, url: request.url, resource_type: request.resource_type })}`;
 
-const networkResponseFields = [
+const requiredNetworkResponseFields = [
   "status",
   "mime_type",
   "encoded_data_length",
 ] as const;
+const networkResponseFields = [
+  ...requiredNetworkResponseFields,
+  "service_worker",
+  "disk_cache",
+  "service_worker_response_source",
+] as const;
 type NetworkResponseField = (typeof networkResponseFields)[number];
+
+const networkResponseValue = (
+  request: WebPageInspection["network"]["requests"][number],
+  field: NetworkResponseField,
+): string | number | boolean | null =>
+  field === "status" || field === "mime_type" || field === "encoded_data_length"
+    ? request[field]
+    : (request.response_source?.[field] ?? null);
 
 const sharedNetworkResponseFields = (
   before: WebPageInspection,
@@ -266,7 +280,7 @@ const sharedNetworkResponseFields = (
       const identity = networkIdentity(request);
       const fields = shared.get(identity) ?? new Set(networkResponseFields);
       for (const field of networkResponseFields)
-        if (request[field] === null) fields.delete(field);
+        if (networkResponseValue(request, field) === null) fields.delete(field);
       shared.set(identity, fields);
     }
   return shared;
@@ -277,8 +291,8 @@ const networkDimension = (
   after: WebPageInspection,
 ): Dimension => {
   const responseFields = sharedNetworkResponseFields(before, after);
-  const responseFieldsComplete = [...responseFields.values()].every(
-    (fields) => fields.size === networkResponseFields.length,
+  const responseFieldsComplete = [...responseFields.values()].every((fields) =>
+    requiredNetworkResponseFields.every((field) => fields.has(field)),
   );
   const selected = bodyShapesSelected(before) && bodyShapesSelected(after);
   const webSocketShapes =
@@ -385,7 +399,7 @@ const networkMap = (
     const values = grouped.get(identity) ?? [];
     const response: Record<string, unknown> = {};
     for (const field of responseFields.get(identity) ?? [])
-      response[field] = request[field];
+      response[field] = networkResponseValue(request, field);
     values.push({
       ...response,
       redirects: (request.redirects ?? []).map(
