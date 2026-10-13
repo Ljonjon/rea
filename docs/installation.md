@@ -486,7 +486,10 @@ copying license secrets into logs, or killing unrelated Hopper processes.
 REA connects to an existing Ghidra installation on Linux x64/arm64, macOS x64/arm64,
 or experimental Windows x64 P0.
 It accepts Ghidra 12.1.x and the 64-bit full JDK declared by that installation's
-`application.java.min` and `application.java.max`. Current 12.1 releases require
+`application.java.min` and `application.java.max`. The JDK's architecture must also
+map to the same native decompiler directory as the host: a JDK running under
+emulation (for example x86_64 under Rosetta on Apple silicon) fails the doctor
+even when it is an otherwise accepted 64-bit full JDK. Current 12.1 releases require
 JDK 21 or newer and set no maximum. The bridge is verified with Ghidra 12.1.4
 and JDK 21. Each installation must include the native decompiler for the host
 architecture in `Ghidra/Features/Decompiler/os/<platform>/` or the corresponding

@@ -656,7 +656,7 @@ const nativeDecompilerCheck = ({
       passed: false,
       code: "executable_missing",
       detail: `JVM reports os.arch=${osArch}, so Ghidra selects its native decompiler from os/${selectedDirectory}, but the validated decompiler targets ${validatedDirectory} (host ${platform}/${architecture})`,
-      remediation: `Point JAVA_HOME at a JDK whose architecture matches the built decompiler (${validatedDirectory}), or build the Ghidra decompiler for ${selectedDirectory}. REA does not build or install native tools.`,
+      remediation: `Point JAVA_HOME at a JDK whose architecture matches the built decompiler (${validatedDirectory}). REA does not build or install native tools.`,
     });
   return installationCheck({
     name: "native_decompiler",
