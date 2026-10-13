@@ -138,6 +138,6 @@ export const readGoPeImage = (bytes: Buffer): GoBinaryContainer => {
     byte_order: "little",
     mappings,
     zero_fills: zeroFills,
-    search,
+    search: search === null ? [] : [search],
   };
 };

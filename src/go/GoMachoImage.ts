@@ -175,7 +175,7 @@ export const readGoMachoImage = (bytes: Buffer): GoBinaryContainer => {
     byte_order: little ? "little" : "big",
     mappings,
     zero_fills: zeroFills,
-    search: named[0] ?? fallback,
+    search: named.length > 0 ? named : fallback === null ? [] : [fallback],
   };
 };
 

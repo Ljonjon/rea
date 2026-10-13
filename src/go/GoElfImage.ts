@@ -100,7 +100,7 @@ export const readGoElfImage = (bytes: Buffer): GoBinaryContainer => {
   );
   const mappings: GoFileMapping[] = [];
   const zeroFills: GoZeroFillMapping[] = [];
-  let fallback: GoFileMapping | null = null;
+  const fallback: GoFileMapping[] = [];
   for (let index = 0; index < phCount; index++) {
     const offset = phStart + index * phWidth;
     if (reader.u32(offset) !== 1) continue;
@@ -123,7 +123,7 @@ export const readGoElfImage = (bytes: Buffer): GoBinaryContainer => {
     if (mapping.size !== 0) mappings.push(mapping);
     if (memorySize > size)
       zeroFills.push({ address: address + size, size: memorySize - size });
-    if (fallback === null && (flags & 3) === 2) fallback = mapping;
+    if (mapping.size !== 0 && (flags & 3) === 2) fallback.push(mapping);
   }
   let search: GoFileMapping | null = null;
   if (shCount !== 0) {
@@ -213,7 +213,7 @@ export const readGoElfImage = (bytes: Buffer): GoBinaryContainer => {
     byte_order: reader.little ? "little" : "big",
     mappings,
     zero_fills: zeroFills,
-    search: search ?? fallback,
+    search: search === null ? fallback : [search],
   };
 };
 
