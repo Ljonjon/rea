@@ -41,6 +41,28 @@ describe("native addon type-only TypeScript imports", () => {
   });
 });
 
+describe("native addon type-only re-exports", () => {
+  it.each([
+    ['export { type Extra, load } from "./addon.node";', ["load"]],
+    ['export { type Extra } from "./addon.node";', []],
+    ['export type * from "./addon.node";', []],
+  ] as const)("retains only runtime members from %s", (source, members) => {
+    const analysis = analyzeJavaScriptStaticSource(source);
+    expect(analysis.parse_status).toBe("complete");
+    expect(analysis.electron.native_addon_bindings).toEqual(
+      members.length === 0
+        ? []
+        : [
+            expect.objectContaining({
+              specifier: "./addon.node",
+              binding_kind: "re-export",
+              members: [...members],
+            }),
+          ],
+    );
+  });
+});
+
 describe("native addon loader provenance", () => {
   it("distinguishes CommonJS and ESM re-exports", () => {
     const analysis = analyzeJavaScriptStaticSource(`
