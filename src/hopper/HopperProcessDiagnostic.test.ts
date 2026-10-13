@@ -1,7 +1,10 @@
 import { expect, it } from "vitest";
 
 import type { HopperLauncherOutcome } from "../domain/hopperErrors.js";
-import { nativeHopperLaunchWasDenied } from "./HopperProcessDiagnostic.js";
+import {
+  nativeHopperApplicationWasNotFound,
+  nativeHopperLaunchWasDenied,
+} from "./HopperProcessDiagnostic.js";
 
 // Captured from Hopper 6.1.0-demo and 6.6.0-demo's unmodified helpers with native
 // AppleScript error -1743 before open dispatch. The target script never ran.
@@ -50,5 +53,44 @@ it.each([
   "preserves unknown document ownership for incomplete or different failures: %j",
   (change) => {
     expect(nativeHopperLaunchWasDenied({ ...denied, ...change })).toBe(false);
+  },
+);
+
+// Captured from Hopper 6's unmodified helper with Spotlight indexing disabled.
+const notFound: HopperLauncherOutcome = {
+  exit_code: 3,
+  signal: null,
+  stdout: { text: "", bytes: 0, retained_bytes: 0 },
+  stderr: {
+    text: "Hopper has not been found.\nPlease make sure that Spotlight is active in order for this tool to find Hopper's executable.\n",
+    bytes: 121,
+    retained_bytes: 121,
+  },
+  output_closed: true,
+  diagnostic_truncated: false,
+};
+
+it("recognizes the native helper's complete Spotlight not-found report", () => {
+  expect(nativeHopperApplicationWasNotFound(notFound)).toBe(true);
+  expect(nativeHopperLaunchWasDenied(notFound)).toBe(false);
+});
+
+it.each([
+  { output_closed: false },
+  { diagnostic_truncated: true },
+  { signal: "SIGTERM", exit_code: null },
+  { exit_code: 2 },
+  {
+    stderr: {
+      ...notFound.stderr,
+      text: `${notFound.stderr.text}another failure\n`,
+    },
+  },
+])(
+  "keeps document ownership unknown for other not-found shapes: %j",
+  (change) => {
+    expect(nativeHopperApplicationWasNotFound({ ...notFound, ...change })).toBe(
+      false,
+    );
   },
 );

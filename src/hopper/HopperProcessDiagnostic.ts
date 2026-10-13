@@ -24,6 +24,24 @@ export const nativeHopperLaunchWasDenied = (
     outcome.stderr.text,
   );
 
+/**
+ * Hopper's native helper locates the application through a fixed Spotlight
+ * bundle-identifier query before any Apple event. Recognize its complete
+ * "not found" report: no document can exist. Caller arguments do not reach
+ * that query. Other output leaves ownership unknown.
+ */
+export const nativeHopperApplicationWasNotFound = (
+  outcome: HopperLauncherOutcome | undefined,
+): outcome is HopperLauncherOutcome =>
+  outcome !== undefined &&
+  outcome.exit_code === 3 &&
+  outcome.signal === null &&
+  outcome.output_closed &&
+  !outcome.diagnostic_truncated &&
+  /^Hopper has not been found\.\r?\nPlease make sure that Spotlight is active in order for this tool to find Hopper's executable\.\r?\n?$/u.test(
+    outcome.stderr.text,
+  );
+
 /** Extract only a matching Linux adapter failure record. */
 export const hopperLauncherFailureDiagnostic = (
   event: Extract<ProviderProcessDiagnostic, { readonly type: "exit" }>,
