@@ -420,7 +420,10 @@ const expectedInventory = (
         },
       });
     const kind = relevantKind(occurrence.logical_path);
-    if (kind === undefined) continue;
+    if (kind === undefined) {
+      unavailableFiles.add(occurrence.logical_path);
+      continue;
+    }
     files.set(occurrence.logical_path, {
       path: occurrence.logical_path,
       sha256: node.sha256,
