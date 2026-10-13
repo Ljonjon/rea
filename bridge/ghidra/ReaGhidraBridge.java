@@ -27,6 +27,7 @@ import java.security.MessageDigest;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -3489,7 +3490,7 @@ public final class ReaGhidraBridge extends HeadlessScript {
         TreeMap<String, JsonObject> observed = new TreeMap<>();
         TreeMap<String, JsonObject> omitted = new TreeMap<>();
         SwiftLiteralBudget budget = new SwiftLiteralBudget();
-        Map<String, Boolean> selectedValues = new HashMap<>();
+        SwiftSelectProvenance[] provenance = new SwiftSelectProvenance[1];
         SymbolicPropogator propagator = new SymbolicPropogator(currentProgram, false);
         propagator.flowConstants(function.getEntryPoint(), function.getBody(), new ContextEvaluatorAdapter() {
             @Override
@@ -3502,26 +3503,20 @@ public final class ReaGhidraBridge extends HeadlessScript {
                     if (word == null || object == null) continue;
                     SwiftLiteralLayout layout = swiftLiteralLayout(word, object);
                     if (layout == null) continue;
-                    // A selected word can combine with a path-dependent ordinary move. Cache the
-                    // provenance question per site/register, charging retained cache state to the
-                    // same dossier budget before allocating it.
+                    // A selected word can combine with a path-dependent ordinary move. Provenance is
+                    // computed once per decode run, charged to the dossier budget before it is
+                    // allocated, and then answered per site without walking the body again.
                     boolean selected = false;
                     boolean provenanceOverCapacity = false;
-                    for (Register register : pair) {
-                        String provenanceKey = canonicalAddress(instruction.getAddress()) + "\u0000" +
-                            register.getBaseRegister().getName();
-                        Boolean value = selectedValues.get(provenanceKey);
-                        if (value == null) {
-                            if (!budget.takeState()) {
-                                provenanceOverCapacity = true;
+                    if (provenance[0] == null) provenance[0] = swiftSelectProvenance(function, budget);
+                    if (provenance[0] == SwiftSelectProvenance.UNAVAILABLE) {
+                        provenanceOverCapacity = true;
+                    } else {
+                        for (Register register : pair) {
+                            if (provenance[0].selected(instruction, register)) {
+                                selected = true;
                                 break;
                             }
-                            value = selectedValue(function, instruction, register);
-                            selectedValues.put(provenanceKey, value);
-                        }
-                        if (value) {
-                            selected = true;
-                            break;
                         }
                     }
                     if (selected) continue;
@@ -3604,41 +3599,95 @@ public final class ReaGhidraBridge extends HeadlessScript {
         return value != null && context.isConstant(value) ? value.getOffset() : null;
     }
 
-    // Search every predecessor path for the reaching definitions, following register copies,
-    // since a select copied into an argument register or defined before a branch forks just as
-    // independently as one written there directly.
-    private boolean selectedValue(Function function, Instruction use, Register register) {
-        ArrayDeque<Instruction> instructions = new ArrayDeque<>();
-        ArrayDeque<Register> targets = new ArrayDeque<>();
-        Set<String> visited = new HashSet<>();
-        for (Instruction predecessor : predecessors(function, use)) {
-            instructions.push(predecessor);
-            targets.push(register.getBaseRegister());
+    /**
+     * A forward may analysis over the function body: a register is selected on entry to an
+     * instruction when some predecessor path last defined it, through any chain of register
+     * copies, with a conditional select. A select copied into an argument register or defined
+     * before a branch forks just as independently as one written there directly. Merging is a
+     * union, so the least fixed point holds exactly the registers a backward search from the use
+     * along every predecessor path would find, at a cost linear in the body for each change.
+     */
+    private SwiftSelectProvenance swiftSelectProvenance(Function function, SwiftLiteralBudget budget) {
+        long count = 0;
+        for (Instruction ignored : currentProgram.getListing().getInstructions(function.getBody(), true)) count++;
+        if (!budget.takeBytes(count * SwiftSelectProvenance.BYTES_PER_INSTRUCTION)) {
+            return SwiftSelectProvenance.UNAVAILABLE;
         }
-        while (!instructions.isEmpty()) {
-            Instruction instruction = instructions.pop();
-            Register target = targets.pop();
-            if (!visited.add(canonicalAddress(instruction.getAddress()) + "\u0000" + target.getName())) continue;
-            boolean defines = false;
-            for (Object result : instruction.getResultObjects()) {
-                if (result instanceof Register written && written.getBaseRegister().equals(target)) defines = true;
-            }
-            Register next = target;
-            if (defines) {
-                PcodeOp[] operations = instruction.getPcode();
-                for (PcodeOp operation : operations) {
-                    if (operation.getOpcode() == PcodeOp.CBRANCH && operation.getInput(0).isConstant()) return true;
-                }
-                Register source = copiedRegister(operations);
-                if (source == null) continue;
-                next = source.getBaseRegister();
-            }
+        List<Instruction> instructions = new ArrayList<>();
+        currentProgram.getListing().getInstructions(function.getBody(), true).forEach(instructions::add);
+        Map<Address, Integer> indexes = new HashMap<>();
+        for (int index = 0; index < instructions.size(); index++) {
+            indexes.put(instructions.get(index).getAddress(), index);
+        }
+        Map<Register, Integer> bits = new HashMap<>();
+        int[][] predecessors = new int[instructions.size()][];
+        List<List<Integer>> successors = new ArrayList<>();
+        for (int index = 0; index < instructions.size(); index++) successors.add(new ArrayList<>());
+        BitSet[] defined = new BitSet[instructions.size()];
+        BitSet selects = new BitSet();
+        int[] copies = new int[instructions.size()];
+        for (int index = 0; index < instructions.size(); index++) {
+            Instruction instruction = instructions.get(index);
+            List<Integer> from = new ArrayList<>();
             for (Instruction predecessor : predecessors(function, instruction)) {
-                instructions.push(predecessor);
-                targets.push(next);
+                Integer source = indexes.get(predecessor.getAddress());
+                if (source == null) continue;
+                from.add(source);
+                successors.get(source).add(index);
+            }
+            predecessors[index] = from.stream().mapToInt(Integer::intValue).toArray();
+            defined[index] = new BitSet();
+            for (Object result : instruction.getResultObjects()) {
+                if (result instanceof Register written) defined[index].set(swiftRegisterBit(bits, written));
+            }
+            PcodeOp[] operations = instruction.getPcode();
+            for (PcodeOp operation : operations) {
+                if (operation.getOpcode() == PcodeOp.CBRANCH && operation.getInput(0).isConstant()) selects.set(index);
+            }
+            Register copied = copiedRegister(operations);
+            copies[index] = copied == null ? -1 : swiftRegisterBit(bits, copied);
+        }
+        BitSet[] entries = new BitSet[instructions.size()];
+        BitSet[] exits = new BitSet[instructions.size()];
+        ArrayDeque<Integer> pending = new ArrayDeque<>();
+        boolean[] queued = new boolean[instructions.size()];
+        for (int index = 0; index < instructions.size(); index++) {
+            entries[index] = new BitSet();
+            exits[index] = new BitSet();
+            pending.add(index);
+            queued[index] = true;
+        }
+        while (!pending.isEmpty()) {
+            int index = pending.poll();
+            queued[index] = false;
+            BitSet entry = new BitSet();
+            for (int predecessor : predecessors[index]) entry.or(exits[predecessor]);
+            entries[index] = entry;
+            BitSet exit = (BitSet) entry.clone();
+            for (int bit = defined[index].nextSetBit(0); bit >= 0; bit = defined[index].nextSetBit(bit + 1)) {
+                exit.set(bit, selects.get(index) || (copies[index] >= 0 && entry.get(copies[index])));
+            }
+            if (exit.equals(exits[index])) continue;
+            exits[index] = exit;
+            for (int successor : successors.get(index)) {
+                if (!queued[successor]) {
+                    queued[successor] = true;
+                    pending.add(successor);
+                }
             }
         }
-        return false;
+        return new SwiftSelectProvenance(indexes, entries, bits);
+    }
+
+    // One site's question as the producer regressions ask it, answered from the whole-body
+    // analysis. A body too large for the budget is unknown, which keeps the candidate suppressed.
+    private boolean selectedValue(Function function, Instruction use, Register register) {
+        SwiftSelectProvenance provenance = swiftSelectProvenance(function, new SwiftLiteralBudget());
+        return provenance == SwiftSelectProvenance.UNAVAILABLE || provenance.selected(use, register);
+    }
+
+    private static int swiftRegisterBit(Map<Register, Integer> bits, Register register) {
+        return bits.computeIfAbsent(register.getBaseRegister(), ignored -> bits.size());
     }
 
     private List<Instruction> predecessors(Function function, Instruction instruction) {
@@ -3719,8 +3768,8 @@ public final class ReaGhidraBridge extends HeadlessScript {
      * to six escaped JSON characters ("\\u0000") held as UTF-16 in Gson's growing writer buffer
      * (up to twice its length), again in the returned String, and once more as UTF-8 on the
      * socket. Each record also pays a fixed cost for its map key, JSON members, addresses, words
-     * and their serialized form, so many empty or small literals are bounded too. Retained
-     * provenance-cache entries draw on that same fixed-state allowance.
+     * and their serialized form, so many empty or small literals are bounded too. The select
+     * provenance analysis is charged for its whole body by bytes before it allocates.
      */
     private static final class SwiftLiteralBudget {
         private static final long BYTES_PER_LITERAL_BYTE = 2 + 6 * 2 * 2 + 6 * 2 + 6;
@@ -3733,18 +3782,18 @@ public final class ReaGhidraBridge extends HeadlessScript {
             remaining = Math.max(0, (runtime.maxMemory() - runtime.totalMemory() + runtime.freeMemory()) / 2);
         }
 
-        boolean takeState() {
-            if (remaining < BYTES_PER_RECORD) return false;
-            remaining -= BYTES_PER_RECORD;
-            return true;
-        }
-
         boolean take(long bytes) {
             if (remaining < BYTES_PER_RECORD ||
                 bytes > (remaining - BYTES_PER_RECORD) / BYTES_PER_LITERAL_BYTE) {
                 return false;
             }
             remaining -= BYTES_PER_RECORD + bytes * BYTES_PER_LITERAL_BYTE;
+            return true;
+        }
+
+        boolean takeBytes(long bytes) {
+            if (bytes > remaining) return false;
+            remaining -= bytes;
             return true;
         }
 
@@ -4349,6 +4398,23 @@ public final class ReaGhidraBridge extends HeadlessScript {
     private record FunctionEntry(Function function, InventoryItem item) {}
     private record FunctionAnalysisObservation(JsonObject dossier, List<String> limitations) {}
     private record SwiftStringLiteralDecode(JsonArray literals, JsonArray omissions) {}
+
+    /** Registers that may hold a conditional select on entry to each instruction of one body. */
+    private record SwiftSelectProvenance(
+        Map<Address, Integer> indexes,
+        BitSet[] entries,
+        Map<Register, Integer> bits
+    ) {
+        // Charged before the analysis allocates: index entry, edges and three register sets.
+        static final long BYTES_PER_INSTRUCTION = 512;
+        static final SwiftSelectProvenance UNAVAILABLE = new SwiftSelectProvenance(Map.of(), new BitSet[0], Map.of());
+
+        boolean selected(Instruction use, Register register) {
+            Integer index = indexes.get(use.getAddress());
+            Integer bit = bits.get(register.getBaseRegister());
+            return index != null && bit != null && entries[index].get(bit);
+        }
+    }
     private record SwiftLiteralLayout(
         String representation,
         Address address,
