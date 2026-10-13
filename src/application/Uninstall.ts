@@ -7,7 +7,7 @@ import {
   withClientServers,
   type ClientConfigurationDocument,
 } from "./ClientConfigurationDocument.js";
-import { copyFile, lstat, realpath, rm, rmdir } from "node:fs/promises";
+import { access, copyFile, lstat, realpath, rm, rmdir } from "node:fs/promises";
 import { constants as fsConstants } from "node:fs";
 import { homeDirectoryFromEnvironment } from "../config/homeDirectory.js";
 import { join } from "node:path";
@@ -32,10 +32,16 @@ import {
 } from "./RegularFileRead.js";
 import { ArtifactResourceScope } from "../artifacts/ArtifactResourceScope.js";
 import {
+  appDataRedirection,
   manualRegistrationRemediation,
+  registrationWriteBlocker,
   supportedClients,
   type SetupClient,
 } from "./SupportedClients.js";
+import {
+  redirectedWriteBlocker,
+  type MsixPackageView,
+} from "./MsixPackageStorage.js";
 export { isUninstallFailure } from "./UninstallFailure.js";
 
 interface ManagedPathStats {
@@ -53,6 +59,8 @@ export interface UninstallFileSystem {
   copy(source: string, destination: string): Promise<void>;
   writeText(path: string, contents: string): Promise<void>;
   stat(path: string): Promise<ManagedPathStats>;
+  /** Follow discovery links and require an accessible target. */
+  access?(path: string): Promise<void>;
   realpath?(path: string): Promise<string>;
   remove(path: string, recursive?: boolean): Promise<void>;
   /** Remove a directory only if it is empty; a non-empty one is kept. */
@@ -69,6 +77,7 @@ const systemFileSystem = (
   writeText: (path, contents) =>
     writeFileAtomic(path, contents, { encoding: "utf8" }),
   stat: (path) => lstat(path),
+  access: (path) => access(path),
   realpath: (path) => realpath(path),
   remove: (path, recursive = true) => rm(path, { recursive }),
   removeEmptyDirectory: (path) => rmdir(path),
@@ -98,6 +107,7 @@ export interface UninstallHost {
   /** Report a configuration that cannot be read safely, before any removal. */
   inspectClient(client: UninstallClient): Promise<UninstallItem | undefined>;
   removeClient(client: UninstallClient): Promise<UninstallItem>;
+  inspectSkill?(): Promise<UninstallItem | undefined>;
   removeSkill(): Promise<UninstallItem>;
   purgeData(): Promise<readonly UninstallItem[]>;
   close?(): Promise<string | undefined>;
@@ -123,6 +133,8 @@ export const runUninstall = async (
       const blocking = await host.inspectClient(client);
       if (blocking !== undefined) blocked.push(blocking);
     }
+    const skillBlocker = await host.inspectSkill?.();
+    if (skillBlocker !== undefined) blocked.push(skillBlocker);
     const items: UninstallItem[] =
       blocked.length > 0
         ? [
@@ -214,14 +226,25 @@ export const systemUninstallHost = (
     selectedHome ?? homeDirectoryFromEnvironment(environment, platform);
   const resources = new ArtifactResourceScope();
   const fileSystem = selectedFileSystem ?? systemFileSystem(resources);
+  // Set with the client list: the package view that redirects this
+  // process's AppData writes, if any.
+  let redirection: MsixPackageView | undefined;
+  const clientWriteBlocker = (client: SetupClient): string | undefined =>
+    registrationWriteBlocker(client, "uninstall") ??
+    redirectedWriteBlocker(redirection, [client.configPath], "uninstall");
+  const skillWriteBlocker = (path: string): string | undefined =>
+    redirectedWriteBlocker(redirection, [path], "uninstall");
   return {
     clients: async () => {
       const clients: UninstallClient[] = [];
-      for (const client of supportedClients(home, platform, environment)) {
+      const supported = supportedClients(home, platform, environment);
+      redirection = appDataRedirection(supported);
+      for (const client of supported) {
         let applicable = client.discoveryPaths === undefined;
         for (const path of client.discoveryPaths ?? []) {
           try {
-            await fileSystem.stat(path);
+            if (fileSystem.access !== undefined) await fileSystem.access(path);
+            else if ((await fileSystem.stat(path)).isSymbolicLink()) continue;
             applicable = true;
             break;
           } catch {
@@ -230,7 +253,7 @@ export const systemUninstallHost = (
             // readable configuration can still be removed independently.
           }
         }
-        for (const configPath of client.configPaths ?? [client.configPath])
+        for (const configPath of uninstallConfigPaths(client))
           clients.push({
             ...client,
             configPath,
@@ -241,13 +264,47 @@ export const systemUninstallHost = (
     },
     inspectClient: async (client) => {
       const read = await readClientConfiguration(client, fileSystem);
-      return read.kind === "item" && read.item.status === "failed"
-        ? read.item
-        : undefined;
+      if (read.kind === "item")
+        return read.item.status === "failed" ? read.item : undefined;
+      const removal = clientRegistrationRemoval(read.parsed, client);
+      if (!removal.removeNative && removal.legacyPath === undefined)
+        return undefined;
+      // A removal the running package would revert, or redirect into its
+      // private storage, would leave the registration in place.
+      const blocker = clientWriteBlocker(client);
+      return blocker === undefined
+        ? undefined
+        : item(client.name, "failed", blocker);
     },
-    removeClient: (client) => removeClient(client, fileSystem),
+    removeClient: (client) =>
+      removeClient(client, fileSystem, () => clientWriteBlocker(client)),
+    inspectSkill: async () => {
+      for (const destination of skillDestinations(
+        home,
+        undefined,
+        environment,
+        platform,
+      )) {
+        const inspected = await inspectManagedSkill(
+          destination.path,
+          destination.client,
+          fileSystem,
+        );
+        if (inspected?.status === "failed") return inspected;
+        if (inspected !== undefined) continue;
+        const blocker = skillWriteBlocker(destination.path);
+        if (blocker !== undefined) return item("skill", "failed", blocker);
+      }
+      return undefined;
+    },
     removeSkill: () =>
-      removeManagedSkills(home, fileSystem, environment, platform),
+      removeManagedSkills(
+        home,
+        fileSystem,
+        environment,
+        platform,
+        skillWriteBlocker,
+      ),
     purgeData: () => purgeManagedData(join(home, ".rea"), fileSystem),
     close: async () => {
       try {
@@ -258,6 +315,36 @@ export const systemUninstallHost = (
       }
     },
   };
+};
+
+/**
+ * Every user file that can hold REA's registration for one client. An MSIX
+ * package can read either its private copy or the AppData file, and earlier
+ * setups wrote the AppData file, so both lose REA's entry.
+ */
+const uninstallConfigPaths = (client: SetupClient): readonly string[] => [
+  ...new Set([
+    ...(client.configPaths ?? [client.configPath]),
+    ...(client.msixPackage === undefined
+      ? []
+      : [
+          client.msixPackage.privateConfigPath,
+          client.msixPackage.appDataConfigPath,
+        ]),
+  ]),
+];
+
+/** Whether removal would change this configuration. */
+const registrationPresent = (parsed: ClientConfigurationDocument): boolean => {
+  const name = PRODUCT_IDENTITY.mcpServerKey;
+  return (
+    Object.hasOwn(parsed.servers, name) ||
+    // Beside a native OpenCode V2 table, OpenCode also loads a V1 `mcp.rea`.
+    legacyClientServerPath(parsed, name) !== undefined ||
+    // Harness ownership is the stable entry id. A stale or malformed launcher
+    // still belongs to that id, and so does a direct patch that projects no row.
+    (parsed.dialect === "dsh" && dshDocument(parsed.document).carriesEntry)
+  );
 };
 
 type ClientConfigurationRead =
@@ -331,21 +418,47 @@ const itemRead = (result: UninstallItem): ClientConfigurationRead => ({
   item: result,
 });
 
+/**
+ * Share the exact ownership and applicability decision with preflight. A
+ * removable legacy entry carries its document path, so removal edits exactly
+ * the entry this decision admitted.
+ */
+const clientRegistrationRemoval = (
+  parsed: ClientConfigurationDocument,
+  client: SetupClient,
+): {
+  readonly removeNative: boolean;
+  readonly legacyPath: readonly string[] | undefined;
+} => {
+  const name = PRODUCT_IDENTITY.mcpServerKey;
+  if (
+    parsed.dialect === "dsh" &&
+    dshDocument(parsed.document).hasUnknownStructure
+  )
+    return { removeNative: false, legacyPath: undefined };
+  const legacyPath = legacyClientServerPath(parsed, name);
+  return {
+    removeNative:
+      (parsed.dialect === "dsh" && dshDocument(parsed.document).carriesEntry) ||
+      (Object.hasOwn(parsed.servers, name) &&
+        isOwnedRegistration(parsed.servers[name], client)),
+    legacyPath:
+      legacyPath !== undefined &&
+      isOwnedRegistration(parsed.legacyServers[name], client)
+        ? legacyPath
+        : undefined,
+  };
+};
+
 const removeClient = async (
   client: UninstallClient,
   fileSystem: UninstallFileSystem,
+  writeBlocker?: () => string | undefined,
 ): Promise<UninstallItem> => {
   const read = await readClientConfiguration(client, fileSystem);
   if (read.kind === "item") return read.item;
   const { transactionPath, original, parsed } = read;
   const name = PRODUCT_IDENTITY.mcpServerKey;
-  // Beside a native OpenCode V2 table, OpenCode also loads a V1 `mcp.rea`.
-  const legacyPath = legacyClientServerPath(parsed, name);
-  const hasNative = Object.hasOwn(parsed.servers, name);
-  // Harness ownership is the stable entry id. A stale or malformed launcher
-  // still belongs to that id, and so does a direct patch that projects no row.
-  const carriesDshEntry =
-    parsed.dialect === "dsh" && dshDocument(parsed.document).carriesEntry;
   if (
     parsed.dialect === "dsh" &&
     dshDocument(parsed.document).hasUnknownStructure
@@ -355,20 +468,21 @@ const removeClient = async (
       "retained",
       "A Cordis expression may produce registration rows, so the patch was retained without changes.",
     );
-  if (!hasNative && legacyPath === undefined && !carriesDshEntry)
+  if (!registrationPresent(parsed))
     return item(client.name, "skipped", "REA registration is absent.");
-  const removeNative =
-    carriesDshEntry ||
-    (hasNative && isOwnedRegistration(parsed.servers[name], client));
-  const removeLegacy =
-    legacyPath !== undefined &&
-    isOwnedRegistration(parsed.legacyServers[name], client);
+  const { removeNative, legacyPath } = clientRegistrationRemoval(
+    parsed,
+    client,
+  );
+  const removeLegacy = legacyPath !== undefined;
   if (!removeNative && !removeLegacy)
     return item(
       client.name,
       "retained",
       "The rea-named registration is not REA-owned.",
     );
+  const blocker = writeBlocker?.();
+  if (blocker !== undefined) return item(client.name, "failed", blocker);
   const remaining = { ...parsed.servers };
   if (removeNative) delete remaining[name];
   const document = withClientServers(
@@ -378,7 +492,7 @@ const removeClient = async (
   );
   const editedPaths = [
     ...(removeNative ? [clientServerPath(parsed, name)] : []),
-    ...(removeLegacy ? [legacyPath] : []),
+    ...(legacyPath === undefined ? [] : [legacyPath]),
   ];
   const backupPath = `${client.configPath}.rea.backup`;
   try {
@@ -539,12 +653,13 @@ const removeManagedSkills = async (
   fileSystem: UninstallFileSystem,
   environment: Readonly<NodeJS.ProcessEnv>,
   platform: NodeJS.Platform,
+  writeBlocker?: (path: string) => string | undefined,
 ): Promise<UninstallItem> => {
   // Every destination shares one summary item, so each result is labeled by
   // the directory it refers to.
   const results = await Promise.all(
     skillDestinations(home, undefined, environment, platform).map(({ path }) =>
-      removeManagedSkill(path, path, fileSystem),
+      removeManagedSkill(path, path, fileSystem, writeBlocker),
     ),
   );
   const failed = results.find(({ status }) => status === "failed");
@@ -575,11 +690,11 @@ const removeManagedSkills = async (
   );
 };
 
-const removeManagedSkill = async (
+const inspectManagedSkill = async (
   path: string,
   name: string,
   fileSystem: UninstallFileSystem,
-): Promise<UninstallItem> => {
+): Promise<UninstallItem | undefined> => {
   let root: ManagedPathStats;
   try {
     root = await fileSystem.stat(path);
@@ -616,6 +731,20 @@ const removeManagedSkill = async (
   }
   if (!isManagedSkillManifest(content))
     return item(name, "retained", "Skill manifest is not REA-owned.");
+
+  return undefined;
+};
+
+const removeManagedSkill = async (
+  path: string,
+  name: string,
+  fileSystem: UninstallFileSystem,
+  writeBlocker?: (path: string) => string | undefined,
+): Promise<UninstallItem> => {
+  const inspection = await inspectManagedSkill(path, name, fileSystem);
+  if (inspection !== undefined) return inspection;
+  const blocker = writeBlocker?.(path);
+  if (blocker !== undefined) return item(name, "failed", blocker);
 
   const manifestName = "SKILL.md";
   const otherFiles = MANAGED_SKILL_FILES.filter(

@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, symlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -193,37 +193,50 @@ describe("FreeBuff JSON registration", () => {
 });
 
 describe("uninstall applicability for shared FreeBuff storage", () => {
-  it("retains malformed shared settings without blocking unrelated REA removal", async () => {
-    const home = await createTestTempDirectory("rea-freebuff-absent-");
-    const client = freebuffPath(home, process.platform)!;
-    await mkdir(dirname(client.configPath), { recursive: true });
-    await writeFile(client.configPath, "{unrelated malformed shared data");
-    const codex = supportedClients(home, process.platform, {}).find(
-      ({ name }) => name === "codex",
-    )!;
-    await mkdir(dirname(codex.configPath), { recursive: true });
-    await writeFile(codex.configPath, "");
-    await configureClientConfiguration(codex, {}, command);
-    await mkdir(join(home, ".rea", "cache"), { recursive: true });
-    await writeFile(join(home, ".rea", "cache", "owned"), "owned");
-    const result = await runUninstall(
-      true,
-      systemUninstallHost(home, undefined, {}),
-    );
-    expect(result.status).toBe("complete");
-    expect(result.items.find(({ name }) => name === "freebuff")).toMatchObject({
-      status: "retained",
-    });
-    expect(result.items.find(({ name }) => name === "codex")).toMatchObject({
-      status: "removed",
-    });
-    expect(result.items.find(({ name }) => name === "cache")).toMatchObject({
-      status: "removed",
-    });
-    expect(await readFile(client.configPath, "utf8")).toBe(
-      "{unrelated malformed shared data",
-    );
-  });
+  it.each(
+    process.platform === "win32"
+      ? (["absent"] as const)
+      : (["absent", "dangling"] as const),
+  )(
+    "retains malformed shared settings with a %s product profile",
+    async (profile) => {
+      const home = await createTestTempDirectory("rea-freebuff-absent-");
+      const client = freebuffPath(home, process.platform)!;
+      await mkdir(dirname(client.configPath), { recursive: true });
+      await writeFile(client.configPath, "{unrelated malformed shared data");
+      if (profile === "dangling") {
+        await mkdir(dirname(client.markerPath!), { recursive: true });
+        await symlink(join(home, "moved-profile"), client.markerPath!, "dir");
+      }
+      const codex = supportedClients(home, process.platform, {}).find(
+        ({ name }) => name === "codex",
+      )!;
+      await mkdir(dirname(codex.configPath), { recursive: true });
+      await writeFile(codex.configPath, "");
+      await configureClientConfiguration(codex, {}, command);
+      await mkdir(join(home, ".rea", "cache"), { recursive: true });
+      await writeFile(join(home, ".rea", "cache", "owned"), "owned");
+      const result = await runUninstall(
+        true,
+        systemUninstallHost(home, undefined, {}),
+      );
+      expect(result.status).toBe("complete");
+      expect(
+        result.items.find(({ name }) => name === "freebuff"),
+      ).toMatchObject({
+        status: "retained",
+      });
+      expect(result.items.find(({ name }) => name === "codex")).toMatchObject({
+        status: "removed",
+      });
+      expect(result.items.find(({ name }) => name === "cache")).toMatchObject({
+        status: "removed",
+      });
+      expect(await readFile(client.configPath, "utf8")).toBe(
+        "{unrelated malformed shared data",
+      );
+    },
+  );
 
   it("removes a recognizable owned shared row even without a FreeBuff profile", async () => {
     const home = await createTestTempDirectory("rea-freebuff-owned-row-");
