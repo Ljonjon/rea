@@ -5,9 +5,11 @@ import { projectGhidraDoctorInspection } from "./GhidraDoctor.js";
 import {
   ghidraJavaEnvironment,
   inspectGhidraInstallation,
+  parseGhidraJavaProbeOutput,
   type GhidraExecutableHeaderProbe,
   type GhidraInstallationHost,
   type GhidraJavaObservation,
+  type IncompleteGhidraJavaObservation,
 } from "./GhidraInstallation.js";
 import {
   SUPPORTED_GHIDRA_JAVA_MAJOR,
@@ -51,6 +53,32 @@ const host = (
   probeJava: () => JAVA,
   ...overrides,
 });
+
+it.each([
+  ["java.version", "", JAVA.home],
+  ["java.home", JAVA.version, ""],
+] as const)(
+  "parses successful Java output with empty required property %s as partial evidence",
+  (issue, version, home) => {
+    expect(
+      parseGhidraJavaProbeOutput(
+        [
+          `java.version = ${version}`,
+          `java.home = ${home}`,
+          "java.vm.name = OpenJDK 64-Bit Server VM",
+          "sun.arch.data.model = 64",
+        ].join("\n"),
+      ),
+    ).toMatchObject({
+      status: "incomplete",
+      issues: [issue],
+      version,
+      home,
+      vmName: "OpenJDK 64-Bit Server VM",
+      bits: 64,
+    });
+  },
+);
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -230,6 +258,48 @@ describe("Ghidra installation inspection", () => {
 
 describe("Ghidra installation rejection diagnostics", () => {
   it.each([
+    ["java.version", "", JAVA.home, null, "jdk"],
+    ["java.home", JAVA.version, "", JAVA.major, undefined],
+  ] as const)(
+    "retains Java observations when required property %s is empty",
+    (issue, version, home, major, runtime) => {
+      const incomplete: IncompleteGhidraJavaObservation = {
+        status: "incomplete",
+        issues: [issue],
+        version,
+        major,
+        home,
+        bits: JAVA.bits,
+        ...(runtime === undefined ? {} : { runtime }),
+        vmName: "OpenJDK 64-Bit Server VM",
+      };
+      const result = inspectGhidraInstallation(
+        {
+          environment: {},
+          installDir: INSTALL,
+          platform: "linux",
+          architecture: "x64",
+        },
+        host({ probeJava: () => incomplete }),
+      );
+      expect(result).toMatchObject({
+        status: "unavailable",
+        javaVersion: version,
+        javaHome: home,
+        javaVmName: "OpenJDK 64-Bit Server VM",
+        checks: expect.arrayContaining([
+          expect.objectContaining({
+            name: "java",
+            status: "failed",
+            code: "version_unresolved",
+            detail: expect.stringContaining(issue),
+          }),
+        ]),
+      });
+    },
+  );
+
+  it.each([
     {
       name: "missing configuration",
       options: { platform: "linux" as const, architecture: "x64" as const },
@@ -337,6 +407,28 @@ describe("Ghidra installation rejection diagnostics", () => {
       override: { probeJava: () => ({ ...JAVA, runtime: "jre" as const }) },
       failed: "java",
       code: "unsupported_version",
+    },
+    {
+      name: "32-bit Java",
+      options: {
+        installDir: INSTALL,
+        platform: "linux" as const,
+        architecture: "x64" as const,
+      },
+      override: { probeJava: () => ({ ...JAVA, bits: 32 }) },
+      failed: "java",
+      code: "unsupported_version",
+    },
+    {
+      name: "unreported Java bitness",
+      options: {
+        installDir: INSTALL,
+        platform: "linux" as const,
+        architecture: "x64" as const,
+      },
+      override: { probeJava: () => ({ ...JAVA, bits: null }) },
+      failed: "java",
+      code: "version_unresolved",
     },
   ])("distinguishes $name", ({ options, override, failed, code }) => {
     const result = inspectGhidraInstallation(
