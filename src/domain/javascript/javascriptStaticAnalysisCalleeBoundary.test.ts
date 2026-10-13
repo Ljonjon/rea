@@ -113,4 +113,53 @@ describe("Electron callee member boundaries", () => {
       endpoints: [],
     });
   });
+
+  it("keeps exact bracket members and rejects a dot inside one computed key", () => {
+    expect(
+      project(`
+        win["loadFile"]("./renderer/index.html");
+        win["loadURL"]("https://app.example.test/page");
+        navigator["serviceWorker"].register("./sw.js");
+        navigator.serviceWorker["register"]("./other-sw.js");
+      `),
+    ).toEqual({
+      status: "complete",
+      roles: [
+        {
+          role: "renderer",
+          path: "./renderer/index.html",
+          mechanism: "call:win.loadFile",
+        },
+        {
+          role: "renderer",
+          path: "https://app.example.test/page",
+          mechanism: "call:win.loadURL",
+        },
+      ],
+      references: [
+        { kind: "service-worker", specifier: "./sw.js" },
+        { kind: "service-worker", specifier: "./other-sw.js" },
+      ],
+      endpoints: [
+        {
+          kind: "network",
+          value: "https://app.example.test/page",
+          mechanism: "call:win.loadURL",
+        },
+      ],
+    });
+    expect(
+      project(`
+        api["fake.loadFile"]("./secret.html");
+        api["fake.loadURL"]("https://cdn.example.test/app");
+        api["fake.serviceWorker.register"]("./nope.js");
+        api["serviceWorker.register"]("./also-nope.js");
+      `),
+    ).toEqual({
+      status: "complete",
+      roles: [],
+      references: [],
+      endpoints: [],
+    });
+  });
 });

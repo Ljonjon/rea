@@ -517,14 +517,6 @@ const isKeyedCollectionReceiver = (callee: t.Node): boolean => {
   return property === "headers" || property === "searchParams";
 };
 
-/**
- * True when `name` is exactly `member`, or a dotted callee path ending in
- * `.member`. A shared suffix inside one identifier, such as `uploadFile`
- * for `loadFile`, does not match.
- */
-export const isDottedCallee = (name: string, member: string): boolean =>
-  name === member || name.endsWith(`.${member}`);
-
 /** Select the literal URL argument for recognized network callees. */
 export const endpointArgument = (
   name: string,
@@ -562,7 +554,7 @@ export const endpointArgument = (
       ? undefined
       : value;
   }
-  if (isDottedCallee(name, "loadURL")) return stringValue(args[0]);
+  if (calleeSegmentsEndWith(callee, "loadURL")) return stringValue(args[0]);
   return undefined;
 };
 
@@ -578,8 +570,8 @@ export const storageKind = (
   return undefined;
 };
 
-/** Produce a dotted callee name from member syntax. */
-export const calleeName = (node: t.Node): string => {
+/** Member segments of a callee, without joining dots that belong to one key. */
+export const calleeSegments = (node: t.Node): readonly string[] => {
   const segments: string[] = [];
   while (t.isMemberExpression(node) || t.isOptionalMemberExpression(node)) {
     // Dynamic keys retain their syntax identity instead of inventing a name.
@@ -595,7 +587,29 @@ export const calleeName = (node: t.Node): string => {
   segments.push(base);
   segments.reverse();
   const first = segments.findIndex((segment) => segment !== "");
-  return first === -1 ? "" : segments.slice(first).join(".");
+  return first === -1 ? [] : segments.slice(first);
+};
+
+/** Produce a dotted callee name from member syntax. */
+export const calleeName = (node: t.Node): string =>
+  calleeSegments(node).join(".");
+
+/**
+ * True when the callee's AST member segments end with `member` split on `.`.
+ * A dot inside one computed key stays one segment, so `api["fake.loadURL"]`
+ * does not match `loadURL`, and `uploadFile` does not match `loadFile`.
+ */
+export const calleeSegmentsEndWith = (
+  node: t.Node,
+  member: string,
+): boolean => {
+  const expected = member.split(".");
+  const segments = calleeSegments(node);
+  if (expected.length === 0 || expected.length > segments.length) return false;
+  const offset = segments.length - expected.length;
+  return expected.every(
+    (segment, index) => segments[offset + index] === segment,
+  );
 };
 
 /** Read a member property only when its syntax commits an exact name. */
