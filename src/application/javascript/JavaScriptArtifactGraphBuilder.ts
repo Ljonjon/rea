@@ -178,7 +178,8 @@ const graphCoverage = (context: JavaScriptArtifactGraphContext) => {
     context.fileSet.invalid_utf8_files > 0 ||
     sourceMapPolicyGap ||
     malformedStructuredData ||
-    partialJavaScript;
+    partialJavaScript ||
+    context.fileSet.files.some(({ kind }) => kind === "unsupported");
   const executionLimits = context.analysis.files.flatMap(
     ({ analysis_failure, application_projection_failure }) =>
       [analysis_failure, application_projection_failure].flatMap((failure) =>
@@ -245,6 +246,12 @@ const graphLimitations = (
   );
   return [
     ...context.analysis.limitations,
+    ...context.fileSet.files
+      .filter(({ kind }) => kind === "unsupported")
+      .map(
+        ({ path }) =>
+          `The inventoried source representation at ${path} is unsupported; its JavaScript semantics and relationships remain unavailable.`,
+      ),
     ...(context.fileSet.source_selection === undefined
       ? []
       : [
