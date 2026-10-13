@@ -621,6 +621,27 @@ describe("Apple dispatch unmapped protocol-list slot", () => {
     expect(failures.length).toBeLessThanOrEqual(100);
   });
 
+  it("keeps independent facets complete when only zero-pointer list scanning is capped", () => {
+    const bytes = image("neither");
+    bytes.writeBigUInt64LE(0n, 144);
+    bytes.writeBigUInt64LE(16n, 224);
+    const result = decodeAppleDispatchMetadata(bytes, 1, provenance);
+    expect(classCoverage(result)).toMatchObject({
+      status: "partial",
+      reason: expect.stringContaining("max_records_reached"),
+    });
+    for (const facet of [
+      "objc_properties_categories",
+      "binary_relative_pointers",
+    ])
+      expect(
+        result.coverage.find((item) => item.facet === facet),
+      ).toMatchObject({
+        status: "complete",
+        reason: null,
+      });
+  });
+
   it("bounds failed class-list slots by the record budget", () => {
     // Same file-declared-size hazard as the protocol list: a crafted image
     // can declare an arbitrarily large unmapped class list. Failed class

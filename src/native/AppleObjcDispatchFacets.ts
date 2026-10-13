@@ -75,6 +75,7 @@ export const decodeObjcDispatchFacets = (input: {
   categoryIssues: DecodeIssue[];
   examined: number;
   categoriesExamined: number;
+  objcListScanTruncated: boolean;
 } => {
   const {
     bytes,
@@ -204,11 +205,12 @@ export const decodeObjcDispatchFacets = (input: {
   // pointers do not produce records, but still consume pointer-reading work.
   // Record decoders retain their existing admission ownership.
   let listSlotsExamined = 0;
+  let objcListScanTruncated = false;
   const readListSlot = (
     field: bigint,
   ): Result<bigint, "unmapped" | "exhausted"> => {
     if (listSlotsExamined >= maxListSlots) {
-      budget.markTruncated();
+      objcListScanTruncated = true;
       return err("exhausted");
     }
     listSlotsExamined++;
@@ -397,5 +399,11 @@ export const decodeObjcDispatchFacets = (input: {
     protocols: (list) => protocolReader.list(list),
     localClassName: (address) => localClassName(read, address),
   });
-  return { failures, categoryIssues, examined, categoriesExamined };
+  return {
+    failures,
+    categoryIssues,
+    examined,
+    categoriesExamined,
+    objcListScanTruncated,
+  };
 };
