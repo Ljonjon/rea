@@ -150,6 +150,7 @@ export const parseGhidraSessionInfo = (
     readonly expectedReadOnly?: boolean;
     readonly expectedLanguageId?: string;
     readonly expectedCompilerSpecId?: string;
+    readonly expectedImageBase?: string;
   },
 ): Result<GhidraSessionInfo, Error> => {
   const parsed = sessionInfoSchema.safeParse(value);
@@ -170,6 +171,8 @@ export const parseGhidraSessionInfo = (
     (expected.expectedCompilerSpecId !== undefined &&
       parsed.data.target.compiler_spec_id !==
         expected.expectedCompilerSpecId) ||
+    (expected.expectedImageBase !== undefined &&
+      parsed.data.target.image_base !== expected.expectedImageBase) ||
     new Set(parsed.data.capabilities).size !== expectedCapabilities.length ||
     expectedCapabilities.some(
       (capability) => !parsed.data.capabilities.includes(capability),
