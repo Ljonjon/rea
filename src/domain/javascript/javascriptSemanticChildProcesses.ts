@@ -11,6 +11,7 @@ import { semanticCallableIdForNode } from "./javascriptSemanticProjection.js";
 import { semanticStaticPropertyName } from "./javascriptAstValues.js";
 import {
   resolveSemanticBindingState,
+  semanticResolutionBlocked,
   type JavaScriptSemanticAnalysisState,
   type JavaScriptSemanticBindingState,
 } from "./javascriptSemanticState.js";
@@ -222,9 +223,7 @@ const childInteraction = (
       .sort(compareUnicodeCodePoints),
     eventName: kind === "listener" ? eventName : null,
     signalName:
-      kind === "signal"
-        ? (dataEffectLiteralString(node.arguments[0]) ?? "SIGTERM")
-        : null,
+      kind === "signal" ? killSignalName(node.arguments, state) : null,
     listenerLocation:
       kind === "listener" && t.isNode(listener) ? range(listener) : null,
     resolution:
@@ -235,6 +234,24 @@ const childInteraction = (
         ? "complete"
         : "partial",
   };
+};
+
+// Only an omitted argument or the unshadowed global undefined selects the
+// SIGTERM default; an unresolved argument leaves the signal unknown.
+const killSignalName = (
+  args: t.CallExpression["arguments"],
+  state: JavaScriptSemanticAnalysisState,
+): string | null => {
+  const [signal] = args;
+  if (
+    signal === undefined ||
+    (t.isIdentifier(signal) &&
+      signal.name === "undefined" &&
+      resolveSemanticBindingState(state, signal, signal.name) === undefined &&
+      !semanticResolutionBlocked(state, signal, signal.name))
+  )
+    return "SIGTERM";
+  return dataEffectLiteralString(signal);
 };
 
 const classifyInteraction = (
