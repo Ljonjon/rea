@@ -212,6 +212,8 @@ Import an older source tree to compare with the current artifact:
 
 ```bash
 rea import-reference-source /absolute/path/to/source
+rea import-reference-source /absolute/path/to/source \
+  --exclude-paths '["vendor/","*.generated","!keep.generated"]'
 ```
 
 The import records hashes and metadata for the supplied files, separately
@@ -224,6 +226,22 @@ matched pattern and whether it came from project, default, caller, or sensitive
 path policy. Set `REA_REFERENCE_SECRET_PATTERNS_JSON` to a JSON array of ignore
 patterns when you want to mark selected paths as sensitive; those patterns are
 reported separately as configured-secret exclusions.
+
+`--exclude-paths` is an optional JSON array of nonempty Git-ignore rules. Rules
+use the importer's Git-ignore grammar, including wildcards, directory suffixes
+such as `vendor/`, and `!` negations. They are not literal path matches. REA
+validates the JSON and every element before it opens the source tree, so
+malformed JSON and invalid element types fail as invalid input without starting
+an import. Omit the option, or pass an empty array, to add no caller exclusions.
+
+A matching rule is recorded as `caller-excluded` with the winning pattern.
+A matched directory is not traversed, so its descendants are omitted rather
+than imported or listed on their own. Negations cannot restore a file inside
+a skipped directory; `!keep.generated` can restore a file excluded by
+`*.generated` when its parent is still traversed. Caller rules do not replace project
+`.gitignore` rules, default generated-path rules, or declared secret patterns.
+Secret patterns are applied first, so a caller rule does not reclassify a
+declared secret. Selecting a path for exclusion is not a secrecy heuristic.
 
 Re-import saved graphs whose pattern-based exclusions lack `pattern` before
 using them in source-to-bundle comparisons.
