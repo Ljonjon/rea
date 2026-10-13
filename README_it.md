@@ -57,6 +57,10 @@ La configurazione registra REA con il tuo agente e installa le istruzioni di wor
 
 ## Avvio rapido
 
+> [!IMPORTANT]
+> Fonti ufficiali di REA: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> Segui i link di installazione e delle versioni pubblicate da queste fonti ufficiali. Un nome di repository simile o un README copiato non dimostra che un download sia ufficiale.
+
 ### Configura il tuo agente
 
 Con Node.js e npm installati, esegui:

@@ -57,6 +57,10 @@ REA 将智能体连接到分析工具，用于检查原生二进制文件、Java
 
 ## 快速开始
 
+> [!IMPORTANT]
+> REA 官方来源： [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> 请通过这些官方来源提供的安装和发布链接获取 REA。相似的仓库名称或复制的 README 不能证明下载内容来自官方。
+
 ### 设置智能体
 
 安装 Node.js 和 npm 后，运行：

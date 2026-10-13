@@ -57,6 +57,10 @@ Konfigurator rejestruje REA w Twoim agencie i instaluje pasujące instrukcje pra
 
 ## Szybki start
 
+> [!IMPORTANT]
+> Oficjalne źródła REA: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> Korzystaj z odnośników do instalacji i wydań w tych oficjalnych źródłach. Podobna nazwa repozytorium lub skopiowany README nie potwierdzają, że pobierany plik jest oficjalny.
+
 ### Skonfiguruj agenta
 
 Po zainstalowaniu Node.js i npm uruchom:

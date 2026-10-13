@@ -49,6 +49,10 @@ REA ایجنت شما را به ابزارهایی برای بررسی باین�
 
 ## شروع سریع
 
+> [!IMPORTANT]
+> منابع رسمی REA: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> از پیوندهای نصب و انتشار در این منابع رسمی استفاده کنید. نام مشابه مخزن یا README کپی‌شده ثابت نمی‌کند که فایل دانلودی رسمی است.
+
 ### ایجنت خود را راه‌اندازی کنید
 
 پس از نصب Node.js و npm، دستور زیر را اجرا کنید:

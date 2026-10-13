@@ -57,6 +57,10 @@ Kurulum, REA'yı ajanınıza kaydeder ve uyumlu iş akışı talimatlarını yü
 
 ## Hızlı başlangıç
 
+> [!IMPORTANT]
+> REA’nın resmî kaynakları: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> Kurulum ve sürüm bağlantılarını bu resmî kaynaklardan takip edin. Benzer bir depo adı veya kopyalanmış bir README, indirilen dosyanın resmî olduğunu kanıtlamaz.
+
 ### Ajanınızı yapılandırın
 
 Node.js ve npm yüklüyken şu komutu çalıştırın:

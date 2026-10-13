@@ -57,6 +57,10 @@ REA 將 AI 代理連接到分析工具，用於檢查原生二進位檔案、Jav
 
 ## 快速開始
 
+> [!IMPORTANT]
+> REA 官方來源： [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> 請透過這些官方來源提供的安裝與發布連結取得 REA。相似的儲存庫名稱或複製的 README 不能證明下載內容來自官方。
+
 ### 設定 AI 代理
 
 安裝 Node.js 和 npm 後，執行：

@@ -57,6 +57,10 @@ Quá trình thiết lập đăng ký REA với tác nhân và cài đặt các h
 
 ## Bắt đầu nhanh
 
+> [!IMPORTANT]
+> Các nguồn chính thức của REA: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> Hãy dùng các liên kết cài đặt và bản phát hành từ những nguồn chính thức này. Tên kho mã tương tự hoặc README được sao chép không chứng minh rằng tệp tải xuống là bản chính thức.
+
 ### Thiết lập tác nhân
 
 Sau khi cài Node.js và npm, chạy:

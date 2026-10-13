@@ -57,6 +57,10 @@ REA는 에이전트를 분석 도구에 연결해 네이티브 바이너리, Jav
 
 ## 빠른 시작
 
+> [!IMPORTANT]
+> REA 공식 배포처: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> 이 공식 배포처에서 제공하는 설치 및 릴리스 링크를 이용하세요. 비슷한 저장소 이름이나 복사된 README만으로는 공식 배포 파일인지 확인할 수 없습니다.
+
 ### 에이전트 설정
 
 Node.js와 npm이 설치된 환경에서 다음 명령을 실행하세요.
