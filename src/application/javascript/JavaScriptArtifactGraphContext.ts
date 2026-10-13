@@ -11,6 +11,7 @@ import type { JavaScriptSourceRange } from "../../domain/javascript/javascriptSt
 import type { JavaScriptModuleArtifactAnalysis } from "./JavaScriptArtifactAnalysisTypes.js";
 import type {
   JavaScriptArtifactFile,
+  JavaScriptUnanalyzedArtifactLookup,
   JavaScriptArtifactFileSet,
   JavaScriptArtifactFileKind,
 } from "../../domain/javascript/javascriptArtifactFiles.js";
@@ -22,6 +23,7 @@ import {
   unavailableAstEvidence,
 } from "./JavaScriptArtifactGraphEvidence.js";
 import {
+  artifactPathResolutionProperties,
   resolveArtifactPathByContext,
   type ArtifactPathResolution,
 } from "./JavaScriptArtifactPathResolution.js";
@@ -34,6 +36,8 @@ export interface JavaScriptArtifactGraphContext {
   readonly analysis: JavaScriptModuleArtifactAnalysis;
   readonly root: ApplicationNode;
   readonly filesByPath: ReadonlyMap<string, JavaScriptArtifactFile>;
+  /** Borrowed inventory lookup for present files outside the source projection. */
+  readonly unanalyzedFiles: JavaScriptUnanalyzedArtifactLookup | undefined;
   readonly fileNodes: Map<string, ApplicationNode>;
   readonly assetNodes: Map<string, ApplicationNode>;
   readonly sourceModuleNodes: Map<string, ApplicationNode>;
@@ -272,6 +276,7 @@ export const createElectronRoleNode = (
           resolution_context: input.resolution.resolution_context,
           resolved_path: input.resolution.resolved_path,
           resolution_status: input.resolution.resolution_status,
+          ...artifactPathResolutionProperties(input.resolution),
           limitations: input.resolution.limitations,
           mechanism: input.mechanism,
         },
