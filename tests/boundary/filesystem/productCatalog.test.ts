@@ -50,21 +50,16 @@ const README_FACT_FIXTURE_PATHS = [
 ] as const;
 
 const README_LINK_DRIFT_MUTATIONS = [
+  ["(../native-investigation.md)", "(../native-investigation.md?other=1)"],
   [
     "(../installation.md#supported-agents)",
     "(../installation.md#missing-agents)",
   ],
+  ["(../native-investigation.md)", "(../missing-native.md)"],
+  ["https://rea.tools/zh-CN/guides/", "https://rea.tools/zh-TW/guides/"],
   [
-    "https://rea.tools/zh-CN/guides/native/",
-    "https://rea.tools/zh-CN/missing/",
-  ],
-  [
-    "https://rea.tools/zh-CN/guides/native/",
-    "https://rea.tools/zh-TW/guides/native/",
-  ],
-  [
-    "https://rea.tools/zh-CN/guides/native/",
-    "https://rea.tools/zh-CN/guides/native/?other=1",
+    "https://rea.tools/zh-CN/guides/",
+    "https://rea.tools/zh-CN/guides/?other=1",
   ],
   [
     'src="../assets/rea-hopper-analysis.png"',
