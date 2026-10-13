@@ -2327,3 +2327,27 @@ describe("exact HTML resource resolution", () => {
     });
   });
 });
+
+it.each(["require", "import"] as const)(
+  "rejects a literal trailing backslash package main before %s probing",
+  (moduleKind) => {
+    const files = fileMap([
+      file("entry.js", "root"),
+      file(
+        "node_modules/p/package.json",
+        "root",
+        JSON.stringify({ main: "lib\\" }),
+      ),
+      file("node_modules/p/lib", "root"),
+    ]);
+    expect(
+      resolve({
+        declaredPath: "p",
+        sourcePath: "entry.js",
+        context: "module-specifier",
+        moduleKind,
+        files,
+      }),
+    ).toMatchObject({ resolution_status: "rejected", resolved_path: null });
+  },
+);
