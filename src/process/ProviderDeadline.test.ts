@@ -179,3 +179,24 @@ it("releases the timer and listener on dispose with a pending wait", async () =>
     vi.useRealTimers();
   }
 });
+
+it("preserves a fractional residual before the re-armed monotonic deadline", () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  const now = vi.spyOn(performance, "now").mockReturnValue(1_000);
+  const deadline = new ProviderStartupDeadline(40);
+  try {
+    now.mockReturnValue(1_039.6);
+    vi.advanceTimersByTime(40);
+    expect(deadline.signal.aborted).toBe(false);
+    expect(deadline.interruption).toBeUndefined();
+    expect(deadline.remainingMs()).toBe(1);
+    now.mockReturnValue(1_040);
+    vi.advanceTimersByTime(1);
+    expect(deadline.signal.aborted).toBe(true);
+    expect(deadline.interruption).toBe("timeout");
+    expect(deadline.remainingMs()).toBe(0);
+  } finally {
+    deadline.dispose();
+    vi.useRealTimers();
+  }
+});
