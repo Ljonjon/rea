@@ -1,5 +1,10 @@
 [
-  { "code": "en", "name": "English", "readme": "README.md", "dir": "ltr" },
+  {
+    "code": "en",
+    "name": "English",
+    "readme": "README.md",
+    "dir": "ltr"
+  },
   {
     "code": "zh-CN",
     "name": "简体中文",
@@ -106,6 +111,12 @@
     "code": "it",
     "name": "Italiano",
     "readme": "docs/readme/README_it.md",
+    "dir": "ltr"
+  },
+  {
+    "code": "hi-Latn",
+    "name": "Hinglish",
+    "readme": "docs/readme/README_hi-Latn.md",
     "dir": "ltr"
   }
 ]
