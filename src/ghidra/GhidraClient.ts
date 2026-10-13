@@ -1,4 +1,5 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { redactCapturedTransportCredentials } from "../process/ProviderDiagnosticRedaction.js";
 import type { Stats } from "node:fs";
 import type { FileHandle } from "node:fs/promises";
 import type { Socket } from "node:net";
@@ -119,7 +120,7 @@ export class GhidraClient {
   #closePromise: Promise<void> | undefined;
   readonly #failure = bindGhidraSessionFailure(
     () => this.#diagnostics(),
-    (value) => this.#redactAuthentication(value),
+    (value, incomplete) => this.#redactAuthentication(value, incomplete),
   );
   readonly #wire: GhidraWire;
   readonly #requestQueue: GhidraRequestQueue;
@@ -880,10 +881,13 @@ export class GhidraClient {
       );
   }
 
-  #redactAuthentication(value: string): string {
-    for (const token of this.#authenticationTokens)
-      value = value.replaceAll(token, "[REDACTED]");
-    return value;
+  #redactAuthentication(value: string, incomplete = false): string {
+    const bytes = Buffer.byteLength(value);
+    return redactCapturedTransportCredentials(
+      { text: value, bytes, observedBytes: bytes + (incomplete ? 1 : 0) },
+      this.#authenticationTokens,
+      "[REDACTED]",
+    );
   }
 
   #onProcessDiagnostic(event: ProviderProcessDiagnostic): void {
