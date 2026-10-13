@@ -10,6 +10,7 @@ import {
 } from "./AnalysisProvider.js";
 import {
   AnalysisCancelledError,
+  AnalysisOutputError,
   AnalysisProtocolError,
 } from "../domain/analysisErrorCore.js";
 import { err, ok } from "../domain/result.js";
@@ -90,6 +91,44 @@ describe("analysis context queries: navigation", () => {
     expect(calls).not.toContain("current_document");
     expect(calls).toContain("resolve_containing_procedure");
   });
+});
+
+describe("analysis context queries: unreadable navigation selections", () => {
+  const selection = (document: unknown, address: unknown) => {
+    const calls: string[] = [];
+    const analysis: AnalysisOperationPort = {
+      execute: (operation) => {
+        calls.push(operation);
+        if (operation === "current_document")
+          return Promise.resolve(
+            ok(createAnalysisExecution(document, provider)),
+          );
+        if (operation === "current_address")
+          return Promise.resolve(
+            ok(createAnalysisExecution(address, provider)),
+          );
+        return Promise.resolve(
+          err(new AnalysisProtocolError(`unexpected ${operation}`)),
+        );
+      },
+    };
+    return { analysis, calls };
+  };
+
+  it.each([
+    { document: null, address: "0x401000", operation: "current_document" },
+    { document: "fixture", address: null, operation: "current_address" },
+  ])(
+    "refuses a $operation observation that is not a string",
+    async ({ document, address, operation }) => {
+      const { analysis, calls } = selection(document, address);
+      const result = await getNavigationContext(analysis, {});
+      if (result.ok) throw new Error("Expected an unreadable selection");
+      expect(result.error).toBeInstanceOf(AnalysisOutputError);
+      expect(result.error).toMatchObject({ operation });
+      expect(calls).not.toContain("resolve_containing_procedure");
+    },
+  );
 });
 
 describe("analysis context queries: address facets", () => {
