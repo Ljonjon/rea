@@ -2,6 +2,45 @@ import { describe, expect, it } from "vitest";
 
 import { analyzeJavaScriptStaticSource } from "./javascriptStaticAnalysis.js";
 
+describe("native addon type-only TypeScript imports", () => {
+  it("ignores declaration-wide import type and export type from .node modules", () => {
+    const analysis = analyzeJavaScriptStaticSource(`
+      import type { NativeThing } from "./addon.node";
+      export type { Extra } from "./addon.node";
+    `);
+    expect(analysis.parse_status).toBe("complete");
+    expect(analysis.electron.native_addon_bindings).toEqual([]);
+  });
+
+  it("keeps only value members from mixed type/value native imports", () => {
+    const analysis = analyzeJavaScriptStaticSource(`
+      import { type OtherThing, load } from "./addon.node";
+      load();
+    `);
+    expect(analysis.electron.native_addon_bindings).toEqual([
+      expect.objectContaining({
+        specifier: "./addon.node",
+        binding_kind: "import",
+        members: ["load"],
+      }),
+    ]);
+  });
+
+  it("retains ordinary value imports of native addons", () => {
+    const analysis = analyzeJavaScriptStaticSource(`
+      import { load } from "./addon.node";
+      load();
+    `);
+    expect(analysis.electron.native_addon_bindings).toEqual([
+      expect.objectContaining({
+        specifier: "./addon.node",
+        binding_kind: "import",
+        members: ["load"],
+      }),
+    ]);
+  });
+});
+
 describe("native addon loader provenance", () => {
   it("distinguishes CommonJS and ESM re-exports", () => {
     const analysis = analyzeJavaScriptStaticSource(`
