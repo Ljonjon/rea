@@ -12,6 +12,19 @@ export interface OpenAiModelFixtureProbe {
   readonly status: 404;
 }
 
+export interface OpenAiModelFixtureToolCall {
+  readonly id?: string;
+  readonly type?: "function";
+  readonly function: { readonly name: string; readonly arguments: string };
+}
+
+/** Assistant message the fixture returns as a completion or streams as deltas. */
+export interface OpenAiModelFixtureMessage {
+  readonly role?: "assistant";
+  readonly content?: string | null;
+  readonly tool_calls?: readonly OpenAiModelFixtureToolCall[];
+}
+
 export interface OpenAiModelFixture {
   readonly baseUrl: string;
   readonly requests: readonly OpenAiModelFixtureRequest[];
@@ -27,5 +40,5 @@ export function createOpenAiModelFixture(options: {
     readonly body: Record<string, unknown>;
     readonly tools: readonly Record<string, unknown>[];
     readonly requestIndex: number;
-  }) => unknown;
+  }) => OpenAiModelFixtureMessage | Promise<OpenAiModelFixtureMessage>;
 }): Promise<OpenAiModelFixture>;
