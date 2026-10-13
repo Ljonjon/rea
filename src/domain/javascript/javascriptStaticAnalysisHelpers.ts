@@ -517,6 +517,14 @@ const isKeyedCollectionReceiver = (callee: t.Node): boolean => {
   return property === "headers" || property === "searchParams";
 };
 
+/**
+ * True when `name` is exactly `member`, or a dotted callee path ending in
+ * `.member`. A shared suffix inside one identifier, such as `uploadFile`
+ * for `loadFile`, does not match.
+ */
+export const isDottedCallee = (name: string, member: string): boolean =>
+  name === member || name.endsWith(`.${member}`);
+
 /** Select the literal URL argument for recognized network callees. */
 export const endpointArgument = (
   name: string,
@@ -554,7 +562,7 @@ export const endpointArgument = (
       ? undefined
       : value;
   }
-  if (name.endsWith("loadURL")) return stringValue(args[0]);
+  if (isDottedCallee(name, "loadURL")) return stringValue(args[0]);
   return undefined;
 };
 
