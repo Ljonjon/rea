@@ -20,6 +20,7 @@ import {
   createImmutableJavaScriptSemanticGraphSteps,
 } from "../javascript/javascriptSemanticGraph.js";
 import {
+  ANALYSIS_VIEW_MESSAGE_LIMIT,
   completeWithinViewCoverage,
   pageViewCoverage,
 } from "./analysisViewCoverage.js";
@@ -716,6 +717,152 @@ it("retains semantic coverage and limitations in a summary", () => {
     ]),
   });
 });
+
+it.each([63, 64, 65, 10_000])(
+  "bounds and deduplicates %i messages in JavaScript and layout views",
+  (count) => {
+    const messages = Array.from(
+      { length: count },
+      (_, index) => `Module ${String(index).padStart(5, "0")} was not parsed.`,
+    );
+    const analysis = analysisViewJavaScriptAnalysis();
+    const { graph_id: _graphId, ...semantic } = analysis.semantic_graph;
+    const parent = javascriptParent({
+      ...analysis,
+      limitations: messages,
+      semantic_graph: createJavaScriptSemanticGraph({
+        ...semantic,
+        limitations: messages.slice(0, 1),
+      }),
+    });
+    const duplicatedParent = { ...parent, limitations: messages };
+    const notice = (
+      omitted: number,
+      field: "limitations" | "unknowns",
+      evidenceId: string,
+    ) =>
+      `${String(omitted)} additional ${field} omitted from this view; consult source parent Evidence ${evidenceId} for the complete list (the caller-supplied record, or its retaining session).`;
+    const retained = messages.slice(0, ANALYSIS_VIEW_MESSAGE_LIMIT);
+    const expectedLimitations = (evidenceId: string) =>
+      count > ANALYSIS_VIEW_MESSAGE_LIMIT
+        ? [
+            ...retained,
+            notice(
+              count - ANALYSIS_VIEW_MESSAGE_LIMIT,
+              "limitations",
+              evidenceId,
+            ),
+          ]
+        : messages;
+    for (const view of [
+      { kind: "summary" },
+      { kind: "page", collection: "modules", offset: 0, limit: 1 },
+    ] as const) {
+      const result = projectAnalysisView(duplicatedParent, view);
+      if (!result.ok) throw result.error;
+      expect(result.value.limitations).toEqual(
+        expectedLimitations(parent.evidenceId),
+      );
+      // Reserve the one semantic-coverage unknown before bulk messages,
+      // retaining canonical ordering within the resulting bounded list.
+      expect(result.value.unknowns).toEqual(
+        count < ANALYSIS_VIEW_MESSAGE_LIMIT
+          ? [...messages, "semantic_graph.coverage.status is unknown"]
+          : [
+              ...messages.slice(0, ANALYSIS_VIEW_MESSAGE_LIMIT - 1),
+              "semantic_graph.coverage.status is unknown",
+              notice(
+                count + 1 - ANALYSIS_VIEW_MESSAGE_LIMIT,
+                "unknowns",
+                parent.evidenceId,
+              ),
+            ],
+      );
+    }
+    const layout = layoutParent();
+    const layoutWithMessages = {
+      ...layout,
+      limitations: messages,
+      normalizedResult: {
+        ...analysisViewLayoutFixture(),
+        limitations: messages,
+      },
+    };
+    for (const view of [
+      { kind: "summary" },
+      { kind: "page", collection: "sections", offset: 0, limit: 1 },
+    ] as const) {
+      const result = projectAnalysisView(layoutWithMessages, view);
+      if (!result.ok) throw result.error;
+      expect(result.value.limitations).toEqual(
+        expectedLimitations(layout.evidenceId),
+      );
+    }
+  },
+);
+
+it.each(["partial", "unknown"] as const)(
+  "preserves %s parent graph completeness when a module page is exhausted",
+  (status) => {
+    const analysis = analysisViewJavaScriptAnalysis();
+    const first = analysis.graph.nodes[0];
+    if (first === undefined) throw new Error("missing module");
+    const unknown = createJavaScriptApplicationNode({
+      kind: "unknown",
+      identity: {
+        strategy: "observation-fingerprint",
+        stability: "observation-only",
+        observation_sha256: "8".repeat(64),
+        scope: "unclassified module",
+      },
+      observations: first.observations.map((observation) => ({
+        label: "unclassified module",
+        properties: {},
+        evidence: observation.evidence,
+      })),
+    });
+    const messages = Array.from(
+      { length: 65 },
+      (_, index) => `Module ${String(index).padStart(5, "0")} was not parsed.`,
+    );
+    const { graph_id: _applicationId, ...application } = analysis.graph;
+    const graph = createJavaScriptApplicationGraph({
+      ...application,
+      nodes: [...application.nodes, unknown],
+      limitations: messages.slice(0, 1),
+      coverage: { ...application.coverage, status, omitted_count: null },
+    });
+    const bound = analysisViewBindJavaScriptGraphs(analysis, graph);
+    const { graph_id: _semanticId, ...semantic } = bound.semantic_graph;
+    const parent = javascriptParent({
+      ...bound,
+      limitations: messages,
+      semantic_graph: createJavaScriptSemanticGraph({
+        ...semantic,
+        limitations: messages.slice(0, 1),
+      }),
+    });
+    for (const view of [
+      { kind: "page", collection: "modules", offset: 0, limit: 10 },
+      {
+        kind: "item",
+        collection: "modules",
+        selector: { path: "renderer.js" },
+      },
+    ] as const) {
+      const result = projectAnalysisView(parent, view);
+      if (!result.ok) throw result.error;
+      expect(result.value.coverage.exhausted).toBe(true);
+      expect(result.value.unknowns).toEqual([
+        "1 application graph unknowns remain in the parent Evidence.",
+        ...messages.slice(0, 61),
+        `graph.coverage.status is ${status}`,
+        "semantic_graph.coverage.status is unknown",
+        `4 additional unknowns omitted from this view; consult source parent Evidence ${parent.evidenceId} for the complete list (the caller-supplied record, or its retaining session).`,
+      ]);
+    }
+  },
+);
 
 it("does not match unavailable layout names using a display placeholder", () => {
   const layout = analysisViewLayoutFixture();
