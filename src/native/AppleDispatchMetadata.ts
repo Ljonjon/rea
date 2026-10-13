@@ -112,6 +112,7 @@ export const decodeAppleDispatchMetadata = (
       segments,
       readers,
       budget,
+      maxListSlots: maxRecords,
       result,
     });
   const swiftRelative = createSwiftRelativeReader({

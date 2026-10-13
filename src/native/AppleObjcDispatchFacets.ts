@@ -68,6 +68,7 @@ export const decodeObjcDispatchFacets = (input: {
   segments: readonly Segment[];
   readers: ObjcDispatchReaders;
   budget: DispatchRecordBudget;
+  maxListSlots: number;
   result: ObjcSwiftMetadata;
 }): {
   failures: string[];
@@ -75,7 +76,15 @@ export const decodeObjcDispatchFacets = (input: {
   examined: number;
   categoriesExamined: number;
 } => {
-  const { bytes, sections, segments, readers: read, budget, result } = input;
+  const {
+    bytes,
+    sections,
+    segments,
+    readers: read,
+    budget,
+    maxListSlots,
+    result,
+  } = input;
   const failures: string[] = [];
   const categoryIssues: DecodeIssue[] = [];
   let examined = 0;
@@ -191,11 +200,18 @@ export const decodeObjcDispatchFacets = (input: {
     result,
     failures,
   });
-  // Failed slot reads spend the same budget for protocol and class lists.
-  // Their record decoders own admission once a pointer has been read.
+  // Slot attempts have their own shared scan bound: zero and duplicate
+  // pointers do not produce records, but still consume pointer-reading work.
+  // Record decoders retain their existing admission ownership.
+  let listSlotsExamined = 0;
   const readListSlot = (
     field: bigint,
   ): Result<bigint, "unmapped" | "exhausted"> => {
+    if (listSlotsExamined >= maxListSlots) {
+      budget.markTruncated();
+      return err("exhausted");
+    }
+    listSlotsExamined++;
     try {
       return ok(read.pointer(field));
     } catch (cause: unknown) {
@@ -350,9 +366,9 @@ export const decodeObjcDispatchFacets = (input: {
         budget.markTruncated();
         break;
       }
-      examined++;
       const field = section.address + BigInt(index * 8);
       const pointer = readListSlot(field);
+      if (pointer.ok || pointer.error === "unmapped") examined++;
       if (!pointer.ok) {
         if (pointer.error === "exhausted") break;
         continue;
