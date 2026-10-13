@@ -83,7 +83,9 @@ it.runIf(!unsupportedHost)(
         { diagnostics: { configuration_key: "REA_PWNTOOLS_MAX_INPUT_BYTES" } },
       ],
     });
-    expect(text).toContain("REA_PWNTOOLS_MAX_INPUT_BYTES must be a decimal");
+    expect(text).toContain(
+      "REA_PWNTOOLS_MAX_INPUT_BYTES must be a positive decimal safe integer",
+    );
     expect(text).not.toContain("Selected artifact exceeds");
   },
 );
