@@ -202,30 +202,33 @@ export const decodeObjcDispatchFacets = (input: {
     result,
     failures,
   });
-  // Slot attempts have their own shared scan bound: zero and duplicate
-  // pointers do not produce records, but still consume pointer-reading work.
+  // Each list scan has its own slot bound: zero and duplicate pointers do
+  // not produce records, but still consume pointer-reading work. The bound
+  // is per list so one list's slots cannot starve the other list's scan.
   // Record decoders retain their existing admission ownership.
-  let listSlotsExamined = 0;
   let objcListScanTruncated = false;
   let objcClassListScanTruncated = false;
-  const readListSlot = (
-    field: bigint,
-  ): Result<bigint, "unmapped" | "exhausted"> => {
-    if (listSlotsExamined >= maxListSlots) {
-      objcListScanTruncated = true;
-      return err("exhausted");
-    }
-    listSlotsExamined++;
-    try {
-      return ok(read.pointer(field));
-    } catch (cause: unknown) {
-      const admitted = budget.admit();
-      failures.push(
-        `${hex(field)}: ${cause instanceof Error ? cause.message : String(cause)}`,
-      );
-      return err(admitted ? "unmapped" : "exhausted");
-    }
+  const createListSlotReader = () => {
+    let listSlotsExamined = 0;
+    return (field: bigint): Result<bigint, "unmapped" | "exhausted"> => {
+      if (listSlotsExamined >= maxListSlots) {
+        objcListScanTruncated = true;
+        return err("exhausted");
+      }
+      listSlotsExamined++;
+      try {
+        return ok(read.pointer(field));
+      } catch (cause: unknown) {
+        const admitted = budget.admit();
+        failures.push(
+          `${hex(field)}: ${cause instanceof Error ? cause.message : String(cause)}`,
+        );
+        return err(admitted ? "unmapped" : "exhausted");
+      }
+    };
   };
+  const readProtocolListSlot = createListSlotReader();
+  const readClassListSlot = createListSlotReader();
   for (const section of sections.filter(
     ({ name }) => name === "__objc_protolist",
   )) {
@@ -237,7 +240,7 @@ export const decodeObjcDispatchFacets = (input: {
         break;
       }
       const field = section.address + BigInt(index * 8);
-      const pointer = readListSlot(field);
+      const pointer = readProtocolListSlot(field);
       if (!pointer.ok) {
         if (pointer.error === "exhausted") break;
         continue;
@@ -371,7 +374,7 @@ export const decodeObjcDispatchFacets = (input: {
         break;
       }
       const field = section.address + BigInt(index * 8);
-      const pointer = readListSlot(field);
+      const pointer = readClassListSlot(field);
       if (pointer.ok || pointer.error === "unmapped") examined++;
       if (!pointer.ok) {
         if (pointer.error === "exhausted") {
