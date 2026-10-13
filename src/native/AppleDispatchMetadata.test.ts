@@ -620,4 +620,21 @@ describe("Apple dispatch unmapped protocol-list slot", () => {
       coverage?.reason?.match(/Unmapped or ambiguous metadata pointer/g) ?? [];
     expect(failures.length).toBeLessThanOrEqual(100);
   });
+
+  it("bounds failed class-list slots by the record budget", () => {
+    // Same file-declared-size hazard as the protocol list: a crafted image
+    // can declare an arbitrarily large unmapped class list. Failed class
+    // slots must spend the record budget like decoded ones, otherwise the
+    // loop runs unbounded (each failed read produced an unbounded failure
+    // string with no budget spend).
+    const bytes = image("class");
+    bytes.writeBigUInt64LE(80000n, 144);
+    const result = decodeAppleDispatchMetadata(bytes, 100, provenance);
+    const coverage = classCoverage(result);
+    expect(coverage).toMatchObject({ status: "partial" });
+    expect(coverage?.reason).toContain("max_records_reached");
+    const failures =
+      coverage?.reason?.match(/Unmapped or ambiguous metadata pointer/g) ?? [];
+    expect(failures.length).toBeLessThanOrEqual(100);
+  });
 });
