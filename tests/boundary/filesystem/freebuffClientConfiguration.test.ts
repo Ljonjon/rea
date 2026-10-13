@@ -1,11 +1,12 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { readClientRegistrationStatuses } from "../../../src/application/ClientRegistrationStatus.js";
 import { npxRegistrationCommand } from "../../../src/application/ClientRegistrationIdentity.js";
 import { configureClientConfiguration } from "../../../src/application/SetupClientConfiguration.js";
+import { detectClients } from "../../../src/application/SetupHost.js";
 import { skillDestinations } from "../../../src/application/SetupSkill.js";
 import { supportedClients } from "../../../src/application/SupportedClients.js";
 import { systemUninstallHost } from "../../../src/application/Uninstall.js";
@@ -29,19 +30,35 @@ const freebuffPath = (
   supportedClients(home, platform, env).find(({ name }) => name === "freebuff");
 
 describe("FreeBuff configuration paths", () => {
-  it("resolves the shared user agents file and marker directory", () => {
+  it("resolves the shared user agents file and the profile marker directory", () => {
     expect(freebuffPath("/home/a")).toEqual({
       name: "freebuff",
       displayName: "FreeBuff",
       configPath: join("/home/a", ".agents", "mcp.json"),
-      markerPath: join("/home/a", ".agents"),
+      markerPath: join("/home/a", ".config", "freebuff-desktop"),
       format: "json",
     });
-    expect(freebuffPath("/Users/a", "darwin")?.configPath).toBe(
-      join("/Users/a", ".agents", "mcp.json"),
+    expect(freebuffPath("/Users/a", "darwin")?.markerPath).toBe(
+      join("/Users/a", ".config", "freebuff-desktop"),
     );
-    expect(freebuffPath("C:\\Users\\a", "win32")?.configPath).toBe(
-      join("C:\\Users\\a", ".agents", "mcp.json"),
+    expect(freebuffPath("C:\\Users\\a", "win32")?.markerPath).toBe(
+      join("C:\\Users\\a", ".config", "freebuff-desktop"),
+    );
+  });
+
+  it("stays undetected when only the shared agents skill directory exists", async () => {
+    const home = await createTestTempDirectory("rea-freebuff-shared-");
+    // REA's own skill installs create this directory for every client.
+    await mkdir(join(home, ".agents", "skills"), { recursive: true });
+    expect((await detectClients(home)).map(({ name }) => name)).not.toContain(
+      "freebuff",
+    );
+
+    await mkdir(join(home, ".config", "freebuff-desktop"), {
+      recursive: true,
+    });
+    expect((await detectClients(home)).map(({ name }) => name)).toContain(
+      "freebuff",
     );
   });
 
@@ -66,9 +83,8 @@ describe("FreeBuff JSON registration", () => {
   const freebuffClient = async () => {
     const home = await createTestTempDirectory("rea-freebuff-");
     const client = freebuffPath(home, process.platform);
-    if (client?.markerPath === undefined)
-      throw new Error("missing FreeBuff client");
-    await mkdir(client.markerPath, { recursive: true });
+    if (client === undefined) throw new Error("missing FreeBuff client");
+    await mkdir(dirname(client.configPath), { recursive: true });
     return { home, client };
   };
 

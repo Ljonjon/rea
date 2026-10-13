@@ -208,6 +208,9 @@ For FreeBuff, setup writes `mcpServers.rea` into the user-scope
 `~/.agents/skills`, so setup installs its skill copy there. Because the same
 file doubles as ZCode's user-scope fallback (see above), a `freebuff`
 registration also loads in ZCode until ZCode defines its own native server.
+Setup and doctor detect FreeBuff from its own profile directory
+(`~/.config/freebuff-desktop`), not from the shared `.agents` folder that
+REA's skill installs create for every client.
 
 FreeBuff is main-only and is not part of npm 6.4.0; `rea setup --client
 freebuff` against `@latest` reports an unsupported client until a release
