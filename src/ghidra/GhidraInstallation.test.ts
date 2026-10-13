@@ -913,7 +913,9 @@ describe("Ghidra native decompiler admission", () => {
       remediation: expect.stringContaining("os/mac_arm_64/decompile"),
     });
   });
+});
 
+describe("Ghidra JVM native directory admission", () => {
   it("rejects a JDK whose os.arch selects a different native decompiler directory", () => {
     const result = inspectGhidraInstallation(
       {
