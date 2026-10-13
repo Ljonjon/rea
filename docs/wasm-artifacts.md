@@ -56,9 +56,11 @@ The tool profile preserves upstream release/source identity, resolved executable
 paths, executable digests, exact banners and arguments. Executable digests are
 checked again after each command. Caller-supplied tools are trusted programs;
 version and digest recording are not publisher authentication or an OS sandbox.
-Each subprocess has a 30-second deadline and 32 MiB combined output budget;
-truncation fails. All commands use existing owned-process cancellation and
-cleanup. Workspace cleanup failures remain explicit errors with resource paths.
+Each subprocess has a 30-second deadline and 128 MiB combined output budget,
+chosen from measured public modules (canvaskit-wasm's 7.0 MiB module decodes to
+79 MiB of WAT); truncation fails. All commands use existing owned-process
+cancellation and cleanup. Workspace cleanup failures remain explicit errors with
+resource paths.
 
 WAT is a decoded representation, not original source or proof of runtime
 behavior. Custom annotations can preserve payloads, but WAT does not establish original
