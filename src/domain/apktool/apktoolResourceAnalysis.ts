@@ -4,6 +4,16 @@ import { digestSchema } from "../digests.js";
 
 const MAX_STRINGS = 2_000;
 
+export const RESOURCE_LOCALE_PATTERN =
+  /^(?:[a-z]{2,3}(?:-(?:r?[A-Z]{2}|r?[0-9]{3}))?|b\+[a-z]{2,3}(?:\+[A-Za-z0-9]{2,8})*)$/u;
+
+/**
+ * Determine whether a resource directory suffix identifies a locale rather than
+ * an Android configuration qualifier (such as UI mode car, night mode, or API level).
+ */
+export const isResourceLocaleQualifier = (qualifier: string): boolean =>
+  qualifier !== "car" && RESOURCE_LOCALE_PATTERN.test(qualifier);
+
 /**
  * Caller intent for Apktool-backed resource decoding. Apktool is
  * bring-your-own: REA never installs it, and decoding happens in a
@@ -24,7 +34,7 @@ export const apktoolInputSchemas = {
       .min(2)
       .max(16)
       .regex(
-        /^(?:[a-z]{2,3}(?:-(?:r?[A-Z]{2}|r?[0-9]{3}))?|b\+[a-z]{2,3}(?:\+[A-Za-z0-9]{2,8})*)$/u,
+        RESOURCE_LOCALE_PATTERN,
         "Locale must look like de, pt-BR, pt-rBR, or b+zh+Hans+CN",
       )
       .optional()

@@ -12,7 +12,10 @@ import { describe, expect, onTestFinished, test } from "vitest";
 
 import { ApktoolProvider } from "./ApktoolProvider.js";
 import { projectAnalysisError } from "../domain/analysisErrorProjection.js";
-import { apktoolRequestSchema } from "../domain/apktool/apktoolResourceAnalysis.js";
+import {
+  apktoolRequestSchema,
+  isResourceLocaleQualifier,
+} from "../domain/apktool/apktoolResourceAnalysis.js";
 import type { ApktoolRequest } from "../domain/apktool/apktoolResourceAnalysis.js";
 
 const it = test.skipIf(process.platform === "win32");
@@ -482,4 +485,61 @@ it("accepts a BCP47 resource qualifier through the public request schema", async
   });
   const result = await evidenceResult(providerOver(command), request);
   expect(result.strings).toEqual([{ name: "greeting", value: "你好" }]);
+});
+
+it("excludes configuration qualifiers from discovered locales while retaining locales", async () => {
+  const { command, root } = await writeApktoolStub((root) =>
+    decodeStub()(root).replace(
+      "  printf 'I: Using Apktool on stub",
+      `  for name in values-car values-night values-v21; do
+    mkdir -p "$5/res/$name"
+    printf '<resources/>' > "$5/res/$name/strings.xml"
+  done
+  printf '<resources><string name="kind">car</string></resources>' > "$5/res/values-car/strings.xml"
+  printf 'I: Using Apktool on stub`,
+    ),
+  );
+  const apk = await apkFixture(root);
+  const result = await evidenceResult(providerOver(command), {
+    operation: "decode_android_resources",
+    input: { path: apk.path, include_strings: true },
+  });
+  expect(result.locales).toEqual(["de"]);
+  expect(result.strings).toEqual([
+    { name: "api_endpoint", value: "https://api.example.com/v1" },
+    { name: "app_name", value: "ApktoolProbe" },
+  ]);
+
+  const deResult = await evidenceResult(providerOver(command), {
+    operation: "decode_android_resources",
+    input: { path: apk.path, include_strings: true, locale: "de" },
+  });
+  expect(deResult.strings).toEqual([
+    { name: "app_name", value: "ApktoolProbe DE" },
+  ]);
+});
+
+describe("isResourceLocaleQualifier", () => {
+  it.each([
+    { qualifier: "de", expected: true },
+    { qualifier: "en", expected: true },
+    { qualifier: "pt-BR", expected: true },
+    { qualifier: "pt-rBR", expected: true },
+    { qualifier: "es-r419", expected: true },
+    { qualifier: "b+zh+Hans+CN", expected: true },
+    { qualifier: "car", expected: false },
+    { qualifier: "night", expected: false },
+    { qualifier: "notnight", expected: false },
+    { qualifier: "v21", expected: false },
+    { qualifier: "sw600dp", expected: false },
+    { qualifier: "port", expected: false },
+    { qualifier: "land", expected: false },
+    { qualifier: "hdpi", expected: false },
+    { qualifier: "desk", expected: false },
+    { qualifier: "watch", expected: false },
+    { qualifier: "television", expected: false },
+    { qualifier: "de-night", expected: false },
+  ])("classifies $qualifier as $expected", ({ qualifier, expected }) => {
+    expect(isResourceLocaleQualifier(qualifier)).toBe(expected);
+  });
 });
