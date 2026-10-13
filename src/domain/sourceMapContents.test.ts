@@ -6,6 +6,11 @@ it("accepts absent map-level source contents and aligned nullable slots", () => 
   expect(hasValidSourceMapContents(2, undefined)).toBe(true);
   expect(hasValidSourceMapContents(2, null)).toBe(true);
   expect(hasValidSourceMapContents(2, [null, "retained source"])).toBe(true);
-  expect(hasValidSourceMapContents(2, ["retained source"])).toBe(false);
   expect(hasValidSourceMapContents(2, [null, 42])).toBe(false);
+});
+
+it("accepts trailing missing content slots as null content per ECMA-426", () => {
+  expect(hasValidSourceMapContents(2, ["retained source"])).toBe(true);
+  expect(hasValidSourceMapContents(2, [])).toBe(true);
+  expect(hasValidSourceMapContents(2, ["a", "b", "extra"])).toBe(false);
 });
