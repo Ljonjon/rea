@@ -311,7 +311,7 @@ export class IdaOperationRunner {
       const current: number = offset;
       if (this.protocol === "legacy") {
         const page = legacyPageSchema.parse(
-          await this.call("list_strings", { offset, count: 100 }),
+          await this.call("list_strings", { offset, count: 0 }),
         );
         result.push(
           ...page.data.map((item) => {
