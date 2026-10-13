@@ -185,6 +185,10 @@ describe("Ghidra installation inspection", () => {
             { environment: {}, installDir: INSTALL, platform, architecture },
             host({
               executable: (path) => path === HEADLESS || path === decompiler,
+              probeJava: () => ({
+                ...JAVA,
+                osArch: architecture === "arm64" ? "aarch64" : "amd64",
+              }),
             }),
           ),
         ).toMatchObject({
