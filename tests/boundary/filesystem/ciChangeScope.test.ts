@@ -450,6 +450,10 @@ it.each([
     },
   ],
   [
+    "scripts/verify-solidity-metadata.mjs",
+    { code: true, evm: true, browser: false, package: false },
+  ],
+  [
     "src/browser/execution/evaluate.ts",
     {
       code: true,
@@ -514,6 +518,10 @@ it.each([
   [
     "src/windows/Example.ts",
     { code: true, runtime: true, package: true, apple: false, evm: false },
+  ],
+  [
+    "src/domain/javascript/javascriptRuntimeStaticCandidates.ts",
+    { code: true, runtime: true, package: true, javascript_recovery: true },
   ],
   ["install.sh", { code: true, runtime: true, package: true, evm: false }],
   [
