@@ -157,6 +157,57 @@ describe("DOM metadata document base URLs", () => {
   });
 });
 
+describe("DOM link relation tokens", () => {
+  it.each([" ", "\t", "\n", "\f", "\r"])(
+    "recognizes agent relations separated by HTML whitespace: %j",
+    (separator) => {
+      const value = snapshot();
+      value.strings[12] = [
+        "",
+        "alternate",
+        "MCP",
+        "model-context",
+        "ai-plugin",
+        "service-desc",
+        "",
+      ].join(separator);
+      expect(capture(value).agentHints).toEqual(
+        ["mcp", "model-context", "ai-plugin", "service-desc"].map(
+          (declaration) => ({
+            mechanism: "dom_link_rel",
+            declaration,
+            url: `${origin}/screens/agent`,
+            trust: "page-declared-untrusted",
+          }),
+        ),
+      );
+    },
+  );
+
+  it.each(["\u000b", "\u00a0", "\u2003", "\ufeff"])(
+    "keeps non-HTML whitespace inside relation tokens: %j",
+    (separator) => {
+      const value = snapshot();
+      value.strings[12] = `alternate${separator}mcp ${separator}model-context ai-plugin${separator} service-desc`;
+      const result = capture(value);
+      expect(result.agentHints).toEqual([
+        {
+          mechanism: "dom_link_rel",
+          declaration: "service-desc",
+          url: `${origin}/screens/agent`,
+          trust: "page-declared-untrusted",
+        },
+      ]);
+      expect(
+        result.urls.find(({ node_index }) => node_index === 3),
+      ).toMatchObject({
+        url: `${origin}/screens/agent`,
+        destination_scope: "approved",
+      });
+    },
+  );
+});
+
 describe("empty form destinations with a document base URL", () => {
   it("keeps an empty form action approved when the document base is foreign", () => {
     const foreign = "https://cdn.example.test/assets/";
