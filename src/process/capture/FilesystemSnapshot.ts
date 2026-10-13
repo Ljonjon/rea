@@ -74,12 +74,14 @@ export const hashFile = async (
   signal?: AbortSignal,
 ): Promise<FileHashOutcome> => {
   signal?.throwIfAborted();
+  const noFollowAvailable =
+    typeof fsConstants.O_NOFOLLOW === "number" && fsConstants.O_NOFOLLOW !== 0;
   let handle: FileHandle;
   try {
     handle = await open(
       path,
       fsConstants.O_RDONLY |
-        (fsConstants.O_NOFOLLOW ?? 0) |
+        (noFollowAvailable ? fsConstants.O_NOFOLLOW : 0) |
         (fsConstants.O_NONBLOCK ?? 0),
     );
   } catch (cause: unknown) {
@@ -94,6 +96,18 @@ export const hashFile = async (
   }
   try {
     signal?.throwIfAborted();
+    // On hosts without O_NOFOLLOW, compare the leaf's identity with the
+    // captured regular file. Ancestor aliases do not change file identity.
+    if (!noFollowAvailable) {
+      const named = await lstat(path);
+      signal?.throwIfAborted();
+      if (!hasSameFileState(expected, named))
+        return {
+          state: "omitted",
+          reason: "file_changed_or_short_read",
+          system_code: null,
+        };
+    }
     const stats = await handle.stat();
     signal?.throwIfAborted();
     if (!hasSameFileState(expected, stats) || stats.size > maxBytes)
@@ -124,7 +138,13 @@ export const hashFile = async (
     }
     const after = await handle.stat();
     signal?.throwIfAborted();
-    if (!hasSameFileState(stats, after))
+    let unchanged = hasSameFileState(stats, after);
+    if (unchanged && !noFollowAvailable) {
+      const namedAfter = await lstat(path);
+      signal?.throwIfAborted();
+      unchanged = hasSameFileState(after, namedAfter);
+    }
+    if (!unchanged)
       return {
         state: "omitted",
         reason: "file_changed_or_short_read",

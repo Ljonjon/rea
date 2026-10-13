@@ -328,6 +328,13 @@ document for the same target. REA does not currently identify, focus, or reuse
 that existing GUI document, and the supported launcher exposes no attach or
 reuse action for it.
 
+Hopper lease directories must be readable and owned by the current user.
+REA validates and secures an opened directory before reserving a lease. If
+directory access fails, the error identifies the path and recovery steps;
+REA leaves its permissions unchanged. Check ownership and parent-directory
+access, then restore owner-only read, write, and search permissions (`0700`)
+on a directory you own before retrying.
+
 On supported Linux distributions, approved setup verifies Hopper's official
 `.deb`, `.rpm`, or Arch package before invoking the native package manager.
 REA runs the supported demo build on a private Xvfb display and selects Hopper's
