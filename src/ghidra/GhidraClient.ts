@@ -49,6 +49,8 @@ import {
   type GhidraSessionInfo,
 } from "./GhidraSessionValues.js";
 import { createGhidraTargetSnapshot } from "./GhidraTargetSnapshot.js";
+import { GhidraFileCopyCleanupFailure } from "./GhidraFileCopy.js";
+import { stageGhidraDebugCompanion } from "./GhidraDebugCompanion.js";
 import { readFileHandleChunks } from "../filesystem/readFileHandleChunks.js";
 import { readBoundedFileBytes } from "../process/BoundedFileBytes.js";
 import {
@@ -602,7 +604,11 @@ export class GhidraClient {
         this.#options.targetPath,
         this.#runtimeRoot.path,
         this.#options.targetSha256,
-        { signal: deadline.signal, platform: this.#options.platform },
+        {
+          signal: deadline.signal,
+          platform: this.#options.platform,
+          fileOwners: this.#snapshotOwners,
+        },
       );
       this.#snapshotPath = snapshot.path;
       this.#targetAdmission = snapshot.admission;
@@ -611,9 +617,38 @@ export class GhidraClient {
       const failure = this.#failure(
         "start",
         "Ghidra target snapshot failed admission",
-        cause,
+        cause instanceof GhidraFileCopyCleanupFailure
+          ? cause.primaryCause
+          : cause,
       );
       return this.#startupFailure(failure);
+    }
+    if (this.#options.debugCompanion !== undefined) {
+      try {
+        const staged = await stageGhidraDebugCompanion(
+          this.#options.debugCompanion,
+          this.#runtimeRoot.path,
+          this.#snapshotPath,
+          { signal: deadline.signal, fileOwners: this.#snapshotOwners },
+        );
+        this.#targetAdmission =
+          this.#targetAdmission === undefined
+            ? staged
+            : {
+                ...(this.#targetAdmission as Record<string, JsonValue>),
+                ...(staged as Record<string, JsonValue>),
+              };
+      } catch (cause: unknown) {
+        if (deadline.signal.aborted) return this.#startupInterrupted(deadline);
+        const failure = this.#failure(
+          "start",
+          "Ghidra debug companion staging failed",
+          cause instanceof GhidraFileCopyCleanupFailure
+            ? cause.primaryCause
+            : cause,
+        );
+        return this.#startupFailure(failure);
+      }
     }
     if (deadline.signal.aborted) return this.#startupInterrupted(deadline);
     this.#token = randomBytes(32).toString("hex");

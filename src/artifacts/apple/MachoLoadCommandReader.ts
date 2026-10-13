@@ -1,3 +1,4 @@
+import { validMachOLoadCommandSize } from "../../domain/apple/machoLoadCommand.js";
 import type {
   MachoDependency,
   MachoImageFacts,
@@ -291,8 +292,6 @@ const decodeCommands = (
     readonly fatAlignmentExponent: number | null;
   },
 ): MachoSlice => {
-  // loader.h: load commands are 8-byte aligned in 64-bit images, 4 in 32-bit.
-  const alignment = header.wide ? 8 : 4;
   const view = viewOf(bytes);
   const slice: MachoSlice = {
     architecture: architectureName(header.cpuType, header.cpuSubtype),
@@ -322,7 +321,9 @@ const decodeCommands = (
       );
     const command = view.getUint32(offset, true);
     const size = view.getUint32(offset + 4, true);
-    if (size < 8 || size % alignment !== 0 || offset + size > bytes.byteLength)
+    if (
+      !validMachOLoadCommandSize(size, bytes.byteLength - offset, header.wide)
+    )
       throw new MachoFormatIssue(
         "malformed",
         `load command ${index} at offset ${offset} has invalid cmdsize ${size}`,
