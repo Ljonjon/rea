@@ -21,6 +21,10 @@
 
 [快速開始](#快速開始) · [REA 的工作原理](#rea-的工作原理) · [可以分析什麼](#可以分析什麼) · [案例](#案例) · [常見問題](#常見問題) · [文件](#文件)
 
+> [!IMPORTANT]
+> REA 官方來源： [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> 請透過這些官方來源提供的安裝與發布連結取得 REA。相似的儲存庫名稱或複製的 README 不能證明下載內容來自官方。
+
 <code>npx rea-agents setup</code>
 
 <br />
@@ -56,10 +60,6 @@ REA 將 AI 代理連接到分析工具，用於檢查原生二進位檔案、Jav
 > **[訪問 REA 網站](https://rea.tools/zh-TW/)**，查看設定說明、圖解指南和真實案例。
 
 ## 快速開始
-
-> [!IMPORTANT]
-> REA 官方來源： [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
-> 請透過這些官方來源提供的安裝與發布連結取得 REA。相似的儲存庫名稱或複製的 README 不能證明下載內容來自官方。
 
 ### 設定 AI 代理
 

@@ -21,6 +21,10 @@
 
 [Schnellstart](#schnellstart) · [So funktioniert REA](#so-funktioniert-rea) · [Was du analysieren kannst](#was-du-analysieren-kannst) · [Fallstudien](#fallstudien) · [Häufige Fragen](#häufige-fragen) · [Dokumentation](#dokumentation)
 
+> [!IMPORTANT]
+> Offizielle Quellen für REA: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> Folge den Installations- und Release-Links aus diesen offiziellen Quellen. Ein ähnlicher Repository-Name oder eine kopierte README belegt nicht, dass ein Download offiziell ist.
+
 <code>npx rea-agents setup</code>
 
 <br />
@@ -56,10 +60,6 @@ Die Einrichtung registriert REA bei deinem Agenten und installiert passende Work
 > **[Besuche die REA-Website](https://rea.tools/de/)** für Einrichtungshinweise, bebilderte Anleitungen und echte Fallstudien.
 
 ## Schnellstart
-
-> [!IMPORTANT]
-> Offizielle Quellen für REA: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
-> Folge den Installations- und Release-Links aus diesen offiziellen Quellen. Ein ähnlicher Repository-Name oder eine kopierte README belegt nicht, dass ein Download offiziell ist.
 
 ### Deinen Agenten einrichten
 

@@ -21,6 +21,10 @@
 
 [Início rápido](#início-rápido) · [Como o REA funciona](#como-o-rea-funciona) · [O que você pode analisar](#o-que-você-pode-analisar) · [Casos de uso](#casos-de-uso) · [Perguntas frequentes](#perguntas-frequentes) · [Documentação](#documentação)
 
+> [!IMPORTANT]
+> Fontes oficiais do REA: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> Use os links de instalação e de versões dessas fontes oficiais. Um nome de repositório parecido ou um README copiado não comprova que um download seja oficial.
+
 <code>npx rea-agents setup</code>
 
 <br />
@@ -56,10 +60,6 @@ A configuração registra o REA no seu agente e instala as instruções de fluxo
 > **[Visite o site do REA](https://rea.tools/pt-BR/)** para instruções de configuração, guias ilustrados e estudos de caso reais.
 
 ## Início rápido
-
-> [!IMPORTANT]
-> Fontes oficiais do REA: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
-> Use os links de instalação e de versões dessas fontes oficiais. Um nome de repositório parecido ou um README copiado não comprova que um download seja oficial.
 
 ### Configure seu agente
 

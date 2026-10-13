@@ -21,6 +21,10 @@
 
 [빠른 시작](#빠른-시작) · [REA의 작동 방식](#rea의-작동-방식) · [분석할 수 있는 대상](#분석할-수-있는-대상) · [사례](#사례) · [자주 묻는 질문](#자주-묻는-질문) · [문서](#문서)
 
+> [!IMPORTANT]
+> REA 공식 배포처: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> 이 공식 배포처에서 제공하는 설치 및 릴리스 링크를 이용하세요. 비슷한 저장소 이름이나 복사된 README만으로는 공식 배포 파일인지 확인할 수 없습니다.
+
 <code>npx rea-agents setup</code>
 
 <br />
@@ -56,10 +60,6 @@ REA는 에이전트를 분석 도구에 연결해 네이티브 바이너리, Jav
 > **[REA 웹사이트](https://rea.tools/ko/)**에서 설정 방법, 그림으로 설명한 가이드, 실제 사례를 확인하세요.
 
 ## 빠른 시작
-
-> [!IMPORTANT]
-> REA 공식 배포처: [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
-> 이 공식 배포처에서 제공하는 설치 및 릴리스 링크를 이용하세요. 비슷한 저장소 이름이나 복사된 README만으로는 공식 배포 파일인지 확인할 수 없습니다.
 
 ### 에이전트 설정
 

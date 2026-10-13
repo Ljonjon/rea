@@ -21,6 +21,10 @@
 
 [快速开始](#快速开始) · [REA 的工作原理](#rea-的工作原理) · [可以分析什么](#可以分析什么) · [案例](#案例) · [常见问题](#常见问题) · [文档](#文档)
 
+> [!IMPORTANT]
+> REA 官方来源： [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
+> 请通过这些官方来源提供的安装和发布链接获取 REA。相似的仓库名称或复制的 README 不能证明下载内容来自官方。
+
 <code>npx rea-agents setup</code>
 
 <br />
@@ -56,10 +60,6 @@ REA 将智能体连接到分析工具，用于检查原生二进制文件、Java
 > **[访问 REA 网站](https://rea.tools/zh-CN/)**，查看设置说明、图解指南和真实案例。
 
 ## 快速开始
-
-> [!IMPORTANT]
-> REA 官方来源： [morluto/rea](https://github.com/morluto/rea), [rea.tools](https://rea.tools/), [rea-agents](https://www.npmjs.com/package/rea-agents) (npm).
-> 请通过这些官方来源提供的安装和发布链接获取 REA。相似的仓库名称或复制的 README 不能证明下载内容来自官方。
 
 ### 设置智能体
 
