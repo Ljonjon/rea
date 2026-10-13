@@ -42,6 +42,88 @@ const positionPrecedes = (
       left.declaratorIndex >= 0 &&
       left.declaratorIndex < right.declaratorIndex));
 
+/** Sequence operands evaluate left to right, independently of their source offsets. */
+const sequencePrecedes = (
+  left: t.Node,
+  right: t.Node,
+  parents: WeakMap<t.Node, t.Node>,
+): boolean => {
+  const positions = new Map<t.SequenceExpression, number>();
+  let child = left;
+  for (
+    let parent = parents.get(child);
+    parent !== undefined;
+    parent = parents.get(child)
+  ) {
+    if (t.isSequenceExpression(parent))
+      positions.set(
+        parent,
+        parent.expressions.findIndex((expression) => expression === child),
+      );
+    child = parent;
+  }
+  child = right;
+  for (
+    let parent = parents.get(child);
+    parent !== undefined;
+    parent = parents.get(child)
+  ) {
+    if (t.isSequenceExpression(parent)) {
+      const before = positions.get(parent);
+      const after = parent.expressions.findIndex(
+        (expression) => expression === child,
+      );
+      if (before !== undefined && before >= 0 && after >= 0 && before !== after)
+        return before < after;
+    }
+    child = parent;
+  }
+  return false;
+};
+
+/** Order effects only in a non-repeating top-level activation. */
+export const semanticTopLevelEffectFollowsCapture = (
+  capture: t.Node,
+  effect: t.Node | undefined,
+  parents: WeakMap<t.Node, t.Node>,
+): boolean => {
+  const position = (node: t.Node | undefined): StatementPosition | null => {
+    let selected: StatementPosition | null = null;
+    let declarator: t.VariableDeclarator | undefined;
+    let child: t.Node | undefined;
+    while (node !== undefined) {
+      if (t.isFunction(node) || t.isLoop(node)) return null;
+      if (
+        (t.isClassProperty(node) ||
+          t.isClassPrivateProperty(node) ||
+          t.isClassAccessorProperty(node)) &&
+        !node.static &&
+        node.value === child
+      )
+        return null;
+      if (t.isVariableDeclarator(node)) declarator = node;
+      if (selected === null && t.isStatement(node))
+        selected = statementPosition(node, parents, declarator);
+      if (t.isProgram(node)) return selected;
+      child = node;
+      node = parents.get(node);
+    }
+    return null;
+  };
+  const before = position(capture);
+  const after = position(effect);
+  return (
+    before !== null &&
+    after !== null &&
+    (positionPrecedes(before, after) ||
+      (effect !== undefined &&
+        before.body === after.body &&
+        before.index === after.index &&
+        before.declaratorIndex === after.declaratorIndex &&
+        sequencePrecedes(capture, effect, parents)))
+  );
+};
+
 const directInitializerPosition = (
   node: t.Node,
   parents: WeakMap<t.Node, t.Node>,
@@ -144,7 +226,7 @@ export const semanticMutationInitializers = (
   parents: WeakMap<t.Node, t.Node>,
 ): Pick<
   JavaScriptSemanticBindingState,
-  "initializers" | "referenceInitializers"
+  "initializers" | "referenceInitializers" | "directOrigins"
 > => {
   const mutationPosition =
     directMutationPosition(mutation, parents) ??
@@ -243,6 +325,9 @@ const selectInitializers = (
       .map(({ initializer }) => initializer),
   );
   return {
+    // A proven earlier assignment replaces even an import-equals value. A
+    // capture before/inside an uncertain assignment returned the full binding.
+    directOrigins: origins.length === 0 ? binding.directOrigins : [],
     initializers: binding.initializers.filter((initializer) =>
       retained.has(initializer),
     ),

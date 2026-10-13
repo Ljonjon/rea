@@ -157,6 +157,7 @@ export function* analyzeParsedJavaScriptSemanticsSteps(
 ): Generator<void, JavaScriptSemanticIr> {
   const state = createState(file.program, staticImportResolutionMode);
   yield* collectDefinitionsSteps(file.program, state);
+  yield* indexJavaScriptAmbientWritesSteps(file.program, state);
   yield* collectSemanticMemberMutationsSteps(file.program, state);
   yield* traverseJavaScriptAstSteps(file.program, {
     enter: (node) => collectSemanticModuleLink(node, state),
@@ -643,13 +644,16 @@ const createState = (
     scopesById: new Map([[root.scopeId, root]]),
     scopeByNode: new WeakMap([[program, root]]),
     bindingsById: new Map(),
+    requiredModuleEffects: new Map(),
     callables: [],
     callableNodesById: new Map(),
     moduleLinks: [],
     linkedRequireCalls: new WeakSet(),
     moduleLinkBindings: new WeakMap(),
     conditionalInitializers: new WeakSet(),
+    ambientBindingWrites: new Map(),
     ambientWrites: new SemanticPropertyPathCoverage(),
+    ambientWriteEffects: [],
   };
 };
 
@@ -1324,7 +1328,7 @@ const createBinding = (
   name,
   kind,
   mutable,
-  mutatedPaths: [],
+  memberWrites: [],
   escapedPaths: [],
   definitions: [],
   initializers: [],
@@ -1344,7 +1348,14 @@ const addAssignment = (
     identifier.name,
     state,
   );
-  if (binding === undefined) return;
+  if (binding === undefined) {
+    // Unbound identifiers can denote host wrapper bindings (such as require),
+    // which are separate from properties written through the global object.
+    const writes = state.ambientBindingWrites.get(identifier.name) ?? [];
+    writes.push(identifier);
+    state.ambientBindingWrites.set(identifier.name, writes);
+    return;
+  }
   binding.mutable = true;
   binding.definitions.push({ kind: "assignment", location: range(identifier) });
   binding.initializers.push({ node: initializer, projection: [] });

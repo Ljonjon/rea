@@ -383,7 +383,10 @@ const evaluateBinding = (
       ? callerDependence
       : Math.min(callerDependence, context.dependence.lowest);
   }
-  let projected = invalidateSemanticMutationPaths(value, binding.mutatedPaths);
+  let projected = invalidateSemanticMutationPaths(
+    value,
+    binding.memberWrites.map(({ path }) => path),
+  );
   for (const escape of binding.escapedPaths) {
     // Escapes only invalidate object references; other lattice values survive.
     if (projected.status !== "object" && projected.status !== "array") break;

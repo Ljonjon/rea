@@ -261,8 +261,9 @@ export function* indexJavaScriptAmbientWritesSteps(
     interop.intrinsicInvocation,
     interop.staticString,
     interop.isFreshObject,
-    (_node, path) => {
+    (node, path) => {
       state.ambientWrites.retain(path);
+      state.ambientWriteEffects.push({ path, node });
     },
   );
 }
