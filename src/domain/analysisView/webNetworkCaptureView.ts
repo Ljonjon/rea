@@ -83,12 +83,20 @@ const preview = (record: WebNetworkCaptureRecord) => {
         continue;
       }
       const selected: Record<string, JsonValue> = {};
+      // HAR/SAZ report a URL and status; native mitmproxy flows report the
+      // request target in parts and the status as status_code.
       for (const field of [
         "method",
         "url",
+        "scheme",
+        "host",
+        "port",
+        "authority",
+        "path",
         "httpVersion",
         "http_version",
         "status",
+        "status_code",
         "statusText",
         "reason",
       ])

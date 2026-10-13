@@ -174,3 +174,109 @@ it("rejects invalid ordinal coverage in a borrowed parent", () => {
   );
   expect(result.ok).toBe(false);
 });
+
+it("previews the mitmproxy request target and status code as headline fields", () => {
+  const artifact = {
+    path: "/recordings/flows.mitm",
+    sha256: "c".repeat(64),
+    bytes: 100,
+  };
+  const decoder = { id: "fixture", name: "Fixture", version: "1" };
+  const report = webNetworkCaptureSchema.parse({
+    artifact,
+    decoder,
+    format: "mitmproxy",
+    runtime_attribution: "unknown",
+    limitations: [],
+    container: {
+      reported: null,
+      numeric_literals: [],
+      redactions: [],
+      records_pointer: null,
+    },
+    total_records: 1,
+    records: [
+      {
+        ordinal: 0,
+        location: { kind: "byte-range", offset: 0, bytes: 10 },
+        reported: {
+          type: "http",
+          request: {
+            host: "example.test",
+            port: 443,
+            method: "GET",
+            scheme: "https",
+            authority: "",
+            path: "/users/42",
+            http_version: "HTTP/1.1",
+            headers: [["Accept", "*/*"]],
+          },
+          response: {
+            http_version: "HTTP/1.1",
+            status_code: 404,
+            reason: "Not Found",
+            content: "omitted body",
+          },
+        },
+        binary_fields: [],
+        numeric_literals: [
+          {
+            pointer: "/request/port",
+            producer_type: "integer",
+            literal: "443",
+          },
+          {
+            pointer: "/response/status_code",
+            producer_type: "integer",
+            literal: "404",
+          },
+        ],
+        redactions: [],
+        limitations: [],
+      },
+    ],
+  });
+  const evidence = createEvidence({ ...artifact, format: "file" }, decoder, {
+    operation: "inspect_web_network_capture",
+    parameters: {},
+    result: report,
+    confidence: "observed",
+    authority: "historical-reference",
+  });
+  const preview = projectAnalysisView(
+    {
+      evidenceId: evidence.evidence_id,
+      operation: evidence.operation,
+      normalizedResult: report,
+      subject: evidence.subject,
+      limitations: evidence.limitations,
+    },
+    { kind: "capture", detail: "preview", offset: 0, limit: 1 },
+  );
+  expect(preview.ok && preview.value).toMatchObject({
+    items: [
+      {
+        reported: {
+          type: "http",
+          request: {
+            method: "GET",
+            scheme: "https",
+            host: "example.test",
+            port: 443,
+            authority: "",
+            path: "/users/42",
+            http_version: "HTTP/1.1",
+          },
+          response: {
+            http_version: "HTTP/1.1",
+            status_code: 404,
+            reason: "Not Found",
+          },
+        },
+        numeric_literals: report.records[0]?.numeric_literals,
+      },
+    ],
+  });
+  expect(JSON.stringify(preview)).not.toContain("Accept");
+  expect(JSON.stringify(preview)).not.toContain("omitted body");
+});
