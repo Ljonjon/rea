@@ -371,6 +371,10 @@ const devinDirectory = ({ home, platform, env }: ClientPathContext): string =>
     ? join(env.APPDATA ?? join(home, "AppData", "Roaming"), "devin")
     : join(env.XDG_CONFIG_HOME || join(home, ".config"), "devin");
 
+/** FreeBuff loads MCP servers and skills from the shared user agents directory. */
+const freebuffDirectory = ({ home }: ClientPathContext): string =>
+  join(home, ".agents");
+
 /** Stable product metadata used to derive setup discovery and documentation. */
 export const SUPPORTED_CLIENT_DEFINITIONS = [
   {
@@ -559,6 +563,16 @@ export const SUPPORTED_CLIENT_DEFINITIONS = [
     configPath: dshPatchDirectory,
     markerPath: dshHomeDirectory,
     format: "dsh",
+  },
+  {
+    name: "freebuff",
+    displayName: "FreeBuff",
+    skillPath: (context: ClientPathContext) =>
+      join(freebuffDirectory(context), "skills"),
+    configPath: (context: ClientPathContext) =>
+      join(freebuffDirectory(context), "mcp.json"),
+    markerPath: freebuffDirectory,
+    format: "json",
   },
   {
     name: "grok_bot",

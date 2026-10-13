@@ -200,6 +200,19 @@ as stale, and rerunning setup removes the flag to repair it. Native configuratio
 uses strict JSON; setup refuses comments, trailing commas and a BOM rather than
 writing a registration ZCode cannot load.
 
+## FreeBuff
+
+For FreeBuff, setup writes `mcpServers.rea` into the user-scope
+`~/.agents/mcp.json` shared-agent file. Entries carry `command`, `args`, and
+`env`; stdio is the default transport. FreeBuff discovers personal skills from
+`~/.agents/skills`, so setup installs its skill copy there. Because the same
+file doubles as ZCode's user-scope fallback (see above), a `freebuff`
+registration also loads in ZCode until ZCode defines its own native server.
+
+FreeBuff is main-only and is not part of npm 6.4.0; `rea setup --client
+freebuff` against `@latest` reports an unsupported client until a release
+containing it is published.
+
 ## DeepSeek Harness
 
 DeepSeek Harness registers MCP clients through a Cordis YAML patch sequence

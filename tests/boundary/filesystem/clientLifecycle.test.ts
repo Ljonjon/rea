@@ -73,6 +73,7 @@ describe("client configuration filesystem lifecycle", () => {
       "qoder",
       "zcode",
       "dsh",
+      "freebuff",
       "grok_bot",
     ]);
     expect(
