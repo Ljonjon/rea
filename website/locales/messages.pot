@@ -5333,7 +5333,7 @@ msgid ""
 "workflow{ph1} to follow files and process boundaries."
 msgstr ""
 
-#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/web-network-
+#. {ph0}: <a href="https://github.com/morluto/rea/blob/main/docs/guides/web/web-network-
 #. captures.md" >
 #. {ph1}: </a >
 #: website/public/guides/browser/index.html:480
