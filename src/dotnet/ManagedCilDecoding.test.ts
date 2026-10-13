@@ -550,6 +550,7 @@ describe("managed CIL truncated operands", () => {
 
   it.each([
     [[0x20], 0, "Instruction ldc.i4 at IL offset 0 leaves method body"],
+    [[0x00, 0x20], 1, "Instruction ldc.i4 at IL offset 1 leaves method body"],
     [
       [0x00, 0x20, 0x01],
       1,
@@ -562,11 +563,18 @@ describe("managed CIL truncated operands", () => {
       0,
       "Instruction ldarg at IL offset 0 leaves method body",
     ],
+    [
+      [0xfe, 0x0c, 0x00],
+      0,
+      "Instruction ldloc at IL offset 0 leaves method body",
+    ],
     [[0x00, 0xfe], 1, "Two-byte CIL opcode at IL offset 1 leaves method body"],
   ])("names the instruction and IL offset for IL %j", (il, decoded, issue) => {
     const { body, coverage } = tinyBody(il);
     expect(body).toMatchObject({
       status: "malformed",
+      il_size: il.length,
+      normalized_il_sha256: null,
       decoded_instruction_count: decoded,
       issue,
     });

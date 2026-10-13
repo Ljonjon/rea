@@ -265,88 +265,110 @@ type OperandResult = {
   readonly value: string | null;
 };
 
-type OperandReader = (il: Buffer, offset: number) => OperandResult;
+type OperandValue = Omit<OperandResult, "next">;
+
+// Each reader declares its width so the decoder checks the method-body bound
+// before reading instead of surfacing Buffer range errors.
+type FixedOperand = {
+  readonly width: number;
+  readonly read: (il: Buffer, offset: number) => OperandValue;
+};
 
 // String(-0) loses a CIL constant's sign in both anchors and normalized hashes.
 const floatingPointOperand = (value: number): string =>
   Object.is(value, -0) ? "-0" : String(value);
 
-const FIXED_OPERAND_READERS = new Map<string, OperandReader>([
-  [
-    "none",
-    (_il, offset) => ({ next: offset, anchorKind: "none", value: null }),
-  ],
+const FIXED_OPERANDS = new Map<string, FixedOperand>([
+  ["none", { width: 0, read: () => ({ anchorKind: "none", value: null }) }],
   [
     "short-var",
-    (il, offset) => ({
-      next: offset + 1,
-      anchorKind: "variable",
-      value: String(il.readUInt8(offset)),
-    }),
+    {
+      width: 1,
+      read: (il, offset) => ({
+        anchorKind: "variable",
+        value: String(il.readUInt8(offset)),
+      }),
+    },
   ],
   [
     "var",
-    (il, offset) => ({
-      next: offset + 2,
-      anchorKind: "variable",
-      value: String(il.readUInt16LE(offset)),
-    }),
+    {
+      width: 2,
+      read: (il, offset) => ({
+        anchorKind: "variable",
+        value: String(il.readUInt16LE(offset)),
+      }),
+    },
   ],
   [
     "short-i",
-    (il, offset) => ({
-      next: offset + 1,
-      anchorKind: "constant",
-      value: String(il.readInt8(offset)),
-    }),
+    {
+      width: 1,
+      read: (il, offset) => ({
+        anchorKind: "constant",
+        value: String(il.readInt8(offset)),
+      }),
+    },
   ],
   [
     "i",
-    (il, offset) => ({
-      next: offset + 4,
-      anchorKind: "constant",
-      value: String(il.readInt32LE(offset)),
-    }),
+    {
+      width: 4,
+      read: (il, offset) => ({
+        anchorKind: "constant",
+        value: String(il.readInt32LE(offset)),
+      }),
+    },
   ],
   [
     "i8",
-    (il, offset) => ({
-      next: offset + 8,
-      anchorKind: "constant",
-      value: il.readBigInt64LE(offset).toString(),
-    }),
+    {
+      width: 8,
+      read: (il, offset) => ({
+        anchorKind: "constant",
+        value: il.readBigInt64LE(offset).toString(),
+      }),
+    },
   ],
   [
     "r4",
-    (il, offset) => ({
-      next: offset + 4,
-      anchorKind: "constant",
-      value: floatingPointOperand(il.readFloatLE(offset)),
-    }),
+    {
+      width: 4,
+      read: (il, offset) => ({
+        anchorKind: "constant",
+        value: floatingPointOperand(il.readFloatLE(offset)),
+      }),
+    },
   ],
   [
     "r8",
-    (il, offset) => ({
-      next: offset + 8,
-      anchorKind: "constant",
-      value: floatingPointOperand(il.readDoubleLE(offset)),
-    }),
+    {
+      width: 8,
+      read: (il, offset) => ({
+        anchorKind: "constant",
+        value: floatingPointOperand(il.readDoubleLE(offset)),
+      }),
+    },
   ],
   [
     "short-branch",
-    (il, offset) => ({
-      next: offset + 1,
-      anchorKind: "branch",
-      value: String(offset + 1 + il.readInt8(offset)),
-    }),
+    {
+      width: 1,
+      read: (il, offset) => ({
+        anchorKind: "branch",
+        value: String(offset + 1 + il.readInt8(offset)),
+      }),
+    },
   ],
   [
     "branch",
-    (il, offset) => ({
-      next: offset + 4,
-      anchorKind: "branch",
-      value: String(offset + 4 + il.readInt32LE(offset)),
-    }),
+    {
+      width: 4,
+      read: (il, offset) => ({
+        anchorKind: "branch",
+        value: String(offset + 4 + il.readInt32LE(offset)),
+      }),
+    },
   ],
 ]);
 
@@ -361,45 +383,35 @@ const TOKEN_OPERAND_KINDS = new Map<
   ["signature", "signature"],
 ]);
 
+// Returns null when the operand's own bytes extend past the method body.
 const readOperand = (
   il: Buffer,
   offset: number,
   kind: string,
-): OperandResult => {
-  const fixed = FIXED_OPERAND_READERS.get(kind);
-  if (fixed !== undefined) return fixed(il, offset);
-  if (kind === "switch") {
-    const count = il.readUInt32LE(offset);
-    return {
-      next: offset + 4 + count * 4,
-      anchorKind: "switch",
-      value: String(count),
-    };
-  }
-  const raw = il.readUInt32LE(offset);
-  const token = `0x${raw.toString(16).padStart(8, "0")}`;
+): OperandResult | null => {
+  const fixed = FIXED_OPERANDS.get(kind);
+  if (fixed !== undefined)
+    return offset + fixed.width > il.length
+      ? null
+      : { next: offset + fixed.width, ...fixed.read(il, offset) };
   const tokenOperandKind = TOKEN_OPERAND_KINDS.get(kind);
-  if (tokenOperandKind !== undefined)
-    return { next: offset + 4, anchorKind: tokenOperandKind, value: token };
-  if (kind === "token")
-    return { next: offset + 4, anchorKind: tokenKind(token), value: token };
-  return { next: offset, anchorKind: "unknown", value: null };
-};
-
-/** An operand cut off by the end of the IL body has no decodable value. */
-const readOperandWithin = (
-  il: Buffer,
-  offset: number,
-  kind: string,
-): OperandResult | undefined => {
-  try {
-    return readOperand(il, offset, kind);
-  } catch (cause: unknown) {
-    // Buffer reads past the IL body throw RangeError; report it as the
-    // instruction leaving the method body rather than as a Buffer message.
-    if (cause instanceof RangeError) return undefined;
-    throw cause;
-  }
+  if (kind !== "switch" && kind !== "token" && tokenOperandKind === undefined)
+    return { next: offset, anchorKind: "unknown", value: null };
+  // Switch counts and metadata tokens are both 4-byte values.
+  if (offset + 4 > il.length) return null;
+  const raw = il.readUInt32LE(offset);
+  if (kind === "switch")
+    return {
+      next: offset + 4 + raw * 4,
+      anchorKind: "switch",
+      value: String(raw),
+    };
+  const token = `0x${raw.toString(16).padStart(8, "0")}`;
+  return {
+    next: offset + 4,
+    anchorKind: tokenOperandKind ?? tokenKind(token),
+    value: token,
+  };
 };
 
 export const decodeInstructions = (
@@ -432,9 +444,9 @@ export const decodeInstructions = (
         issue = `Unsupported CIL opcode 0x${code.toString(16)} at IL offset ${String(start)}`;
         break;
       }
-      const operand = readOperandWithin(il, offset, descriptor.operand);
+      const operand = readOperand(il, offset, descriptor.operand);
       if (
-        operand === undefined ||
+        operand === null ||
         operand.next < offset ||
         operand.next > il.length
       ) {
