@@ -38,7 +38,6 @@ const parametersFor = (
 /** Operations only the headless profile declares. */
 const HEADLESS_ONLY: ReadonlySet<string> = new Set([
   "resolve_containing_procedure",
-  "list_documents",
 ]);
 
 describe.each(["attached", "headless"] as const)(

@@ -126,6 +126,32 @@ const observe = (input) => {
   report.observations.push(evidence);
   return evidence.normalized_result;
 };
+const verifyOverview = (input, surface) => {
+  const evidence = evidenceSchema.parse(input);
+  assert.equal(evidence.operation, "binary_overview");
+  const overview = observe(evidence);
+  assert.equal(overview.document, target);
+  assert.equal(typeof overview.procedure_count, "number");
+  assert.equal(typeof overview.string_count, "number");
+  for (const omitted of ["segments", "segment_count", "image_base"])
+    assert.equal(Object.hasOwn(overview, omitted), false);
+  report.checks.push(
+    `${surface} binary overview identifies the admitted program, reports procedure/string counts, and omits unobserved segment fields`,
+  );
+};
+const cliOverview = async () => {
+  phase = "production CLI binary overview";
+  const { stdout } = await promisify(execFile)(
+    process.execPath,
+    [entry, "analyze", target, "--json"],
+    {
+      env: environment,
+      timeout: config.timeoutMs * 3,
+      maxBuffer: 16 * 1024 * 1024,
+    },
+  );
+  verifyOverview(JSON.parse(stdout), `${config.mode} CLI`);
+};
 const cli = async () => {
   phase = "production CLI function analysis";
   const { stdout } = await promisify(execFile)(
@@ -187,6 +213,7 @@ const mcp = async (cliDossier) => {
     assert.equal(dossier.pseudocode, cliDossier.pseudocode);
     assert.deepEqual(dossier.assembly, cliDossier.assembly);
     assert.equal(analyzed.operation, "analyze_function");
+    verifyOverview(await call("binary_overview", {}), `${config.mode} MCP`);
     for (const [name, args] of [
       ["list_procedures", {}],
       ["list_strings", {}],
@@ -265,10 +292,13 @@ const mcp = async (cliDossier) => {
           break;
       }
     }
+    const documents = observe(await call("list_documents", {}));
+    assert.equal(documents.length, 1);
+    assert.equal(basename(documents[0]), basename(target));
+    report.checks.push(
+      `${config.mode} lists exactly the admitted public program as its document`,
+    );
     if (config.mode === "headless") {
-      const documents = observe(await call("list_documents", {}));
-      assert.equal(documents.length, 1);
-      assert.equal(basename(documents[0]), basename(target));
       assert.ok(
         !workspaces.has(dirname(documents[0])),
         "list_documents reported the private workspace copy.",
@@ -419,6 +449,7 @@ const cleanup = async () => {
 };
 try {
   const before = await digest();
+  await cliOverview();
   await mcp(await cli());
   await cleanup();
   assert.equal(await digest(), before);
