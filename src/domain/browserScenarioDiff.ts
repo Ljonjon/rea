@@ -1,3 +1,4 @@
+import { scenarioNetworkCoverageReason } from "./browserScenarioNetworkComparison.js";
 import type { BrowserScenarioCapture } from "./browserScenarioCapture.js";
 import type { BrowserScenarioStep } from "./browserScenarioCaptureValues.js";
 import {
@@ -8,6 +9,7 @@ import {
   eventFamilyCoverageReason,
   eventsFor,
   networkContentCoverageReason,
+  orderNetworkTransactions,
   screenshotProjection,
   type CaptureState,
 } from "./browserScenarioDiffEvidence.js";
@@ -105,7 +107,7 @@ export const compareBrowserScenarios = (
     limitations: [
       "Steps align only by exact, unique step_id; missing, duplicate, or action-mismatched steps are reported and prevent an unchanged claim.",
       "Only declared literal normalization rules are applied, in canonical rule_id order, to already-redacted durable capture fields.",
-      "Elapsed time and event sequence/index values are excluded as volatile; screenshot bytes are compared by content digest.",
+      "Elapsed time, event sequence/index values and capture-local transaction IDs are excluded as volatile; network transactions are compared as an unordered collection in the step that sent their request; screenshot bytes are compared by content digest.",
       "A changed status proves an observed normalized difference. Missing or truncated evidence, incompatible capture context, or alignment failure prevents an unchanged claim.",
     ],
   });
@@ -333,6 +335,7 @@ const compareStepArtifacts = (
       ),
       beforeState: eventEvidenceState(input.beforeCapture, input.beforeStep),
       afterState: eventEvidenceState(input.afterCapture, input.afterStep),
+      order: orderNetworkTransactions,
       incomparableReason: eventCoverageReason(
         input.beforeCapture,
         input.afterCapture,
@@ -348,6 +351,8 @@ const eventCoverageReason = (
   const reasons = [
     eventFamilyCoverageReason(before, after),
     networkContentCoverageReason(before, after),
+    scenarioNetworkCoverageReason(before),
+    scenarioNetworkCoverageReason(after),
   ].filter((reason) => reason !== undefined);
   return reasons.length === 0 ? undefined : reasons.join(" ");
 };
@@ -360,6 +365,7 @@ interface CompareCapturedValuesInput<Value> {
   readonly afterStep: BrowserScenarioStep;
   readonly rules: readonly BrowserScenarioNormalizationRule[];
   readonly project?: (value: Value) => unknown;
+  readonly order?: (normalized: unknown) => unknown;
   readonly beforeState?: BrowserScenarioEvidenceState;
   readonly afterState?: BrowserScenarioEvidenceState;
   readonly incomparableReason?: string | undefined;
@@ -376,6 +382,7 @@ const compareCapturedValues = <Value>(
     afterStep,
     rules,
     project = (value) => value,
+    order,
   } = input;
   const beforeState =
     input.beforeState ?? artifactEvidenceState(artifact, before, beforeStep);
@@ -385,11 +392,21 @@ const compareCapturedValues = <Value>(
     return { artifact, status: "not_compared", diff: null };
   const beforeSha256 =
     beforeState === "captured" && before.state === "captured"
-      ? digestNormalizedScenarioValue(project(before.value), artifact, rules)
+      ? digestNormalizedScenarioValue(
+          project(before.value),
+          artifact,
+          rules,
+          order,
+        )
       : null;
   const afterSha256 =
     afterState === "captured" && after.state === "captured"
-      ? digestNormalizedScenarioValue(project(after.value), artifact, rules)
+      ? digestNormalizedScenarioValue(
+          project(after.value),
+          artifact,
+          rules,
+          order,
+        )
       : null;
   if (
     beforeState !== "captured" ||

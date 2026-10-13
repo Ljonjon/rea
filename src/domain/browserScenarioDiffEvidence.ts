@@ -5,6 +5,13 @@ import type {
   BrowserStepArtifacts,
 } from "./browserScenarioCaptureValues.js";
 import type { BrowserScenarioCapture } from "./browserScenarioCapture.js";
+import { z } from "zod";
+import {
+  fingerprintScenarioNetworkTransactions,
+  scenarioNetworkTransactions,
+  scenarioNetworkTransactionSchema,
+  type ScenarioNetworkTransaction,
+} from "./browserScenarioNetworkComparison.js";
 import type {
   BrowserScenarioArtifactKind,
   BrowserScenarioEvidenceState,
@@ -94,26 +101,38 @@ export const actionState = (step: BrowserScenarioStep) => ({
   error: step.error,
 });
 
-/** Select events attributed to one scenario step without sequence metadata. */
+/** One step's ordered events and a single indexed network graph. */
+export interface ScenarioStepEvents {
+  readonly events: readonly unknown[];
+  readonly network_transactions: readonly ScenarioNetworkTransaction[];
+}
+
+/** Network selection follows the initiating request; local IDs become graph indices only. */
 export const eventsFor = (
   capture: BrowserScenarioCapture,
   stepIndex: number,
-): readonly unknown[] => {
-  const sourceSteps = new Map(
-    capture.events.items.map(({ sequence, step_index }) => [
-      sequence,
-      step_index,
-    ]),
-  );
-  return capture.events.items.flatMap<unknown>(
-    ({ sequence: _sequence, step_index: eventStepIndex, ...event }) => {
-      if (event.kind === "network-content") {
-        const { source_event_sequence: sourceSequence, ...content } = event;
-        return sourceSteps.get(sourceSequence) === stepIndex ? [content] : [];
-      }
-      return eventStepIndex === stepIndex ? [event] : [];
-    },
-  );
+): ScenarioStepEvents => ({
+  events: capture.events.items.flatMap(
+    ({ sequence: _sequence, step_index, ...event }) =>
+      !("transaction_id" in event) && step_index === stepIndex ? [event] : [],
+  ),
+  network_transactions: scenarioNetworkTransactions(capture, stepIndex),
+});
+
+const scenarioStepEventsSchema = z.strictObject({
+  events: z.array(z.unknown()),
+  network_transactions: z.array(scenarioNetworkTransactionSchema),
+});
+
+/** Apply caller normalization before ancestry fingerprints and unordered comparison. */
+export const orderNetworkTransactions = (value: unknown): unknown => {
+  const events = scenarioStepEventsSchema.parse(value);
+  return {
+    events: events.events,
+    network_transactions: fingerprintScenarioNetworkTransactions(
+      events.network_transactions,
+    ),
+  };
 };
 
 /** Different content selection is missing comparability, not an observed website change. */
