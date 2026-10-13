@@ -4,6 +4,12 @@ import { join } from "node:path";
 import { expect } from "vitest";
 
 import { buildManagedPeFixture } from "../../src/dotnet/ManagedPe.fixture.js";
+import {
+  buildPortablePdbFixture,
+  portablePdbGuidBytes,
+  PORTABLE_PDB_FIXTURE_STAMP,
+  PORTABLE_PDB_FIXTURE_GUID,
+} from "../../src/dotnet/PortablePdb.fixture.js";
 import { createTestTempDirectory } from "../fixtures/temporaryDirectory.js";
 import { cliTest } from "../support/cli/cliFixture.js";
 
@@ -174,6 +180,102 @@ cliTest(
     });
     expect(jsonl.exitCode).toBe(0);
     expect(jsonl.json).toBe("inspect_managed_members");
+  },
+);
+
+cliTest(
+  "managed CLI binds a selected Portable PDB and the embedded one",
+  async ({ cli }) => {
+    const root = await createTestTempDirectory("rea-managed-pdb-cli-");
+    const pdbBytes = buildPortablePdbFixture({
+      documents: [
+        {
+          name: "/src/Program.cs",
+          hashAlgorithm: "sha-256",
+          language: "csharp",
+        },
+      ],
+      methods: [
+        {
+          document: 1,
+          points: [
+            { il: 0, startLine: 4, startColumn: 2, endLine: 4, endColumn: 18 },
+          ],
+        },
+      ],
+    });
+    const path = join(root, "fixture.dll");
+    const pdbPath = join(root, "fixture.pdb");
+    await writeFile(
+      path,
+      buildManagedPeFixture({
+        codeview: {
+          guid: portablePdbGuidBytes(PORTABLE_PDB_FIXTURE_GUID),
+          age: 1,
+          stamp: PORTABLE_PDB_FIXTURE_STAMP,
+        },
+        embeddedPortablePdb: pdbBytes,
+      }),
+    );
+    await writeFile(pdbPath, pdbBytes);
+    const external = await cli.run({
+      arguments: ["inspect-managed-members", path, "--pdb", pdbPath, "--json"],
+    });
+    expect(external.exitCode).toBe(0);
+    expect(external.json).toMatchObject({
+      normalized_result: {
+        debug_map: {
+          status: "bound",
+          source: { kind: "external", path: pdbPath },
+          identity: { status: "matched" },
+          documents: [expect.objectContaining({ name: "/src/Program.cs" })],
+          methods: [
+            expect.objectContaining({
+              token: "0x06000001",
+              state: "decoded",
+              sequence_points: [
+                expect.objectContaining({ il_offset: 0, start_line: 4 }),
+              ],
+            }),
+          ],
+        },
+      },
+    });
+    const embedded = await cli.run({
+      arguments: ["inspect-managed-members", path, "--pdb-embedded", "--json"],
+    });
+    expect(embedded.exitCode).toBe(0);
+    expect(embedded.json).toMatchObject({
+      normalized_result: {
+        debug_map: {
+          status: "bound",
+          source: { kind: "embedded" },
+          identity: { status: "matched" },
+        },
+      },
+    });
+    const conflicting = await cli.run({
+      arguments: [
+        "inspect-managed-members",
+        path,
+        "--pdb",
+        pdbPath,
+        "--pdb-embedded",
+        "--json",
+      ],
+    });
+    expect(conflicting.exitCode).toBe(1);
+    expect(conflicting.json).toMatchObject({
+      code: "invalid_request",
+      details: {
+        issues: [
+          {
+            path: ["pdb_path"],
+            message: expect.stringContaining("mutually exclusive"),
+          },
+        ],
+      },
+    });
   },
 );
 

@@ -20,6 +20,12 @@ import { toolContract } from "../../../src/contracts/toolContracts.js";
 import { ManagedStaticProvider } from "../../../src/dotnet/ManagedStaticProvider.js";
 import { createServer } from "../../../src/server/createServer.js";
 import { buildManagedPeFixture } from "../../../src/dotnet/ManagedPe.fixture.js";
+import {
+  buildPortablePdbFixture,
+  portablePdbGuidBytes,
+  PORTABLE_PDB_FIXTURE_STAMP,
+  PORTABLE_PDB_FIXTURE_GUID,
+} from "../../../src/dotnet/PortablePdb.fixture.js";
 
 type ManagedOutputAssertion = Awaited<ReturnType<typeof createOutputAssertion>>;
 
@@ -497,6 +503,99 @@ const verifyManagedTypeSelection = async (
     subject: { local_path: otherPath, format: "pe" },
   });
 };
+
+it("binds a selected Portable PDB through MCP arguments", async () => {
+  const directory = await createTestTempDirectory("rea-managed-pdb-mcp-");
+  const pePath = join(directory, "fixture.exe");
+  const pdbPath = join(directory, "fixture.pdb");
+  await writeFile(
+    pePath,
+    buildManagedPeFixture({
+      codeview: {
+        guid: portablePdbGuidBytes(PORTABLE_PDB_FIXTURE_GUID),
+        age: 1,
+        stamp: PORTABLE_PDB_FIXTURE_STAMP,
+      },
+    }),
+  );
+  await writeFile(
+    pdbPath,
+    buildPortablePdbFixture({
+      documents: [{ name: "/src/Program.cs" }],
+      methods: [
+        { document: 1, points: [{ il: 0, startLine: 3, startColumn: 1 }] },
+      ],
+    }),
+  );
+  const session = composeBinarySession(new AnalysisProviderRegistry([]), [
+    new ManagedStaticProvider(),
+  ]);
+  const server = createServer(
+    { kind: "session", session },
+    {
+      availabilityPolicy: () => ({
+        processCaptureEnabled: false,
+        investigationInputRoots: 0,
+        browserObservationEnabled: false,
+        electronObservationEnabled: false,
+      }),
+    },
+  );
+  const client = new Client({ name: "managed-pdb-mcp", version: "1.0.0" });
+  const [clientTransport, serverTransport] =
+    InMemoryTransport.createLinkedPair();
+  try {
+    await server.connect(serverTransport);
+    await client.connect(clientTransport);
+    const tool = (await client.listTools()).tools.find(
+      ({ name }) => name === "inspect_managed_members",
+    );
+    const ajv = new Ajv2020({ strict: false, validateFormats: false });
+    expect(ajv.validateSchema(tool?.inputSchema ?? {})).toBe(true);
+    const validate = ajv.compile(tool?.inputSchema ?? {});
+    expect(validate({ path: pePath, pdb_path: pdbPath })).toBe(true);
+    expect(validate({ path: pePath, pdb_embedded: true })).toBe(true);
+    const members = structured(
+      await client.callTool({
+        name: "inspect_managed_members",
+        arguments: { path: pePath, pdb_path: pdbPath },
+      }),
+    );
+    expect(members).toMatchObject({
+      normalized_result: {
+        debug_map: {
+          status: "bound",
+          source: { kind: "external", path: pdbPath },
+          identity: { status: "matched" },
+          methods: [
+            {
+              token: "0x06000001",
+              state: "decoded",
+              sequence_points: [{ il_offset: 0, start_line: 3, hidden: false }],
+            },
+          ],
+        },
+      },
+    });
+    const conflict = await client.callTool({
+      name: "inspect_managed_members",
+      arguments: { path: pePath, pdb_path: pdbPath, pdb_embedded: true },
+    });
+    expect(conflict.isError).toBe(true);
+    const embeddedAbsent = structured(
+      await client.callTool({
+        name: "inspect_managed_members",
+        arguments: { path: pePath, pdb_embedded: true },
+      }),
+    );
+    expect(embeddedAbsent).toMatchObject({
+      normalized_result: { debug_map: { status: "absent" } },
+    });
+  } finally {
+    await Promise.all([client.close(), server.close()]);
+    await session.close();
+  }
+}, 30_000);
 
 const structured = (result: CallToolResult): Record<string, unknown> => {
   if (result.isError === true) return parseMcpToolError(result);

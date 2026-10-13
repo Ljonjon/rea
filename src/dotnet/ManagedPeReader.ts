@@ -12,7 +12,7 @@ interface PeSection {
   readonly rawSize: number;
 }
 
-interface PeDataDirectory {
+export interface PeDataDirectory {
   readonly rva: number;
   readonly size: number;
 }
@@ -41,6 +41,9 @@ export interface ManagedPeLayout {
   readonly cli: ManagedCliHeader | null;
   readonly cliDirectoryState: "absent" | "present" | "unreadable";
   readonly cliIssue: ManagedParseIssue | null;
+  readonly debugDirectory: PeDataDirectory;
+  /** Set when the debug directory slot exists but could not be mapped. */
+  readonly debugIssue: ManagedParseIssue | null;
   rvaToOffset(rva: number, size: number, scope: string): number;
   rvaAvailableBytes(rva: number, scope: string): number;
 }
@@ -68,7 +71,7 @@ interface OptionalHeader {
   readonly directoryOffset: number;
 }
 
-type CliDirectoryRead =
+type PeDirectoryRead =
   | { readonly kind: "absent" }
   | { readonly kind: "present"; readonly directory: PeDataDirectory }
   | { readonly kind: "unreadable"; readonly issue: ManagedParseIssue };
@@ -356,11 +359,12 @@ const readSections = (
   return sections;
 };
 
-const readCliDirectory = (
+const readPeDataDirectory = (
   bytes: Buffer,
   coff: CoffHeader,
   optional: OptionalHeader,
-): CliDirectoryRead => {
+  index: number,
+): PeDirectoryRead => {
   const countOffset = optional.directoryCountOffset - optional.optionalOffset;
   if (countOffset + 4 > coff.optionalSize)
     return {
@@ -373,12 +377,12 @@ const readCliDirectory = (
       },
     };
   const directoryCount = bytes.readUInt32LE(optional.directoryCountOffset);
-  if (directoryCount <= 14) return { kind: "absent" };
+  if (directoryCount <= index) return { kind: "absent" };
   const availableDirectoryCount = Math.floor(
     (coff.optionalSize - (optional.directoryOffset - optional.optionalOffset)) /
       8,
   );
-  if (availableDirectoryCount < 15)
+  if (availableDirectoryCount < index + 1)
     return {
       kind: "unreadable",
       issue: {
@@ -388,7 +392,7 @@ const readCliDirectory = (
         offset: optional.directoryCountOffset,
       },
     };
-  const directory = readDirectory(bytes, optional.directoryOffset + 14 * 8);
+  const directory = readDirectory(bytes, optional.directoryOffset + index * 8);
   return directory.rva !== 0 || directory.size !== 0
     ? { kind: "present", directory }
     : { kind: "absent" };
@@ -407,8 +411,13 @@ export const readManagedPeLayout = (bytes: Buffer): ManagedPeLayout => {
   const coff = readCoffHeader(bytes);
   const optional = readOptionalHeader(bytes, coff);
   const sections = readSections(bytes, coff, optional);
-  const cliDirectoryRead = readCliDirectory(bytes, coff, optional);
+  const cliDirectoryRead = readPeDataDirectory(bytes, coff, optional, 14);
   const cliDirectoryState = cliDirectoryRead.kind;
+  const debugDirectoryRead = readPeDataDirectory(bytes, coff, optional, 6);
+  const debugDirectory =
+    debugDirectoryRead.kind === "present"
+      ? debugDirectoryRead.directory
+      : { rva: 0, size: 0 };
   let cli: ManagedCliHeader | null = null;
   let cliIssue: ManagedParseIssue | null =
     cliDirectoryRead.kind === "unreadable" ? cliDirectoryRead.issue : null;
@@ -430,6 +439,11 @@ export const readManagedPeLayout = (bytes: Buffer): ManagedPeLayout => {
     cli,
     cliDirectoryState,
     cliIssue,
+    debugDirectory,
+    debugIssue:
+      debugDirectoryRead.kind === "unreadable"
+        ? debugDirectoryRead.issue
+        : null,
     rvaToOffset: (rva, size, scope) =>
       mapRva({ bytes, sections, rva, size, scope }),
     rvaAvailableBytes: (rva, scope) =>

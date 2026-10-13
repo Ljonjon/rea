@@ -292,7 +292,7 @@ const managedFieldAccessSchema = z.object({
   field_name: z.string().nullable(),
 });
 
-const managedParseIssueSchema = z.object({
+const managedParseIssueSchemaMoved = z.object({
   code: z.enum([
     "resource-limit",
     "invalid-cli-header",
@@ -313,6 +313,96 @@ const managedParseIssueSchema = z.object({
   offset: offsetSchema.nullable(),
   detail: z.string().min(1),
 });
+
+const portablePdbSequencePointSchema = z.object({
+  il_offset: offsetSchema,
+  start_line: z.number().int().min(0),
+  start_column: z.number().int().min(0),
+  end_line: z.number().int().min(0),
+  end_column: z.number().int().min(0),
+  hidden: z.boolean(),
+  /** Document row the point inherits; null when the blob did not establish one. */
+  document_token: tokenSchema.nullable(),
+});
+
+const portablePdbDocumentSchema = z.object({
+  token: tokenSchema,
+  row_offset: offsetSchema,
+  name: z.string().nullable(),
+  /** Defined name when the GUID is known; null keeps the GUID for unknown values. */
+  hash_algorithm: z.string().nullable(),
+  hash_algorithm_guid: cliMetadataGuidSchema.nullable(),
+  hash: z.string().nullable(),
+  language: z.string().nullable(),
+  language_guid: cliMetadataGuidSchema.nullable(),
+});
+
+const portablePdbMethodSchema = z.object({
+  token: tokenSchema,
+  state: z.enum([
+    "decoded",
+    "no-sequence-points",
+    "no-debug-information",
+    "malformed",
+  ]),
+  /** The declared single-document row; null when absent or spanning documents. */
+  document_token: tokenSchema.nullable(),
+  local_signature_token: tokenSchema.nullable(),
+  sequence_points: z.array(portablePdbSequencePointSchema),
+});
+
+const portablePdbDebugMapSchema = z.object({
+  status: z.enum(["bound", "malformed", "absent"]),
+  /** Provenance of the bytes that were admitted as the Portable PDB. */
+  source: z.object({
+    kind: z.enum(["external", "embedded"]),
+    path: z.string().nullable(),
+    sha256: digestSchema.nullable(),
+    byte_length: z.number().int().min(0).nullable(),
+  }),
+  pdb: z
+    .object({
+      /** 20-byte #Pdb stamp as raw hex: 16-byte GUID + 4-byte age stamp. */
+      stamp: z.string().regex(/^[0-9a-f]{40}$/u),
+      guid: cliMetadataGuidSchema,
+      stamp_age: z.number().int().min(0).max(0xffff_ffff),
+      entry_point_token: tokenSchema.nullable(),
+      version: z.string(),
+    })
+    .nullable(),
+  identity: z.object({
+    status: z.enum(["matched", "mismatched", "undeclared", "unverifiable"]),
+    declared: z.object({
+      codeview: z
+        .object({
+          guid: cliMetadataGuidSchema.nullable(),
+          age: z.number().int().min(0).max(0xffff_ffff).nullable(),
+          /** The debug-directory entry TimeDateStamp; with the GUID it forms the Portable PDB ID (RSDS Age stays 1 by spec). */
+          stamp: z.number().int().min(0).max(0xffff_ffff).nullable(),
+          declared_path: z.string().nullable(),
+        })
+        .nullable(),
+      embedded_portable_pdb: z.boolean(),
+    }),
+    checks: z.array(
+      z.object({
+        name: z.string().min(1),
+        result: z.enum(["matched", "mismatched"]),
+        detail: z.string(),
+      }),
+    ),
+  }),
+  documents: z.array(portablePdbDocumentSchema),
+  methods: z.array(portablePdbMethodSchema),
+  /** Inspected MethodDef rows the PDB's MethodDebugInformation table does not cover; null when the PDB was never decoded. */
+  methods_without_debug_information: z.number().int().min(0).nullable(),
+  coverage: z.object({
+    state: z.enum(["complete", "partial", "unavailable"]),
+    issues: z.array(managedParseIssueSchemaMoved),
+  }),
+});
+
+const managedParseIssueSchema = managedParseIssueSchemaMoved;
 
 /** Provider-neutral, execution-free PE/CLI triage and identity result. */
 export const managedArtifactInspectionSchema = z.object({
@@ -448,6 +538,8 @@ export const managedMemberInspectionSchema = z.object({
     })
     .nullable()
     .default(null),
+  /** Portable PDB debug evidence; null when no PDB selector was supplied. */
+  debug_map: portablePdbDebugMapSchema.nullable().default(null),
   coverage: z.object({
     state: z.enum(["complete", "partial", "unavailable"]),
     issues: z.array(managedParseIssueSchema),
@@ -514,4 +606,5 @@ export type ManagedMemberInspection = z.infer<
 export type ManagedNativeBoundaryInspection = z.infer<
   typeof managedNativeBoundaryInspectionSchema
 >;
+export type PortablePdbDebugMap = z.infer<typeof portablePdbDebugMapSchema>;
 export type ManagedParseIssue = z.infer<typeof managedParseIssueSchema>;

@@ -46,6 +46,21 @@ export const managedMembersInputSchema = managedTargetInputSchema.extend({
       "Inspect only the fields, methods, call edges, and field accesses declared by these exact type full names; omit to inspect every type. Unmatched names are reported in selection.unmatched_type_names.",
     )
     .optional(),
+  pdb_path: localPathStringSchema
+    .refine(isAbsolute, {
+      message:
+        "pdb_path must be an absolute local filesystem path to a Portable PDB (for example /tmp/Example.pdb)",
+    })
+    .describe(
+      "Explicit absolute path to a Portable PDB; its CodeView/RSDS identity is verified against the assembly and sequence points are bound to the inspected methods. Mutually exclusive with pdb_embedded.",
+    )
+    .optional(),
+  pdb_embedded: z
+    .boolean()
+    .describe(
+      "Extract and bind the assembly's embedded Portable PDB (IMAGE_DEBUG_TYPE_EMBEDDED_PORTABLE_PDB); mutually exclusive with pdb_path.",
+    )
+    .optional(),
 });
 
 const outputSchema = requireOutputSchema(
@@ -87,7 +102,7 @@ export const MANAGED_TOOL_CONTRACTS = [
     name: "inspect_managed_members",
     ...toolContractMetadata("inspect_managed_members"),
     description:
-      "Inspect PE/CLI metadata members, signatures, raw CIL hashes, decoded-instruction-tuple hashes, separately reported exception regions, call edges, and field-access anchors without loading or executing target code. Select type_names to decode only the members of those exact declaring types, which keeps large assemblies such as a base class library within the representation budget. Metadata tokens are reported as build-local coordinates bound to the artifact SHA-256 and MVID; the tuple hash does not resolve them or fully commit control flow.",
+      "Inspect PE/CLI metadata members, signatures, raw CIL hashes, decoded-instruction-tuple hashes, separately reported exception regions, call edges, and field-access anchors without loading or executing target code. Select type_names to decode only the members of those exact declaring types, which keeps large assemblies such as a base class library within the representation budget. Supply pdb_path or pdb_embedded to bind a Portable PDB: its CodeView/RSDS identity is verified against the assembly, and documents, checksums, and visible/hidden sequence points are reported keyed to build-local MethodDef tokens and IL offsets. Metadata tokens are reported as build-local coordinates bound to the artifact SHA-256 and MVID; the tuple hash does not resolve them or fully commit control flow.",
     kind: "managed-provider",
     inputSchema: managedMembersInputSchema,
     outputSchema: memberOutputSchema,

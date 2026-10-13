@@ -90,7 +90,7 @@ export interface ManagedMetadataLayout {
 
 export type CodedIndexName = keyof typeof CODED_INDEXES;
 
-const CODED_INDEXES = {
+export const CODED_INDEXES = {
   TypeDefOrRef: { bits: 2, tables: [2, 1, 27] },
   HasConstant: { bits: 2, tables: [4, 8, 23] },
   HasCustomAttribute: {

@@ -35,6 +35,11 @@ import {
   parseMethods,
   type SelectedTypeTokens,
 } from "./ManagedMemberRows.js";
+import type { ManagedMetadataLayout } from "./ManagedMetadataLayout.js";
+import {
+  buildPortablePdbDebugMap,
+  type PortablePdbSelection,
+} from "./PortablePdbDebugMap.js";
 
 const unavailable = (
   target: BinaryTarget,
@@ -151,7 +156,13 @@ const selectTypes = (
 export const inspectManagedMembersBytes = (
   bytes: Buffer,
   target: BinaryTarget,
-  { typeNames }: { readonly typeNames?: readonly string[] } = {},
+  {
+    typeNames,
+    pdb,
+  }: {
+    readonly typeNames?: readonly string[];
+    readonly pdb?: PortablePdbSelection;
+  } = {},
 ): ManagedMemberInspection => {
   const pe = readManagedPeLayout(bytes);
   if (pe.cli === null)
@@ -198,67 +209,133 @@ export const inspectManagedMembersBytes = (
       memberRefs.core,
       managedDecodeBudget(layout),
     );
-    return managedMemberInspectionSchema.parse(
-      admitManagedProjection(
-        {
-          artifact: {
-            path: target.path,
-            sha256: target.sha256,
-            byte_length: bytes.length,
-            format: "pe",
-          },
-          module: inventory.module,
-          metadata: {
-            status: issues.length === 0 ? "complete" : "partial",
-            version: layout.version,
-            table_row_counts: managedTableRowCounts(layout),
-          },
-          identity_scope: {
-            token_identity: "build-local",
-            requires_artifact_sha256: target.sha256,
-            requires_mvid: inventory.module?.mvid ?? null,
-          },
-          types:
-            selected === null
-              ? parsedTypes.types
-              : parsedTypes.types.filter((type) => selected.has(type.token)),
-          exported_types: exportedTypes.exportedTypes,
-          fields: fields.fields,
-          methods: methods.methods,
-          member_refs: memberRefs.refs,
-          call_edges: related.callEdges,
-          field_accesses: related.fieldAccesses,
-          selection,
-          coverage: {
-            state:
-              issues.length === 0 && !incompleteMembers
-                ? "complete"
-                : "partial",
-            issues: coverageIssues,
-          },
-          limitations: [
-            "Metadata tokens are build-local coordinates and are only meaningful with the reported artifact SHA-256 and MVID.",
-            "CIL instruction anchors are decoded from file-backed method bodies only; no target assembly is loaded or executed.",
-            "Exported types are reported from ExportedType rows as declared; forwarded types are not resolved in their implementing assemblies.",
-            "Member signatures decode ECMA-335 primitive, class, valuetype, generic instantiation, generic variable, pointer, byref, single-dimension and general array, function pointer, custom modifier, and typed reference forms; class and valuetype operands keep their encoded TypeDefOrRefOrSpec values, and unsupported forms such as vararg sentinels retain raw signature hashes.",
-            ...(selection === null
-              ? []
-              : [
-                  "Types, fields, methods, call edges, and field accesses cover only the selected declaring types; coverage describes that selection. Edge targets outside it keep their names but are not described.",
-                ]),
-            ...(unreadableNames === 0
-              ? []
-              : [
-                  `${String(unreadableNames)} TypeDef name(s) could not be read; a name in selection.unmatched_type_names may belong to one of them, so its absence is not observed.`,
-                ]),
-          ],
+    const debugMap = bindDebugMapSafely(bytes, pe, layout, methods, pdb);
+    // debug_map is admitted against the PDB layout's own budget inside
+    // bindDebugMapSafely; charging it here too would let an oversized map
+    // discard member evidence.
+    const admitted = admitManagedProjection(
+      {
+        artifact: {
+          path: target.path,
+          sha256: target.sha256,
+          byte_length: bytes.length,
+          format: "pe",
         },
-        managedDecodeBudget(layout),
-      ),
+        module: inventory.module,
+        metadata: {
+          status: issues.length === 0 ? "complete" : "partial",
+          version: layout.version,
+          table_row_counts: managedTableRowCounts(layout),
+        },
+        identity_scope: {
+          token_identity: "build-local",
+          requires_artifact_sha256: target.sha256,
+          requires_mvid: inventory.module?.mvid ?? null,
+        },
+        types:
+          selected === null
+            ? parsedTypes.types
+            : parsedTypes.types.filter((type) => selected.has(type.token)),
+        exported_types: exportedTypes.exportedTypes,
+        fields: fields.fields,
+        methods: methods.methods,
+        member_refs: memberRefs.refs,
+        call_edges: related.callEdges,
+        field_accesses: related.fieldAccesses,
+        selection,
+        coverage: {
+          state:
+            issues.length === 0 && !incompleteMembers ? "complete" : "partial",
+          issues: coverageIssues,
+        },
+        limitations: [
+          "Metadata tokens are build-local coordinates and are only meaningful with the reported artifact SHA-256 and MVID.",
+          "CIL instruction anchors are decoded from file-backed method bodies only; no target assembly is loaded or executed.",
+          "Exported types are reported from ExportedType rows as declared; forwarded types are not resolved in their implementing assemblies.",
+          "Member signatures decode ECMA-335 primitive, class, valuetype, generic instantiation, generic variable, pointer, byref, single-dimension and general array, function pointer, custom modifier, and typed reference forms; class and valuetype operands keep their encoded TypeDefOrRefOrSpec values, and unsupported forms such as vararg sentinels retain raw signature hashes.",
+          ...(selection === null
+            ? []
+            : [
+                "Types, fields, methods, call edges, and field accesses cover only the selected declaring types; coverage describes that selection. Edge targets outside it keep their names but are not described.",
+              ]),
+          ...(unreadableNames === 0
+            ? []
+            : [
+                `${String(unreadableNames)} TypeDef name(s) could not be read; a name in selection.unmatched_type_names may belong to one of them, so its absence is not observed.`,
+              ]),
+          ...(debugMap === null
+            ? []
+            : [
+                "debug_map binds the selected Portable PDB to build-local MethodDef tokens; document names and paths are reported exactly as recorded and no source content is fetched.",
+                ...(debugMap.identity.status === "mismatched"
+                  ? [
+                      "The selected Portable PDB does not share the assembly's declared CodeView identity; sequence points describe a different build.",
+                    ]
+                  : []),
+              ]),
+        ],
+      },
+      managedDecodeBudget(layout),
     );
+    return managedMemberInspectionSchema.parse({
+      ...admitted,
+      debug_map: debugMap,
+    });
   } catch (cause: unknown) {
     if (cause instanceof ManagedReaderFailure)
       return unavailable(target, bytes, cause.issue, typeNames);
     throw cause;
+  }
+};
+
+/**
+ * A malformed Portable PDB must not discard admitted member evidence; keep its
+ * failure inside debug_map instead of the member inspection coverage.
+ */
+const bindDebugMapSafely = (
+  bytes: Buffer,
+  pe: ManagedPeLayout,
+  assemblyLayout: ManagedMetadataLayout,
+  methods: { readonly methods: readonly { readonly token: string }[] },
+  pdb: PortablePdbSelection | undefined,
+): ManagedMemberInspection["debug_map"] => {
+  if (pdb === undefined) return null;
+  try {
+    return buildPortablePdbDebugMap({
+      bytes,
+      pe,
+      assemblyLayout,
+      methodRows: methods.methods.map(
+        (method) => Number.parseInt(method.token, 16) & 0xff_ffff,
+      ),
+      selection: pdb,
+    });
+  } catch (cause: unknown) {
+    if (!(cause instanceof ManagedReaderFailure)) throw cause;
+    return {
+      status: "malformed",
+      source:
+        pdb.kind === "external"
+          ? {
+              kind: "external",
+              path: pdb.path,
+              sha256: pdb.sha256,
+              byte_length: pdb.bytes.length,
+            }
+          : { kind: "embedded", path: null, sha256: null, byte_length: null },
+      pdb: null,
+      identity: {
+        status: "unverifiable",
+        declared: {
+          codeview: null,
+          embedded_portable_pdb: pdb.kind === "embedded",
+        },
+        checks: [],
+      },
+      documents: [],
+      methods: [],
+      methods_without_debug_information: null,
+      coverage: { state: "partial", issues: [cause.issue] },
+    };
   }
 };

@@ -9,6 +9,7 @@ import {
 } from "../application/AnalysisProvider.js";
 import { ArtifactReaderFailure } from "../artifacts/ArtifactReader.js";
 import { ArtifactResourceScope } from "../artifacts/ArtifactResourceScope.js";
+import { requestInputError } from "../application/workflowInputError.js";
 import { managedStaticCapabilities } from "./ManagedStaticProviderMetadata.js";
 import { MANAGED_STATIC_PROVIDER } from "../application/InvestigationProviders.js";
 import {
@@ -45,6 +46,7 @@ import {
   managedCleanupError,
   readManagedSnapshot,
 } from "./ManagedSnapshot.js";
+import type { PortablePdbSelection } from "./PortablePdbDebugMap.js";
 
 /** Execution-free managed PE/CLI auxiliary provider. */
 export class ManagedStaticProvider implements AnalysisProvider {
@@ -117,11 +119,13 @@ class ManagedStaticClient implements AnalysisClient {
       if (bytes === undefined)
         throw new TypeError("Managed snapshot bytes are unavailable");
       this.#snapshotBytes = bytes;
+      const pdb = await this.#readSelectedPdb(operation, parameters, options);
       const result = inspectManagedOperation(
         operation,
         parameters,
         bytes,
         this.target,
+        pdb,
       );
       return ok(
         createAnalysisExecution(result, MANAGED_STATIC_PROVIDER, {
@@ -157,6 +161,39 @@ class ManagedStaticClient implements AnalysisClient {
         }),
       );
     }
+  }
+
+  async #readSelectedPdb(
+    operation: AnalysisOperation,
+    parameters: Readonly<Record<string, JsonValue>>,
+    options: ExecutionOptions | undefined,
+  ): Promise<PortablePdbSelection | undefined> {
+    if (operation !== "inspect_managed_members") return undefined;
+    const parsed = managedMembersInputSchema.safeParse(parameters);
+    if (!parsed.success)
+      throw requestInputError(operation, parsed.error, parameters);
+    const { pdb_path: pdbPath, pdb_embedded: pdbEmbedded } = parsed.data;
+    if (pdbPath !== undefined && pdbEmbedded === true)
+      throw new AnalysisInputError(operation, undefined, [
+        {
+          path: ["pdb_path"],
+          reason: "invalid_value",
+          message: "pdb_path and pdb_embedded are mutually exclusive",
+        },
+      ]);
+    if (pdbPath !== undefined) {
+      const observed = await readManagedSnapshot(pdbPath, operation, {
+        signal: options?.signal,
+        resources: this.#resources,
+      });
+      return {
+        kind: "external",
+        path: pdbPath,
+        bytes: observed.bytes,
+        sha256: observed.sha256,
+      };
+    }
+    return pdbEmbedded === true ? { kind: "embedded" } : undefined;
   }
 
   async close(): Promise<Result<null, AnalysisError>> {
@@ -201,6 +238,7 @@ const inspectManagedOperation = (
   parameters: Readonly<Record<string, JsonValue>>,
   bytes: Buffer,
   target: BinaryTarget,
+  pdb: PortablePdbSelection | undefined,
 ):
   | ManagedArtifactInspection
   | ManagedMemberInspection
@@ -208,11 +246,10 @@ const inspectManagedOperation = (
   if (operation === "inspect_managed_members") {
     const { type_names: typeNames } =
       managedMembersInputSchema.parse(parameters);
-    return inspectManagedMembersBytes(
-      bytes,
-      target,
-      typeNames === undefined ? {} : { typeNames },
-    );
+    return inspectManagedMembersBytes(bytes, target, {
+      ...(typeNames === undefined ? {} : { typeNames }),
+      ...(pdb === undefined ? {} : { pdb }),
+    });
   }
   managedTargetInputSchema.parse(parameters);
   if (operation === "inspect_managed_artifact") {

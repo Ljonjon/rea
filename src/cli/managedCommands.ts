@@ -64,13 +64,25 @@ const registerInspectManagedMembers = (
       type: managedMembersInputSchema.shape.type_names.describe(
         "Inspect only members declared by this exact type full name, such as System.Threading.Monitor; a nested type is named by its bare name, which selects every nested type of that name (repeatable)",
       ),
+      pdb: managedMembersInputSchema.shape.pdb_path.describe(
+        "Absolute path to a Portable PDB whose identity is verified against the assembly and whose sequence points bind to the inspected methods",
+      ),
+      pdbEmbedded: managedMembersInputSchema.shape.pdb_embedded.describe(
+        "Extract and bind the assembly's embedded Portable PDB instead of an external file",
+      ),
     }),
     run: ({ args, options }) =>
       logCliCommand(logger, "inspect-managed-members", () =>
         runProviderAnalysis(
           args.path,
           "inspect_managed_members",
-          options.type === undefined ? {} : { type_names: options.type },
+          {
+            ...(options.type === undefined ? {} : { type_names: options.type }),
+            ...(options.pdb === undefined ? {} : { pdb_path: options.pdb }),
+            ...(options.pdbEmbedded === undefined
+              ? {}
+              : { pdb_embedded: options.pdbEmbedded }),
+          },
           logger,
         ),
       ),

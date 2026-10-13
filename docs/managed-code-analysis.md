@@ -81,6 +81,43 @@ including the existing `inspect-analysis-view` CLI. Session record lifetime and
 export/import semantics remain unchanged. A server without Evidence retention
 rejects selected summary before analysis; complete delivery remains available.
 
+## Portable PDB sequence points
+
+`inspect_managed_members` can bind Portable PDB debug evidence to the selected
+assembly. Supply a PDB explicitly with `--pdb` / `pdb_path`, or bind an
+embedded Portable PDB (Debug Directory entry type 17) with
+`--pdb-embedded` / `pdb_embedded`; the two selectors are mutually exclusive.
+Without a selector, `debug_map` is null and member inspection is unchanged.
+
+```bash
+rea inspect-managed-members /absolute/path/Assembly.dll --pdb /absolute/path/Assembly.pdb --json
+rea inspect-managed-members /absolute/path/Assembly.dll --pdb-embedded --json
+```
+
+The PDB is verified against the assembly's own declarations before binding: a
+portable CodeView RSDS record declares the expected GUID and its debug
+directory entry's `TimeDateStamp` completes the 20-byte PDB ID (the RSDS age
+stays 1), and an embedded entry declares it was produced with the binary. The
+reported `identity.status` is `matched`, `mismatched`, `undeclared` (the
+assembly carries no CodeView declaration), or `unverifiable` (the declaration
+or the selected PDB could not be read for comparison). The selected PDB's own
+content GUID and stamp are reported verbatim so a mismatch remains visible
+rather than blocking the evidence.
+
+A bound map decodes the PDB's Document and MethodDebugInformation tables.
+Documents keep their declared names, source-hash digests and hash algorithms,
+and source-language GUIDs. Each MethodDef row the debug table covers gains
+`state`, its document row, the local-variable signature token, and decoded
+sequence points — including hidden points and document-switch records.
+Inspected rows the debug table does not cover are counted in
+`methods_without_debug_information` instead of emitting identical entries.
+Sequence points are positions, not recovered source text.
+
+Malformed or truncated PDB data reports `debug_map.status` as `malformed` with
+file offsets and issues; partially decodable maps keep `coverage.state` at
+`partial`. An assembly without a requested embedded PDB reports `absent`.
+The member inspection itself does not fail when a selected PDB is malformed.
+
 ## Shipped scope
 
 The canonical parser admits PE/CLI bytes and their metadata/CIL without loading

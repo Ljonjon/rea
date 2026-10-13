@@ -1,13 +1,27 @@
 import { createHash } from "node:crypto";
+import { deflateRawSync } from "node:zlib";
 
 import type { BinaryTarget } from "../domain/binaryTargetTypes.js";
 
 interface ManagedPeFixtureOptions {
   readonly additionalEmptyTypes?: number;
+  readonly codeview?: {
+    readonly guid: Buffer;
+    readonly age: number;
+    /** Debug-directory entry TimeDateStamp; with the GUID it forms the 20-byte Portable PDB ID. */
+    readonly stamp?: number;
+    readonly path?: string;
+  };
   readonly customAttributeRowCount?: number;
   readonly cliFlags?: number;
   readonly corruptMetadataSignature?: boolean;
   readonly customAttributeTypeRaw?: number;
+  readonly embeddedPortablePdb?: Buffer;
+  /** Extra IMAGE_DEBUG_DIRECTORY entries; null data models a non-file-backed payload. */
+  readonly extraDebugEntries?: readonly {
+    readonly type: number;
+    readonly data: Buffer | null;
+  }[];
   readonly extendsRaw?: number;
   readonly exportedTypes?: readonly {
     readonly namespace: string;
@@ -897,6 +911,53 @@ const buildManagedFixtureMetadata = (
   return metadata;
 };
 
+const fixtureDebugSpecs = (
+  options: ManagedPeFixtureOptions,
+): readonly {
+  readonly type: number;
+  readonly data: Buffer | null;
+  readonly stamp: number;
+  readonly minorVersion: number;
+}[] => [
+  ...(options.codeview === undefined
+    ? []
+    : [
+        {
+          type: 2,
+          // Portable PDB CodeView entries carry Minor=0x504d and the entry
+          // TimeDateStamp completes the 20-byte PDB ID.
+          stamp: options.codeview.stamp ?? 0,
+          minorVersion: 0x504d,
+          data: Buffer.concat([
+            Buffer.from("RSDS", "ascii"),
+            options.codeview.guid,
+            u32(options.codeview.age),
+            cString(options.codeview.path ?? "fixture.pdb"),
+          ]),
+        },
+      ]),
+  ...(options.embeddedPortablePdb === undefined
+    ? []
+    : [
+        {
+          type: 17,
+          stamp: 0,
+          minorVersion: 0,
+          data: Buffer.concat([
+            Buffer.from("MPDB", "ascii"),
+            u32(options.embeddedPortablePdb.length),
+            deflateRawSync(options.embeddedPortablePdb),
+          ]),
+        },
+      ]),
+  ...(options.extraDebugEntries ?? []).map((entry) => ({
+    type: entry.type,
+    stamp: 0,
+    minorVersion: 0,
+    data: entry.data,
+  })),
+];
+
 const buildManagedFixtureImage = (
   options: ManagedPeFixtureOptions,
   buildMetadata: (methodRva: number) => Buffer,
@@ -938,6 +999,18 @@ const buildManagedFixtureImage = (
         ? Math.ceil(Math.max(metadataEnd, resourceEnd, bodyEnd) / 4) * 4
         : legacyReadyToRunOffset
       : null;
+  const debugSpecs = fixtureDebugSpecs(options);
+  const debugDirectoryOffset = align4(
+    Math.max(bodyEnd, readyToRunOffset === null ? 0 : readyToRunOffset + 4),
+  );
+  const debugDirectorySize = debugSpecs.length * 28;
+  let debugDataCursor = debugDirectoryOffset + debugDirectorySize;
+  const debugEntries = debugSpecs.map((spec) => {
+    const dataOffset = debugDataCursor;
+    debugDataCursor += spec.data?.length ?? 0;
+    return { spec, dataOffset };
+  });
+  const debugDataEnd = debugDataCursor;
   const rawSectionSize =
     Math.ceil(
       Math.max(
@@ -945,6 +1018,7 @@ const buildManagedFixtureImage = (
         0x0100 + metadata.length,
         bodyOffset - 0x0200 + body.length,
         readyToRunOffset === null ? 0 : readyToRunOffset - 0x0200 + 4,
+        debugSpecs.length === 0 ? 0 : debugDataEnd - 0x0200,
       ) / 0x0200,
     ) * 0x0200;
   const virtualSectionSize =
@@ -972,6 +1046,27 @@ const buildManagedFixtureImage = (
   image.writeUInt32LE(16, optional + 92);
   image.writeUInt32LE(0x2000, optional + 96 + 14 * 8);
   image.writeUInt32LE(72, optional + 96 + 14 * 8 + 4);
+  if (debugSpecs.length > 0) {
+    const debugRva = 0x2000 + debugDirectoryOffset - 0x0200;
+    image.writeUInt32LE(debugRva, optional + 96 + 6 * 8);
+    image.writeUInt32LE(debugDirectorySize, optional + 96 + 6 * 8 + 4);
+    debugEntries.forEach(({ spec, dataOffset }, index) => {
+      const entryOffset = debugDirectoryOffset + index * 28;
+      const dataRva = 0x2000 + dataOffset - 0x0200;
+      image.writeUInt32LE(0, entryOffset);
+      image.writeUInt32LE(spec.stamp, entryOffset + 4);
+      image.writeUInt16LE(0, entryOffset + 8);
+      image.writeUInt16LE(spec.minorVersion, entryOffset + 10);
+      image.writeUInt32LE(spec.type, entryOffset + 12);
+      image.writeUInt32LE(spec.data?.length ?? 0, entryOffset + 16);
+      image.writeUInt32LE(spec.data === null ? 0 : dataRva, entryOffset + 20);
+      image.writeUInt32LE(
+        spec.data === null ? 0 : dataOffset,
+        entryOffset + 24,
+      );
+      spec.data?.copy(image, dataOffset);
+    });
+  }
   const section = optional + 0x00e0;
   image.write(".text\0\0\0", section, "ascii");
   image.writeUInt32LE(virtualSectionSize, section + 8);
