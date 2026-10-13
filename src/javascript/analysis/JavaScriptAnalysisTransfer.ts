@@ -47,19 +47,41 @@ export const javaScriptAnalysisTransferDescriptorSchema = z.strictObject({
 });
 type Descriptor = z.output<typeof javaScriptAnalysisTransferDescriptorSchema>;
 
-/** Conservative retained-object and sealing expansion for validated transfer rows. */
+/**
+ * Retained-object expansion for validated transfer rows.
+ *
+ * Measured on Node 26 by parsing the semantic and application graph arrays of
+ * a complete Grok Bot app.asar analysis: retained heap was 1.23x to 1.42x of
+ * their JSON bytes. The parent result budget is already half of the free heap,
+ * which leaves the other half for sealing and serialization copies.
+ */
+const TRANSFER_RETENTION_EXPANSION = 2;
 export const javaScriptTransferRetentionBytes = (
   bytes: number,
   records: number,
-): number => bytes * 8 + records * 64;
+): number => bytes * TRANSFER_RETENTION_EXPANSION + records * 64;
 
-/** Larger streamed files require corresponding parent admission capacity. */
+/**
+ * Serialized semantic-fact bytes whose transfer rows fit a retention budget.
+ *
+ * Each row adds at most 32 bytes of framing and 64 bytes of retained overhead
+ * to a fact of at least 100 serialized bytes, so retention stays below four
+ * times the fact bytes.
+ */
+export const javaScriptGraphBytesWithinRetention = (
+  retentionBytes: number,
+): number => Math.max(0, Math.floor(retentionBytes / 4));
+
+/** Larger streamed files require corresponding parent retention capacity. */
 export const javaScriptTransferByteBudget = (
   resultBudgetBytes: number,
 ): number =>
   Math.min(
     MAX_TRANSFER_BYTES,
-    Math.max(TRANSFER_BYTES, Math.floor(resultBudgetBytes / 8)),
+    Math.max(
+      TRANSFER_BYTES,
+      Math.floor(resultBudgetBytes / TRANSFER_RETENTION_EXPANSION),
+    ),
   );
 
 const assertTransferByteBudget = (transferBytes: number): void => {
@@ -183,7 +205,7 @@ export const writeJavaScriptAnalysisTransfer = async (
   try {
     await append({
       kind: "projection-header",
-      value: { roots: projection.roots, truncated: projection.truncated },
+      value: { roots: projection.roots, coverage: projection.coverage },
     });
     for (const record of moduleTransferRecords(module)) await append(record);
     for (const value of projection.evidenceContexts)
@@ -227,6 +249,7 @@ export function readJavaScriptAnalysisTransfer(
   source: Pick<JavaScriptArtifactFile, "path" | "sha256">,
   signal: AbortSignal | undefined,
   retainGraph: boolean,
+  companions?: readonly Pick<JavaScriptArtifactFile, "path" | "sha256">[],
 ): Promise<{
   readonly module: JavaScriptModuleSemanticIr;
   readonly projection: JavaScriptSemanticFileProjection | null;
@@ -237,10 +260,21 @@ export async function readJavaScriptAnalysisTransfer(
   source: Pick<JavaScriptArtifactFile, "path" | "sha256">,
   signal?: AbortSignal,
   retainGraph = true,
+  companions: readonly Pick<JavaScriptArtifactFile, "path" | "sha256">[] = [],
 ): Promise<{
   readonly module: JavaScriptModuleSemanticIr;
   readonly projection: JavaScriptSemanticFileProjection | null;
 }> {
+  const admittedSources = new Map<string, string>();
+  for (const admitted of [source, ...companions]) {
+    const previous = admittedSources.get(admitted.path);
+    if (previous !== undefined && previous !== admitted.sha256) throw new TypeError("Conflicting admitted JavaScript source identities");
+    admittedSources.set(admitted.path, admitted.sha256);
+  }
+  const requireAdmittedSource = (identity: {readonly module_path: string; readonly artifact_sha256: string}): void => {
+    if (admittedSources.get(identity.module_path) !== identity.artifact_sha256)
+      throw new TypeError("JavaScript transfer node belongs to a source outside the admitted artifact identities");
+  };
   const expected = javaScriptAnalysisTransferDescriptorSchema.parse(descriptor);
   if ((await stat(path)).size !== expected.bytes)
     throw new TypeError(
@@ -349,14 +383,7 @@ export async function readJavaScriptAnalysisTransfer(
               "fingerprint",
             ].includes(record.kind)
           ) {
-            if (
-              record.kind === "node" &&
-              (record.value.identity.artifact_sha256 !== source.sha256 ||
-                record.value.identity.module_path !== source.path)
-            )
-              throw new TypeError(
-                "JavaScript transfer node belongs to a different artifact source",
-              );
+            if (record.kind === "node") requireAdmittedSource(record.value.identity);
             records += 1;
             continue;
           }
@@ -382,13 +409,7 @@ export async function readJavaScriptAnalysisTransfer(
               break;
             case "node": {
               retainIdentity(record.kind, record.value.node_id);
-              if (
-                record.value.identity.artifact_sha256 !== source.sha256 ||
-                record.value.identity.module_path !== source.path
-              )
-                throw new TypeError(
-                  "JavaScript transfer node belongs to a different artifact source",
-                );
+              requireAdmittedSource(record.value.identity);
               nodes.push(record.value);
               break;
             }
