@@ -36,7 +36,10 @@ const shellExamples = (content: string): string[] =>
 
 describe("onboarding documentation product facts", () => {
   it("keeps the installation MCP example aligned with the package registration command", async () => {
-    const content = await readFile(resolve("docs/installation.md"), "utf8");
+    const content = await readFile(
+      resolve("docs/getting-started/installation.md"),
+      "utf8",
+    );
     expect(jsonExamples(content)).toContainEqual(
       expect.objectContaining({
         mcpServers: expect.objectContaining({

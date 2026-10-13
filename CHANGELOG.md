@@ -69,7 +69,7 @@ Full contribution record: [336 commits and 163 merged PRs](https://github.com/mo
 
 ### ⚠ BREAKING CHANGES
 
-* **captures:** Historical captures without current producer accounting or transaction identity, and web diffs missing accessibility or storage dimensions, are rejected. Preserve original captures and recapture with the current producer; update comparison consumers to include every dimension rather than synthesizing missing observations. See the [process capture guide](docs/process-capture.md) and [browser scenario contract](docs/browser-scenario-contract.md). ([3283a45](https://github.com/morluto/rea/commit/3283a45d09457c79e3adadb50a48620926d4bc5b))
+* **captures:** Historical captures without current producer accounting or transaction identity, and web diffs missing accessibility or storage dimensions, are rejected. Preserve original captures and recapture with the current producer; update comparison consumers to include every dimension rather than synthesizing missing observations. See the [process capture guide](docs/guides/runtime/process-capture.md) and [browser scenario contract](docs/guides/web/browser-scenario-contract.md). ([3283a45](https://github.com/morluto/rea/commit/3283a45d09457c79e3adadb50a48620926d4bc5b))
 * **browser:** JSON shape paths now contain typed property and array-element segments. WebMCP input_schema_shape is replaced by input_schema and input_schema_sha256, retaining declared examples and defaults.
 * **process:** Filesystem digest omission entries now require system_code; budget and changed-file omissions use null, and unavailable-file omissions preserve the operating-system error code.
 * **contracts:** Provider analysis outputs must explicitly supply metadata previously repaired with defaults; unsupported nullable facets must be reported as null.
@@ -237,7 +237,7 @@ Full contribution record: [336 commits and 163 merged PRs](https://github.com/mo
 
 ### ⚠ BREAKING CHANGES
 
-Read the [6.1 to 6.2 migration guide](docs/migration-6.2.md) before upgrading. REA's `always-bump-minor` policy includes breaking changes; 6.2 is not a backward-compatibility promise. Preserve original saved files and regenerate missing observations rather than fabricating identities or facts.
+Read the [6.1 to 6.2 migration guide](docs/migrations/migration-6.2.md) before upgrading. REA's `always-bump-minor` policy includes breaking changes; 6.2 is not a backward-compatibility promise. Preserve original saved files and regenerate missing observations rather than fabricating identities or facts.
 
 * **MCP / Evidence / snapshots / artifacts:** Success results are direct canonical Evidence; read `normalized_result` rather than the old `result`/`evidence` wrapper. Evidence requires nullable `analysis_profile`, session provider aliases are removed, snapshots require complete profile-bound query records, and artifact roles/permissions belong to occurrences. Recreate incompatible saved data; adding fields without recomputing their semantic identity is invalid. ([63bf914](https://github.com/morluto/rea/commit/63bf91405cf97b114a84f337fb1272d98a267999))
 * **Process captures:** Legacy v3 conversion is removed. Explicit executable identity and `event_journal` are required; retain old captures and recapture when current comparisons are needed instead of inventing launch identity or event order. ([2a77469](https://github.com/morluto/rea/commit/2a7746998d47446c4db6d4f524e0f183d6803f3f))

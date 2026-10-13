@@ -9,7 +9,7 @@
 **Widzisz funkcję, która Ci się podoba? Dowiedz się, jak działa, aż do poziomu kodu binarnego.**
 
 [![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
-[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/mcp-contracts.md#generated-catalog)
+[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/reference/mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
 [![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](LICENSE)
@@ -67,7 +67,7 @@ npx rea-agents setup
 
 Wybierz swoich agentów, sprawdź proponowane zmiany i zatwierdź je. Konfigurator dodaje serwer MCP REA i pasujące instrukcje pracy, tworząc kopie zapasowe istniejącej konfiguracji. Następnie uruchom agenta ponownie.
 
-Konfigurator obsługuje Claude Code, Codex, Cursor, Gemini CLI, Grok Build i [innych agentów](docs/installation.md#supported-agents). Konfigurację dostawców analizy i ręczną rejestrację MCP opisuje przewodnik [instalacji i konfiguracji](docs/installation.md).
+Konfigurator obsługuje Claude Code, Codex, Cursor, Gemini CLI, Grok Build i [innych agentów](docs/getting-started/installation.md#supported-agents). Konfigurację dostawców analizy i ręczną rejestrację MCP opisuje przewodnik [instalacji i konfiguracji](docs/getting-started/installation.md).
 
 ### Zapytaj agenta
 
@@ -94,7 +94,7 @@ npm install --global rea-agents
 rea --help
 ```
 
-Przed analizą kodu natywnego skonfiguruj dostawcę analizy. Polecenia analizy natywnej, wybór dostawcy, migawki i użycie w skryptach opisuje [przewodnik CLI i Evidence](docs/cli.md).
+Przed analizą kodu natywnego skonfiguruj dostawcę analizy. Polecenia analizy natywnej, wybór dostawcy, migawki i użycie w skryptach opisuje [przewodnik CLI i Evidence](docs/getting-started/cli.md).
 
 ### Zaktualizuj REA
 
@@ -130,33 +130,33 @@ Twój agent wywołuje REA przez MCP, aby analizować cel i śledzić istotny kod
 
 REA wymaga Node.js 22.x (>=22.19), 24.x (>=24.11) lub 26+ oraz npm. Dodatkowe narzędzia i obsługiwane platformy zależą od celu analizy:
 
-| Cel                                     | Co zwraca REA                                                                                                         | Wymagania i przewodnik                                                                                                                  |
-| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Natywne pliki binarne                   | Pseudokod, kod asemblera, ciągi znaków, symbole, wywołania i odwołania                                                | Hopper, Ghidra lub IDA; [analiza kodu natywnego](https://rea.tools/pl/guides/native/)                                                   |
-| Układ pliku ELF w trybie offline        | Sekcje, segmenty, oryginalne symbole/relokacje i potencjalne mechanizmy zabezpieczeń wskazane przez analizę statyczną | pwntools dostarczone przez użytkownika w systemie Linux x64; [diagnostyka plików binarnych](docs/binary-diagnostics.md)                 |
-| Kod bajtowy EVM                         | Selektory wywołań, przesunięcia bajtowe, wywnioskowane argumenty i mutowalność                                        | Lokalny plik z surowymi bajtami lub zapisem szesnastkowym w systemie Linux x64; [przewodnik EVM offline](docs/evm-bytecode.md)          |
-| Zarejestrowane awarie systemu Linux     | Surowe rekordy note, rejestry/sygnały każdego zarejestrowanego wątku i opcjonalni kandydaci na mapowania              | pwntools dostarczone przez użytkownika w systemie Linux x64; opcjonalnie GDB/pwndbg; [zarejestrowane awarie](docs/recorded-crashes.md)  |
-| JavaScript / Electron                   | Moduły, importy, mapy źródeł, trasy, IPC i powiązania z natywnymi dodatkami                                           | Node.js i npm; [analiza aplikacji](https://rea.tools/pl/guides/javascript/)                                                             |
-| Strony internetowe                      | Struktura strony, skrypty, obserwacje sieciowe i zamówione zrzuty ekranu                                              | Przeglądarka z rodziny Chrome; [analiza w przeglądarce](https://rea.tools/pl/guides/browser/)                                           |
-| Zapisane przechwycenia ruchu sieciowego | Żądania, odpowiedzi, dostępne dane przesyłane i lokalizacje źródłowe                                                  | HAR; mitmdump w systemie Linux dla natywnych przechwyceń mitmproxy; [przewodnik przechwytywania](docs/web-network-captures.md)          |
-| Przechwytywanie pakietów                | Punkty końcowe, DNS, TLS SNI, dystrybucja protokołów i żądania HTTP                                                   | Dostarczone przez wywołującego tshark i capinfos; [przewodnik pcap](docs/pcap-analysis.md)                                              |
-| Zestawy .NET                            | Metadane, instrukcje CIL, zadeklarowane zależności natywne i porównania kompilacji                                    | Analiza statyczna; [przewodnik kodu zarządzanego](docs/managed-code-analysis.md)                                                        |
-| Pakiety APK dla Androida                | Deklaracje manifestu, klasy, zdekompilowane metody i odwołania                                                        | JADX bez interfejsu graficznego i pełny JDK w systemach Linux/macOS/Windows x64; [przewodnik Androida](docs/android-analysis.md)        |
-| Urządzenia z Androidem                  | Urządzenia, pakiety, procesy, logi, zrzuty, zrzuty ekranu oraz transfery APK/plików                                   | adb dostarczony przez wywołującego (emulator lub urządzenie); [przewodnik ADB](docs/adb-device-analysis.md)                             |
-| Projekty JEB                            | Jednostki projektu obsługiwane przez silnik, skróty artefaktów i pseudokod typów/metod                                | Uruchomiony przez wywołującego klient JEB udostępniający MCP, wybrany przez REA_JEB_MCP_URL; [przewodnik JEB](docs/jeb-analysis.md)     |
-| Zasoby Androida                         | Zdekodowany manifest, tablice ciągów, języki i informacje o wersji                                                    | Należący do wywołującego launcher Apktool; [przewodnik zasobów](docs/apktool-resource-analysis.md)                                      |
-| Aplikacje Flutter                       | Hash migawki Dart, sumy bibliotek per ABI i pochodzenie kompilacji silnika                                            | Brak (statyczna analiza APK); [przewodnik Flutter](docs/flutter-analysis.md)                                                            |
-| Oprogramowanie układowe                 | Regiony, wyniki wyodrębniania i przekazanie do analizy kodu natywnego                                                 | Binwalk / Unblob w systemie Linux; [przewodnik oprogramowania układowego](docs/firmware-analysis.md)                                    |
-| Zapisane pakiety                        | Wybrane pola, powtarzane wartości, filtry i reguły dekodowania                                                        | Linux: TShark 4.x + prlimit; [przewodnik po przechwyconych pakietach](docs/packet-captures.md)                                          |
-| Zapisane sygnały logiczne               | Adnotacje dekodera, zakresy próbek i diagnostyka                                                                      | Linux: sigrok-cli 0.7.2 + prlimit; [przewodnik po sygnałach](docs/signal-recordings.md)                                                 |
-| Pakiety i zasoby                        | Spisy plików, skróty, pliki plist, struktura pakietów Apple i wyodrębnione zasoby                                     | [Przewodnik artefaktów i JavaScript](docs/javascript-artifact-reconstruction.md), [aplikacje Apple](docs/apple-application-analysis.md) |
-| Zachowanie procesów                     | Wyjście terminala, interakcje, obserwacje zakończenia i systemu plików oraz porównania uruchomień                     | Linux/macOS z natywnym PTY; [przechwytywanie procesów](docs/process-capture.md)                                                         |
+| Cel                                     | Co zwraca REA                                                                                                         | Wymagania i przewodnik                                                                                                                                                 |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Natywne pliki binarne                   | Pseudokod, kod asemblera, ciągi znaków, symbole, wywołania i odwołania                                                | Hopper, Ghidra lub IDA; [analiza kodu natywnego](https://rea.tools/pl/guides/native/)                                                                                  |
+| Układ pliku ELF w trybie offline        | Sekcje, segmenty, oryginalne symbole/relokacje i potencjalne mechanizmy zabezpieczeń wskazane przez analizę statyczną | pwntools dostarczone przez użytkownika w systemie Linux x64; [diagnostyka plików binarnych](docs/guides/native/binary-diagnostics.md)                                  |
+| Kod bajtowy EVM                         | Selektory wywołań, przesunięcia bajtowe, wywnioskowane argumenty i mutowalność                                        | Lokalny plik z surowymi bajtami lub zapisem szesnastkowym w systemie Linux x64; [przewodnik EVM offline](docs/guides/evm/evm-bytecode.md)                              |
+| Zarejestrowane awarie systemu Linux     | Surowe rekordy note, rejestry/sygnały każdego zarejestrowanego wątku i opcjonalni kandydaci na mapowania              | pwntools dostarczone przez użytkownika w systemie Linux x64; opcjonalnie GDB/pwndbg; [zarejestrowane awarie](docs/guides/native/recorded-crashes.md)                   |
+| JavaScript / Electron                   | Moduły, importy, mapy źródeł, trasy, IPC i powiązania z natywnymi dodatkami                                           | Node.js i npm; [analiza aplikacji](https://rea.tools/pl/guides/javascript/)                                                                                            |
+| Strony internetowe                      | Struktura strony, skrypty, obserwacje sieciowe i zamówione zrzuty ekranu                                              | Przeglądarka z rodziny Chrome; [analiza w przeglądarce](https://rea.tools/pl/guides/browser/)                                                                          |
+| Zapisane przechwycenia ruchu sieciowego | Żądania, odpowiedzi, dostępne dane przesyłane i lokalizacje źródłowe                                                  | HAR; mitmdump w systemie Linux dla natywnych przechwyceń mitmproxy; [przewodnik przechwytywania](docs/guides/web/web-network-captures.md)                              |
+| Przechwytywanie pakietów                | Punkty końcowe, DNS, TLS SNI, dystrybucja protokołów i żądania HTTP                                                   | Dostarczone przez wywołującego tshark i capinfos; [przewodnik pcap](docs/guides/data/pcap-analysis.md)                                                                 |
+| Zestawy .NET                            | Metadane, instrukcje CIL, zadeklarowane zależności natywne i porównania kompilacji                                    | Analiza statyczna; [przewodnik kodu zarządzanego](docs/guides/managed/managed-code-analysis.md)                                                                        |
+| Pakiety APK dla Androida                | Deklaracje manifestu, klasy, zdekompilowane metody i odwołania                                                        | JADX bez interfejsu graficznego i pełny JDK w systemach Linux/macOS/Windows x64; [przewodnik Androida](docs/guides/android/android-analysis.md)                        |
+| Urządzenia z Androidem                  | Urządzenia, pakiety, procesy, logi, zrzuty, zrzuty ekranu oraz transfery APK/plików                                   | adb dostarczony przez wywołującego (emulator lub urządzenie); [przewodnik ADB](docs/guides/android/adb-device-analysis.md)                                             |
+| Projekty JEB                            | Jednostki projektu obsługiwane przez silnik, skróty artefaktów i pseudokod typów/metod                                | Uruchomiony przez wywołującego klient JEB udostępniający MCP, wybrany przez REA_JEB_MCP_URL; [przewodnik JEB](docs/providers/jeb-analysis.md)                          |
+| Zasoby Androida                         | Zdekodowany manifest, tablice ciągów, języki i informacje o wersji                                                    | Należący do wywołującego launcher Apktool; [przewodnik zasobów](docs/guides/android/apktool-resource-analysis.md)                                                      |
+| Aplikacje Flutter                       | Hash migawki Dart, sumy bibliotek per ABI i pochodzenie kompilacji silnika                                            | Brak (statyczna analiza APK); [przewodnik Flutter](docs/guides/android/flutter-analysis.md)                                                                            |
+| Oprogramowanie układowe                 | Regiony, wyniki wyodrębniania i przekazanie do analizy kodu natywnego                                                 | Binwalk / Unblob w systemie Linux; [przewodnik oprogramowania układowego](docs/guides/firmware/firmware-analysis.md)                                                   |
+| Zapisane pakiety                        | Wybrane pola, powtarzane wartości, filtry i reguły dekodowania                                                        | Linux: TShark 4.x + prlimit; [przewodnik po przechwyconych pakietach](docs/guides/data/packet-captures.md)                                                             |
+| Zapisane sygnały logiczne               | Adnotacje dekodera, zakresy próbek i diagnostyka                                                                      | Linux: sigrok-cli 0.7.2 + prlimit; [przewodnik po sygnałach](docs/guides/signals/signal-recordings.md)                                                                 |
+| Pakiety i zasoby                        | Spisy plików, skróty, pliki plist, struktura pakietów Apple i wyodrębnione zasoby                                     | [Przewodnik artefaktów i JavaScript](docs/guides/javascript/javascript-artifact-reconstruction.md), [aplikacje Apple](docs/guides/apple/apple-application-analysis.md) |
+| Zachowanie procesów                     | Wyjście terminala, interakcje, obserwacje zakończenia i systemu plików oraz porównania uruchomień                     | Linux/macOS z natywnym PTY; [przechwytywanie procesów](docs/guides/runtime/process-capture.md)                                                                         |
 
 Statyczna analiza JavaScript i .NET odczytuje dostarczone pliki bez uruchamiania aplikacji. Przechwytywanie w czasie wykonywania uruchamia wybrany cel lub wchodzi z nim w interakcje z uprawnieniami Twojego użytkownika; skutki opisano w odpowiednich przewodnikach.
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Obsługiwane formaty natywne i platformy zależą od dostawcy analizy. Zobacz [konfigurację Hoppera i Ghidry](docs/installation.md#hopper), [przewodnik IDA](docs/ida-provider.md) oraz [eksperymentalną obsługę Ghidry w systemie Windows](docs/windows-ghidra-p0.md). Ghidra obsługuje też [analizę 16-bitowego DOS-a](docs/ghidra-dos.md). Wybór dostawcy opisuje [przewodnik CLI](docs/cli.md#choose-a-provider). Sprawdź [dostępność w wydaniach](docs/installation.md#released-package-and-main) dla funkcji dodanych po najnowszym wydaniu npm.
+Obsługiwane formaty natywne i platformy zależą od dostawcy analizy. Zobacz [konfigurację Hoppera i Ghidry](docs/getting-started/installation.md#hopper), [przewodnik IDA](docs/providers/ida-provider.md) oraz [eksperymentalną obsługę Ghidry w systemie Windows](docs/providers/windows-ghidra-p0.md). Ghidra obsługuje też [analizę 16-bitowego DOS-a](docs/providers/ghidra-dos.md). Wybór dostawcy opisuje [przewodnik CLI](docs/getting-started/cli.md#choose-a-provider). Sprawdź [dostępność w wydaniach](docs/getting-started/installation.md#released-package-and-main) dla funkcji dodanych po najnowszym wydaniu npm.
 
 ## Przykłady zastosowań
 
@@ -187,28 +187,28 @@ Jeśli użyłeś REA do czegoś ciekawego, chętnie to zobaczymy. Opisz swój pr
 <details>
 <summary><strong>Którzy agenci mogą korzystać z REA?</strong></summary>
 
-Każdy agent obsługujący lokalne serwery MCP. Konfigurator konfiguruje [obsługiwanych agentów](docs/installation.md#supported-agents); inne klienty mogą użyć [ręcznej rejestracji MCP](docs/installation.md#mcp-registry).
+Każdy agent obsługujący lokalne serwery MCP. Konfigurator konfiguruje [obsługiwanych agentów](docs/getting-started/installation.md#supported-agents); inne klienty mogą użyć [ręcznej rejestracji MCP](docs/getting-started/installation.md#mcp-registry).
 
 </details>
 
 <details>
 <summary><strong>Czy potrzebuję Hoppera, Ghidry lub IDA?</strong></summary>
 
-Dogłębna analiza kodu natywnego używa jednego z nich. Statyczna analiza JavaScript i .NET działa bez silnika analizy natywnej. Konfigurator może zainstalować Hoppera po uzyskaniu zgody; Ghidra i IDA korzystają z istniejących instalacji. Zobacz [konfigurację dostawców analizy](docs/installation.md#hopper).
+Dogłębna analiza kodu natywnego używa jednego z nich. Statyczna analiza JavaScript i .NET działa bez silnika analizy natywnej. Konfigurator może zainstalować Hoppera po uzyskaniu zgody; Ghidra i IDA korzystają z istniejących instalacji. Zobacz [konfigurację dostawców analizy](docs/getting-started/installation.md#hopper).
 
 </details>
 
 <details>
 <summary><strong>Czy muszę najpierw uruchomić Hoppera?</strong></summary>
 
-REA uruchamia Hoppera, gdy wymaga tego operacja. W systemie macOS przy pierwszym uruchomieniu okno dialogowe może poprosić o wybór trybu demonstracyjnego lub aktywację licencji. Zobacz [uruchamianie Hoppera i rozwiązywanie problemów](docs/installation.md#launcher-paths-and-troubleshooting).
+REA uruchamia Hoppera, gdy wymaga tego operacja. W systemie macOS przy pierwszym uruchomieniu okno dialogowe może poprosić o wybór trybu demonstracyjnego lub aktywację licencji. Zobacz [uruchamianie Hoppera i rozwiązywanie problemów](docs/getting-started/installation.md#launcher-paths-and-troubleshooting).
 
 </details>
 
 <details>
 <summary><strong>Co daje zainstalowanie umiejętności z skills.sh?</strong></summary>
 
-Umiejętność dostarcza agentowi instrukcje prowadzenia analizy. Użyj `npx rea-agents setup`, aby zarejestrować serwer MCP REA i zainstalować pasujące instrukcje, a następnie uruchom agenta ponownie. Zobacz [instalację samej umiejętności](docs/installation.md#skill-only-installation).
+Umiejętność dostarcza agentowi instrukcje prowadzenia analizy. Użyj `npx rea-agents setup`, aby zarejestrować serwer MCP REA i zainstalować pasujące instrukcje, a następnie uruchom agenta ponownie. Zobacz [instalację samej umiejętności](docs/getting-started/installation.md#skill-only-installation).
 
 </details>
 
@@ -251,12 +251,12 @@ Jeśli używasz agenta, wykonaj [odświeżenie konfiguracji](#zaktualizuj-rea) i
 
 Zacznij od [przewodników z przykładami](https://rea.tools/pl/guides/) na stronie internetowej. Dokładne opcje, wymagania wstępne i kontrakty wyników opisano tutaj:
 
-- [Instalacja i konfiguracja](docs/installation.md): rejestracja agentów, konfiguracja dostawców analizy, aktualizacje i odinstalowanie.
-- [Gotowość i rozwiązywanie problemów](docs/installation.md#check-readiness-for-your-task): diagnostyka jednego agenta lub silnika analizy.
-- [CLI i Evidence](docs/cli.md): polecenia, wybór dostawcy, migawki, import/eksport i kody zakończenia.
-- [Kontrakty MCP](docs/mcp-contracts.md) i [prompty dla agentów](docs/mcp-prompts.md): wyniki narzędzi, sesje i prowadzone analizy.
-- [Katalog narzędzi](docs/mcp-contracts.md#generated-catalog): generowany podczas kompilacji wykaz narzędzi, dostawców i poleceń CLI.
-- [Plan rozwoju](docs/roadmap.md): planowane prace i śledzenie funkcjonalności.
+- [Instalacja i konfiguracja](docs/getting-started/installation.md): rejestracja agentów, konfiguracja dostawców analizy, aktualizacje i odinstalowanie.
+- [Gotowość i rozwiązywanie problemów](docs/getting-started/installation.md#check-readiness-for-your-task): diagnostyka jednego agenta lub silnika analizy.
+- [CLI i Evidence](docs/getting-started/cli.md): polecenia, wybór dostawcy, migawki, import/eksport i kody zakończenia.
+- [Kontrakty MCP](docs/reference/mcp-contracts.md) i [prompty dla agentów](docs/getting-started/mcp-prompts.md): wyniki narzędzi, sesje i prowadzone analizy.
+- [Katalog narzędzi](docs/reference/mcp-contracts.md#generated-catalog): generowany podczas kompilacji wykaz narzędzi, dostawców i poleceń CLI.
+- [Plan rozwoju](docs/development/roadmap.md): planowane prace i śledzenie funkcjonalności.
 
 Zgłaszaj podatności zgodnie z [SECURITY.md](SECURITY.md).
 
@@ -288,7 +288,7 @@ applicable licenses.
 
 Chętnie przyjmiemy Twoją pomoc w rozwoju REA! [Otwórz zgłoszenie](https://github.com/morluto/rea/issues), aby poinformować o błędzie lub zaproponować funkcję, albo [wyślij pull request](https://github.com/morluto/rea/pulls) z ulepszeniami kodu lub dokumentacji.
 
-Zobacz [CONTRIBUTING.md](CONTRIBUTING.md), aby poznać konfigurację środowiska programistycznego i kontrole, [testowanie](docs/testing.md), aby poznać ścieżki weryfikacji, oraz [mapę architektury](docs/architecture.mermaid), aby poznać strukturę projektu.
+Zobacz [CONTRIBUTING.md](CONTRIBUTING.md), aby poznać konfigurację środowiska programistycznego i kontrole, [testowanie](docs/development/testing.md), aby poznać ścieżki weryfikacji, oraz [mapę architektury](docs/architecture/architecture.mermaid), aby poznać strukturę projektu.
 
 ## Licencja
 

@@ -24,7 +24,7 @@ Choose `row_limit` when a finite sample is useful and keep truncation and
 unspecified row order explicit. Virtual tables, shadow tables and views are
 schema facts, not row-read targets. REA inspects private copies and leaves
 the source files untouched; obtain a coherent quiescent database/WAL snapshot
-before inspection. See [SQLite snapshots](https://github.com/morluto/rea/blob/main/docs/sqlite-databases.md).
+before inspection. See [SQLite snapshots](https://github.com/morluto/rea/blob/main/docs/guides/data/sqlite-databases.md).
 
 ## Recorded Linux crashes
 
@@ -39,7 +39,7 @@ The optional `include_debugger_context` facet adds mapping candidates through
 caller-supplied GDB/pwndbg in an owned core-only session. Display names do not
 establish current file identity; zero reported flags leave permissions unknown.
 Requested unavailable context fails with setup guidance. See
-[recorded crashes](https://github.com/morluto/rea/blob/main/docs/recorded-crashes.md)
+[recorded crashes](https://github.com/morluto/rea/blob/main/docs/guides/native/recorded-crashes.md)
 for exact upstream profiles, bounds and verification coverage.
 
 ## Offline ELF layout
@@ -176,7 +176,7 @@ REA has a built-in read-only snapshot parser for x64 PE targets with .NET 8 RTR
 9.1 metadata. An optional headless Ghidra adapter adds database annotations and
 broader metadata recovery on Linux; it requires an explicitly configured
 NativeAOT JAR. These are separate routes. See the
-[NativeAOT guide](https://github.com/morluto/rea/blob/main/docs/ghidra-nativeaot.md)
+[NativeAOT guide](https://github.com/morluto/rea/blob/main/docs/providers/ghidra-nativeaot.md)
 for setup, supported layouts, and host restrictions. Preserve binary identity
 and distinguish derived metadata from Ghidra database observations. Recovered
 types and native pseudocode are not original C# source. Windows Ghidra P0 has
@@ -205,7 +205,7 @@ every executable in the bundle. It also lists missing or weak loads and earlier
 provides them.
 
 Use `extract_artifact` when materialized files are needed. It extracts the active
-target and accepts optional `integrity_policy`; see the [MCP contracts](https://github.com/morluto/rea/blob/main/docs/mcp-contracts.md).
+target and accepts optional `integrity_policy`; see the [MCP contracts](https://github.com/morluto/rea/blob/main/docs/reference/mcp-contracts.md).
 It materializes all regular files into a fresh temporary directory chosen by
 REA. Symlinks and encrypted entries are inventory facts, not extractable files.
 The result reports the materialized directory; callers do not choose the
@@ -220,14 +220,14 @@ separate filesystem-writing operation.
 For headerless DOS COM, explicitly open with `format: "dos-com"` (CLI
 `--target-format dos-com`). Inspect the load image before trusting function
 analysis: the entry is `0x10100`, file offset zero, with imposed real-mode segment
-context. PSP/stack/device state remains unmodeled. See [DOS guide](https://github.com/morluto/rea/blob/main/docs/ghidra-dos.md).
+context. PSP/stack/device state remains unmodeled. See [DOS guide](https://github.com/morluto/rea/blob/main/docs/providers/ghidra-dos.md).
 
 For other headerless images (embedded firmware without ELF/Mach-O/PE/MZ
 headers), open with `format: "raw-binary"`, `architecture` (`x86`, `x86_64`,
 `arm`, or `arm64`), and `entry_point` (`0x` hex). File offset 0 is mapped at
 that address. Hopper and IDA refuse this interpretation; Ghidra uses
 `BinaryLoader` with a little-endian generic language. Big-endian, Thumb-only,
-and Cortex-M variants are unsupported. See [raw binary guide](https://github.com/morluto/rea/blob/main/docs/raw-binary.md).
+and Cortex-M variants are unsupported. See [raw binary guide](https://github.com/morluto/rea/blob/main/docs/providers/raw-binary.md).
 
 ### Function annotations in Ghidra
 
@@ -243,4 +243,4 @@ code pages, payload hashes and static icon-group references. Same-language icon
 resolution is explicit; missing references and size mismatch remain visible.
 Other payloads are opaque, and this operation does not decode images or simulate
 Windows resource loading. Consult the budgets and supported tree profile in
-[offline binary diagnostics](https://github.com/morluto/rea/blob/main/docs/binary-diagnostics.md).
+[offline binary diagnostics](https://github.com/morluto/rea/blob/main/docs/guides/native/binary-diagnostics.md).

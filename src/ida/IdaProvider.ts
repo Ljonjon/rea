@@ -192,6 +192,6 @@ export class IdaProvider implements AnalysisProviderCandidate {
 const readIdaConfigurationNotConfigured = () =>
   err(
     idaConfigurationError(
-      "Set REA_IDA_MCP_CONFIG to an upstream IDA MCP JSON registration; see docs/ida-provider.md.",
+      "Set REA_IDA_MCP_CONFIG to an upstream IDA MCP JSON registration; see docs/providers/ida-provider.md.",
     ),
   );

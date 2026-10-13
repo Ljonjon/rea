@@ -9,7 +9,7 @@
 **Побачили цікаву функцію? Зрозумійте, як вона працює, аж до рівня двійкового коду.**
 
 [![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
-[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/mcp-contracts.md#generated-catalog)
+[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/reference/mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
 [![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](LICENSE)
@@ -67,7 +67,7 @@ npx rea-agents setup
 
 Виберіть агентів, перевірте запропоновані зміни та схваліть їх. Налаштування додає MCP-сервер REA та відповідні інструкції робочих процесів, створюючи резервні копії наявної конфігурації. Після цього перезапустіть агента.
 
-Налаштування підтримує Claude Code, Codex, Cursor, Gemini CLI, Grok Build та [інших агентів](docs/installation.md#supported-agents). Конфігурацію провайдерів і ручну реєстрацію MCP описано в розділі [встановлення й налаштування](docs/installation.md).
+Налаштування підтримує Claude Code, Codex, Cursor, Gemini CLI, Grok Build та [інших агентів](docs/getting-started/installation.md#supported-agents). Конфігурацію провайдерів і ручну реєстрацію MCP описано в розділі [встановлення й налаштування](docs/getting-started/installation.md).
 
 ### Запитайте агента
 
@@ -94,7 +94,7 @@ npm install --global rea-agents
 rea --help
 ```
 
-Для нативного аналізу спочатку налаштуйте провайдера. Нативні команди, вибір провайдера, знімки та використання у скриптах описує [посібник CLI та Evidence](docs/cli.md).
+Для нативного аналізу спочатку налаштуйте провайдера. Нативні команди, вибір провайдера, знімки та використання у скриптах описує [посібник CLI та Evidence](docs/getting-started/cli.md).
 
 ### Оновіть REA
 
@@ -130,33 +130,33 @@ npx rea-agents@latest setup
 
 REA потребує Node.js 22.x (>=22.19), 24.x (>=24.11) або 26+, а також npm. Додаткові інструменти й підтримувані системи залежать від цілі:
 
-| Ціль                                 | Що повертає REA                                                                                                   | Вимоги й посібник                                                                                                                                   |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Нативні бінарні файли                | Псевдокод, асемблерний код, рядки, символи, виклики й посилання                                                   | Hopper, Ghidra або IDA; [нативний аналіз](https://rea.tools/uk/guides/native/)                                                                      |
-| Структура ELF без запуску            | Секції, сегменти, початкові символи/релокації та можливі захисні механізми за даними статичного аналізу           | pwntools, наданий стороною, що викликає інструмент, у Linux x64; [діагностика бінарних файлів](docs/binary-diagnostics.md)                          |
-| Байт-код EVM                         | Селектори диспетчеризації, зміщення байтів, виведені припущення про аргументи та змінюваність стану               | Локальні необроблені байти або шістнадцяткове представлення у Linux x64; [посібник EVM без запуску](docs/evm-bytecode.md)                           |
-| Записані аварійні завершення в Linux | Необроблені записи note, регістри/сигнали кожного записаного потоку й необов'язкові кандидати зіставлення пам'яті | pwntools, наданий стороною, що викликає інструмент, у Linux x64; необов'язкові GDB/pwndbg; [записані аварійні завершення](docs/recorded-crashes.md) |
-| JavaScript / Electron                | Модулі, імпорти, карти вихідного коду, маршрути, IPC і зв'язки з нативними доповненнями                           | Node.js і npm; [аналіз застосунків](https://rea.tools/uk/guides/javascript/)                                                                        |
-| Сайти                                | Структура сторінки, скрипти, мережеві спостереження й запитані знімки екрана                                      | Браузер сімейства Chrome; [аналіз браузера](https://rea.tools/uk/guides/browser/)                                                                   |
-| Збережені мережеві захоплення        | Запити, відповіді, доступні корисні дані та місця в джерелі                                                       | HAR; mitmdump у Linux для захоплень у власному форматі mitmproxy; [посібник мережевих захоплень](docs/web-network-captures.md)                      |
-| Захоплення пакетів                   | Кінцеві точки, DNS, TLS SNI, розподіл протоколів та HTTP-запити                                                   | Надані викликаючою стороною tshark та capinfos; [підручник pcap](docs/pcap-analysis.md)                                                             |
-| Збірки .NET                          | Метадані, інструкції CIL, оголошені нативні залежності й порівняння збірок                                        | Статична перевірка; [посібник керованого коду](docs/managed-code-analysis.md)                                                                       |
-| Android APK                          | Оголошення маніфесту, класи, декомпільовані методи й посилання                                                    | JADX без графічного інтерфейсу й повний JDK у Linux/macOS/Windows x64; [посібник Android](docs/android-analysis.md)                                 |
-| Пристрої Android                     | Пристрої, пакети, процеси, журнали, дампи, знімки екрана та передавання APK/файлів                                | adb, наданий викликаючою стороною (емулятор або пристрій); [підручник ADB](docs/adb-device-analysis.md)                                             |
-| Проєкти JEB                          | Єдиниці проєкту від рушія, дайджести артефактів і псевдокод типів/методів                                         | Запущений викликаною стороною клієнт JEB з MCP, обирається через REA_JEB_MCP_URL; [посібник JEB](docs/jeb-analysis.md)                              |
-| Ресурси Android                      | Декодований маніфест, таблиці рядків, мови та відомості про версію                                                | Засіб запуску Apktool, наданий викликаючою стороною; [підручник ресурсів](docs/apktool-resource-analysis.md)                                        |
-| Додатки Flutter                      | Хеш знімка Dart, дайджести бібліотек за ABI та походження збірки рушія                                            | Не потрібні (статичний розбір APK); [підручник Flutter](docs/flutter-analysis.md)                                                                   |
-| Прошивки                             | Області, результати видобування й передавання до нативного аналізу                                                | Binwalk / Unblob у Linux; [посібник прошивок](docs/firmware-analysis.md)                                                                            |
-| Записані пакети                      | Вибрані поля, повторювані значення, фільтри та правила декодування                                                | Linux: TShark 4.x + prlimit; [посібник із записів пакетів](docs/packet-captures.md)                                                                 |
-| Записані логічні сигнали             | Анотації декодера, діапазони відліків і діагностика                                                               | Linux: sigrok-cli 0.7.2 + prlimit; [посібник із сигналів](docs/signal-recordings.md)                                                                |
-| Пакети й ресурси                     | Переліки файлів, хеші, plist, структура пакетів Apple та видобуті ресурси                                         | [Посібник артефактів і JavaScript](docs/javascript-artifact-reconstruction.md), [застосунки Apple](docs/apple-application-analysis.md)              |
-| Поведінка процесів                   | Вивід термінала, взаємодії, спостереження за завершенням і файловою системою та порівняння запусків               | Linux/macOS із нативним PTY; [захоплення процесів](docs/process-capture.md)                                                                         |
+| Ціль                                 | Що повертає REA                                                                                                   | Вимоги й посібник                                                                                                                                                     |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Нативні бінарні файли                | Псевдокод, асемблерний код, рядки, символи, виклики й посилання                                                   | Hopper, Ghidra або IDA; [нативний аналіз](https://rea.tools/uk/guides/native/)                                                                                        |
+| Структура ELF без запуску            | Секції, сегменти, початкові символи/релокації та можливі захисні механізми за даними статичного аналізу           | pwntools, наданий стороною, що викликає інструмент, у Linux x64; [діагностика бінарних файлів](docs/guides/native/binary-diagnostics.md)                              |
+| Байт-код EVM                         | Селектори диспетчеризації, зміщення байтів, виведені припущення про аргументи та змінюваність стану               | Локальні необроблені байти або шістнадцяткове представлення у Linux x64; [посібник EVM без запуску](docs/guides/evm/evm-bytecode.md)                                  |
+| Записані аварійні завершення в Linux | Необроблені записи note, регістри/сигнали кожного записаного потоку й необов'язкові кандидати зіставлення пам'яті | pwntools, наданий стороною, що викликає інструмент, у Linux x64; необов'язкові GDB/pwndbg; [записані аварійні завершення](docs/guides/native/recorded-crashes.md)     |
+| JavaScript / Electron                | Модулі, імпорти, карти вихідного коду, маршрути, IPC і зв'язки з нативними доповненнями                           | Node.js і npm; [аналіз застосунків](https://rea.tools/uk/guides/javascript/)                                                                                          |
+| Сайти                                | Структура сторінки, скрипти, мережеві спостереження й запитані знімки екрана                                      | Браузер сімейства Chrome; [аналіз браузера](https://rea.tools/uk/guides/browser/)                                                                                     |
+| Збережені мережеві захоплення        | Запити, відповіді, доступні корисні дані та місця в джерелі                                                       | HAR; mitmdump у Linux для захоплень у власному форматі mitmproxy; [посібник мережевих захоплень](docs/guides/web/web-network-captures.md)                             |
+| Захоплення пакетів                   | Кінцеві точки, DNS, TLS SNI, розподіл протоколів та HTTP-запити                                                   | Надані викликаючою стороною tshark та capinfos; [підручник pcap](docs/guides/data/pcap-analysis.md)                                                                   |
+| Збірки .NET                          | Метадані, інструкції CIL, оголошені нативні залежності й порівняння збірок                                        | Статична перевірка; [посібник керованого коду](docs/guides/managed/managed-code-analysis.md)                                                                          |
+| Android APK                          | Оголошення маніфесту, класи, декомпільовані методи й посилання                                                    | JADX без графічного інтерфейсу й повний JDK у Linux/macOS/Windows x64; [посібник Android](docs/guides/android/android-analysis.md)                                    |
+| Пристрої Android                     | Пристрої, пакети, процеси, журнали, дампи, знімки екрана та передавання APK/файлів                                | adb, наданий викликаючою стороною (емулятор або пристрій); [підручник ADB](docs/guides/android/adb-device-analysis.md)                                                |
+| Проєкти JEB                          | Єдиниці проєкту від рушія, дайджести артефактів і псевдокод типів/методів                                         | Запущений викликаною стороною клієнт JEB з MCP, обирається через REA_JEB_MCP_URL; [посібник JEB](docs/providers/jeb-analysis.md)                                      |
+| Ресурси Android                      | Декодований маніфест, таблиці рядків, мови та відомості про версію                                                | Засіб запуску Apktool, наданий викликаючою стороною; [підручник ресурсів](docs/guides/android/apktool-resource-analysis.md)                                           |
+| Додатки Flutter                      | Хеш знімка Dart, дайджести бібліотек за ABI та походження збірки рушія                                            | Не потрібні (статичний розбір APK); [підручник Flutter](docs/guides/android/flutter-analysis.md)                                                                      |
+| Прошивки                             | Області, результати видобування й передавання до нативного аналізу                                                | Binwalk / Unblob у Linux; [посібник прошивок](docs/guides/firmware/firmware-analysis.md)                                                                              |
+| Записані пакети                      | Вибрані поля, повторювані значення, фільтри та правила декодування                                                | Linux: TShark 4.x + prlimit; [посібник із записів пакетів](docs/guides/data/packet-captures.md)                                                                       |
+| Записані логічні сигнали             | Анотації декодера, діапазони відліків і діагностика                                                               | Linux: sigrok-cli 0.7.2 + prlimit; [посібник із сигналів](docs/guides/signals/signal-recordings.md)                                                                   |
+| Пакети й ресурси                     | Переліки файлів, хеші, plist, структура пакетів Apple та видобуті ресурси                                         | [Посібник артефактів і JavaScript](docs/guides/javascript/javascript-artifact-reconstruction.md), [застосунки Apple](docs/guides/apple/apple-application-analysis.md) |
+| Поведінка процесів                   | Вивід термінала, взаємодії, спостереження за завершенням і файловою системою та порівняння запусків               | Linux/macOS із нативним PTY; [захоплення процесів](docs/guides/runtime/process-capture.md)                                                                            |
 
 Статична перевірка JavaScript і .NET читає надані файли, не запускаючи застосунок. Захоплення під час виконання запускає вибрану ціль або взаємодіє з нею з правами вашого користувача; відповідні посібники описують його вплив.
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Нативні формати й підтримка систем відрізняються залежно від провайдера. Дивіться [налаштування Hopper і Ghidra](docs/installation.md#hopper), [посібник IDA](docs/ida-provider.md) та [експериментальну підтримку Ghidra у Windows](docs/windows-ghidra-p0.md). Ghidra також підтримує [аналіз 16-бітного DOS](docs/ghidra-dos.md). Для вибору провайдера дивіться [посібник CLI](docs/cli.md#choose-a-provider). Для функцій, доданих після найновішої версії в npm, перевірте [доступність у випусках](docs/installation.md#released-package-and-main).
+Нативні формати й підтримка систем відрізняються залежно від провайдера. Дивіться [налаштування Hopper і Ghidra](docs/getting-started/installation.md#hopper), [посібник IDA](docs/providers/ida-provider.md) та [експериментальну підтримку Ghidra у Windows](docs/providers/windows-ghidra-p0.md). Ghidra також підтримує [аналіз 16-бітного DOS](docs/providers/ghidra-dos.md). Для вибору провайдера дивіться [посібник CLI](docs/getting-started/cli.md#choose-a-provider). Для функцій, доданих після найновішої версії в npm, перевірте [доступність у випусках](docs/getting-started/installation.md#released-package-and-main).
 
 ## Приклади
 
@@ -187,28 +187,28 @@ REA потребує Node.js 22.x (>=22.19), 24.x (>=24.11) або 26+, а та�
 <details>
 <summary><strong>Які агенти можуть використовувати REA?</strong></summary>
 
-Будь-який агент, що підтримує локальні MCP-сервери. Налаштування конфігурує [підтримуваних агентів](docs/installation.md#supported-agents); інші клієнти можуть використати [ручну реєстрацію MCP](docs/installation.md#mcp-registry).
+Будь-який агент, що підтримує локальні MCP-сервери. Налаштування конфігурує [підтримуваних агентів](docs/getting-started/installation.md#supported-agents); інші клієнти можуть використати [ручну реєстрацію MCP](docs/getting-started/installation.md#mcp-registry).
 
 </details>
 
 <details>
 <summary><strong>Чи потрібні мені Hopper, Ghidra або IDA?</strong></summary>
 
-Поглиблений нативний аналіз використовує один із цих інструментів. Статична перевірка JavaScript і .NET працює без рушія нативного аналізу. Налаштування може встановити Hopper після схвалення; Ghidra й IDA використовують наявні встановлення. Дивіться [налаштування провайдерів](docs/installation.md#hopper).
+Поглиблений нативний аналіз використовує один із цих інструментів. Статична перевірка JavaScript і .NET працює без рушія нативного аналізу. Налаштування може встановити Hopper після схвалення; Ghidra й IDA використовують наявні встановлення. Дивіться [налаштування провайдерів](docs/getting-started/installation.md#hopper).
 
 </details>
 
 <details>
 <summary><strong>Чи потрібно спочатку запускати Hopper?</strong></summary>
 
-REA запускає Hopper, коли він потрібен для операції. У macOS під час першого запуску може з'явитися діалог вибору деморежиму або активації ліцензії. Дивіться [запуск Hopper та усунення неполадок](docs/installation.md#launcher-paths-and-troubleshooting).
+REA запускає Hopper, коли він потрібен для операції. У macOS під час першого запуску може з'явитися діалог вибору деморежиму або активації ліцензії. Дивіться [запуск Hopper та усунення неполадок](docs/getting-started/installation.md#launcher-paths-and-troubleshooting).
 
 </details>
 
 <details>
 <summary><strong>Що дає встановлення skill із skills.sh?</strong></summary>
 
-Skill надає агенту інструкції дослідження. Використовуйте `npx rea-agents setup`, щоб зареєструвати MCP-сервер REA та встановити відповідні інструкції, а потім перезапустіть агента. Дивіться [встановлення лише skill](docs/installation.md#skill-only-installation).
+Skill надає агенту інструкції дослідження. Використовуйте `npx rea-agents setup`, щоб зареєструвати MCP-сервер REA та встановити відповідні інструкції, а потім перезапустіть агента. Дивіться [встановлення лише skill](docs/getting-started/installation.md#skill-only-installation).
 
 </details>
 
@@ -251,12 +251,12 @@ npx rea-agents@latest setup
 
 Почніть із [практичних посібників](https://rea.tools/uk/guides/) на сайті. Точні параметри, передумови й контракти результатів описано тут:
 
-- [Встановлення й налаштування](docs/installation.md): реєстрація агентів, конфігурація провайдерів, оновлення та видалення.
-- [Готовність та усунення неполадок](docs/installation.md#check-readiness-for-your-task): діагностика конкретного агента або рушія аналізу.
-- [CLI та Evidence](docs/cli.md): команди, вибір провайдера, знімки, імпорт/експорт і статуси завершення.
-- [Контракти MCP](docs/mcp-contracts.md) і [промпти агентів](docs/mcp-prompts.md): результати інструментів, сеанси й керовані дослідження.
-- [Каталог інструментів](docs/mcp-contracts.md#generated-catalog): створюваний під час збірки перелік інструментів, провайдерів і команд CLI.
-- [План розвитку](docs/roadmap.md): заплановані роботи й відстеження можливостей.
+- [Встановлення й налаштування](docs/getting-started/installation.md): реєстрація агентів, конфігурація провайдерів, оновлення та видалення.
+- [Готовність та усунення неполадок](docs/getting-started/installation.md#check-readiness-for-your-task): діагностика конкретного агента або рушія аналізу.
+- [CLI та Evidence](docs/getting-started/cli.md): команди, вибір провайдера, знімки, імпорт/експорт і статуси завершення.
+- [Контракти MCP](docs/reference/mcp-contracts.md) і [промпти агентів](docs/getting-started/mcp-prompts.md): результати інструментів, сеанси й керовані дослідження.
+- [Каталог інструментів](docs/reference/mcp-contracts.md#generated-catalog): створюваний під час збірки перелік інструментів, провайдерів і команд CLI.
+- [План розвитку](docs/development/roadmap.md): заплановані роботи й відстеження можливостей.
 
 Повідомляйте про вразливості згідно з [SECURITY.md](SECURITY.md).
 
@@ -288,7 +288,7 @@ applicable licenses.
 
 Будемо раді вашій допомозі з REA! [Відкрийте issue](https://github.com/morluto/rea/issues), щоб повідомити про помилку чи запропонувати функцію, або [надішліть pull request](https://github.com/morluto/rea/pulls) з поліпшеннями коду чи документації.
 
-Налаштування середовища розробки й перевірки описано в [CONTRIBUTING.md](CONTRIBUTING.md), шляхи верифікації — у [посібнику тестування](docs/testing.md), а структуру проєкту — на [схемі архітектури](docs/architecture.mermaid).
+Налаштування середовища розробки й перевірки описано в [CONTRIBUTING.md](CONTRIBUTING.md), шляхи верифікації — у [посібнику тестування](docs/development/testing.md), а структуру проєкту — на [схемі архітектури](docs/architecture/architecture.mermaid).
 
 ## Ліцензія
 

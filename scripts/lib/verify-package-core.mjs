@@ -9,7 +9,7 @@ import { Ajv2020 } from "ajv/dist/2020.js";
  * file. `verifyCompleteToolCatalog` is the only consumer, so we lazy-load
  * the module there and keep the other helpers (`exec`, `run`, `json`,
  * `pathExists`) usable from `test:fast` callers that only need `dist/`-free
- * utilities — see docs/testing.md § test scripts, which promises `test:fast`
+ * utilities — see docs/development/testing.md § test scripts, which promises `test:fast`
  * runs "without build".
  */
 const loadMcpVerifierResults = () => import("./mcp-verifier-results.mjs");

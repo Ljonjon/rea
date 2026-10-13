@@ -369,7 +369,7 @@ export class IdaSessionClient implements AnalysisClient {
           reason:
             cause instanceof Error ? cause.message : "Unknown upstream failure",
           recovery:
-            "Check the configured upstream MCP registration and selected target; see docs/ida-provider.md.",
+            "Check the configured upstream MCP registration and selected target; see docs/providers/ida-provider.md.",
         },
       });
     // Only operation calls made after target identity/readiness validation can
@@ -453,7 +453,7 @@ export class IdaSessionClient implements AnalysisClient {
     const missing = expected.filter((name) => !tools.has(name));
     if (missing.length > 0)
       throw new AnalysisProtocolError(
-        `IDA MCP ${this.config.protocol === "native" ? "native attached" : this.config.mode} compatibility profile is missing tools: ${missing.join(", ")}. Native attached mode requires the native IDA MCP tool catalog; legacy attached mode requires the legacy 1.4 profile; headless mode requires the database supervisor profile. See docs/ida-provider.md.`,
+        `IDA MCP ${this.config.protocol === "native" ? "native attached" : this.config.mode} compatibility profile is missing tools: ${missing.join(", ")}. Native attached mode requires the native IDA MCP tool catalog; legacy attached mode requires the legacy 1.4 profile; headless mode requires the database supervisor profile. See docs/providers/ida-provider.md.`,
       );
     if (this.config.mode === "headless") {
       this.#workspace = await IdaWorkspace.allocate(

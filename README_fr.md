@@ -9,7 +9,7 @@
 **Repérez une fonctionnalité qui vous plaît. Comprenez son fonctionnement, jusqu'au niveau du binaire.**
 
 [![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
-[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/mcp-contracts.md#generated-catalog)
+[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/reference/mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
 [![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](LICENSE)
@@ -67,7 +67,7 @@ npx rea-agents setup
 
 Choisissez vos agents, vérifiez les modifications proposées et approuvez-les. Setup ajoute le serveur MCP de REA et les instructions de workflow correspondantes, et sauvegarde la configuration existante. Redémarrez ensuite votre agent.
 
-Setup prend en charge Claude Code, Codex, Cursor, Gemini CLI, Grok Build et [d'autres agents](docs/installation.md#supported-agents). Consultez [Installation et configuration](docs/installation.md) pour la configuration des fournisseurs et l'enregistrement MCP manuel.
+Setup prend en charge Claude Code, Codex, Cursor, Gemini CLI, Grok Build et [d'autres agents](docs/getting-started/installation.md#supported-agents). Consultez [Installation et configuration](docs/getting-started/installation.md) pour la configuration des fournisseurs et l'enregistrement MCP manuel.
 
 ### Interroger votre agent
 
@@ -95,7 +95,7 @@ npm install --global rea-agents
 rea --help
 ```
 
-Pour l'analyse native, configurez d'abord un fournisseur. Consultez le [guide CLI et Evidence](docs/cli.md) pour les commandes natives, le choix du fournisseur, les snapshots et l'utilisation dans des scripts.
+Pour l'analyse native, configurez d'abord un fournisseur. Consultez le [guide CLI et Evidence](docs/getting-started/cli.md) pour les commandes natives, le choix du fournisseur, les snapshots et l'utilisation dans des scripts.
 
 ### Mettre à jour REA
 
@@ -133,34 +133,34 @@ Votre agent appelle REA via MCP pour inspecter la cible et suivre le code pertin
 
 REA nécessite Node.js 22.x (>=22.19), 24.x (>=24.11) ou 26+, ainsi que npm. Les outils supplémentaires et les hôtes pris en charge dépendent de la cible :
 
-| Cible                        | Ce que REA renvoie                                                                                          | Prérequis et guide                                                                                                                    |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Binaires natifs              | Pseudo-code, assembleur, chaînes, symboles, appels et références                                            | Hopper, Ghidra ou IDA ; [analyse native](https://rea.tools/fr/guides/native/)                                                         |
-| Structure ELF hors ligne     | Sections, segments, symboles et relocations d'origine, et protections statiques candidates                  | pwntools fourni par l'utilisateur sous Linux x64 ; [diagnostics binaires](docs/binary-diagnostics.md)                                 |
-| Artefact WASM                | Validation, sections, formes WAT exactes d'import/export et WAT décodé                                      | WABT 1.0.42 fourni par l'utilisateur ; `inspect_wasm_artifact`                                                                        |
-| Bytecode EVM                 | Sélecteurs de dispatch, offsets en octets, arguments inférés et mutabilité                                  | Fichier local brut ou hexadécimal sous Linux x64 ; [guide EVM hors ligne](docs/evm-bytecode.md)                                       |
-| Crashs Linux enregistrés     | Notes brutes, registres et signaux de chaque thread enregistré, et correspondances de mappings facultatives | pwntools fourni par l'utilisateur sous Linux x64 ; GDB/pwndbg en option ; [crashs enregistrés](docs/recorded-crashes.md)              |
-| JavaScript / Electron        | Modules, imports, source maps, routes, IPC et relations avec les modules natifs                             | Node.js et npm ; [analyse d'applications](https://rea.tools/fr/guides/javascript/)                                                    |
-| Sites web                    | Structure des pages, scripts, observations réseau et captures d'écran demandées                             | Un navigateur de la famille Chrome ; [analyse du navigateur](https://rea.tools/fr/guides/browser/)                                    |
-| Captures réseau enregistrées | Requêtes, réponses, payloads exposés et emplacements dans le code source                                    | HAR ; mitmdump sous Linux pour les captures mitmproxy natives ; [guide des captures](docs/web-network-captures.md)                    |
-| Captures de paquets          | Points de terminaison, DNS, TLS SNI, distribution des protocoles et requêtes HTTP                           | tshark et capinfos fournis par l'appelant ; [guide pcap](docs/pcap-analysis.md)                                                       |
-| Assemblys .NET               | Métadonnées, instructions CIL, dépendances natives déclarées et comparaisons de builds                      | Inspection statique ; [guide du code managé](docs/managed-code-analysis.md)                                                           |
-| APK Android                  | Déclarations du manifeste, classes, méthodes décompilées et références                                      | JADX headless et un JDK complet sous Linux/macOS/Windows x64 ; [guide Android](docs/android-analysis.md)                              |
-| Appareils Android            | Appareils, paquets, processus, journaux, dumps, captures d'écran et transferts d'APK/fichiers               | adb fourni par l'appelant (émulateur ou appareil) ; [guide ADB](docs/adb-device-analysis.md)                                          |
-| Projets JEB                  | Unités de projet fournies par le moteur, condensés d'artefacts et pseudo-code de types/méthodes             | Un client JEB démarré par l'appelant servant MCP, sélectionné via REA_JEB_MCP_URL ; [guide JEB](docs/jeb-analysis.md)                 |
-| Ressources Android           | Manifeste décodé, tables de chaînes, langues et faits de version                                            | Lanceur Apktool fourni par l'appelant ; [guide des ressources](docs/apktool-resource-analysis.md)                                     |
-| Applications Flutter         | Empreinte de snapshot Dart, condensés de bibliothèques par ABI et provenance de build du moteur             | Aucune (analyse APK statique) ; [guide Flutter](docs/flutter-analysis.md)                                                             |
-| Firmware                     | Régions, résultats d'extraction et passage de relais vers l'analyse native                                  | Binwalk / Unblob sous Linux ; [guide firmware](docs/firmware-analysis.md)                                                             |
-| Paquets enregistrés          | Champs sélectionnés, valeurs répétées, filtres et règles de décodage                                        | Linux: TShark 4.x + prlimit; [guide des captures](docs/packet-captures.md)                                                            |
-| Signaux logiques enregistrés | Annotations du décodeur, plages d’échantillons et diagnostics                                               | Linux: sigrok-cli 0.7.2 + prlimit; [guide des signaux](docs/signal-recordings.md)                                                     |
-| Paquets et ressources        | Inventaires de fichiers, empreintes, plists, anatomie des bundles Apple et ressources extraites             | [Guide artefacts et JavaScript](docs/javascript-artifact-reconstruction.md), [applications Apple](docs/apple-application-analysis.md) |
-| Comportement des processus   | Sortie du terminal, interactions, code de sortie, observations du système de fichiers et comparaisons       | Linux/macOS avec un PTY natif ; [capture de processus](docs/process-capture.md)                                                       |
+| Cible                        | Ce que REA renvoie                                                                                          | Prérequis et guide                                                                                                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Binaires natifs              | Pseudo-code, assembleur, chaînes, symboles, appels et références                                            | Hopper, Ghidra ou IDA ; [analyse native](https://rea.tools/fr/guides/native/)                                                                                        |
+| Structure ELF hors ligne     | Sections, segments, symboles et relocations d'origine, et protections statiques candidates                  | pwntools fourni par l'utilisateur sous Linux x64 ; [diagnostics binaires](docs/guides/native/binary-diagnostics.md)                                                  |
+| Artefact WASM                | Validation, sections, formes WAT exactes d'import/export et WAT décodé                                      | WABT 1.0.42 fourni par l'utilisateur ; `inspect_wasm_artifact`                                                                                                       |
+| Bytecode EVM                 | Sélecteurs de dispatch, offsets en octets, arguments inférés et mutabilité                                  | Fichier local brut ou hexadécimal sous Linux x64 ; [guide EVM hors ligne](docs/guides/evm/evm-bytecode.md)                                                           |
+| Crashs Linux enregistrés     | Notes brutes, registres et signaux de chaque thread enregistré, et correspondances de mappings facultatives | pwntools fourni par l'utilisateur sous Linux x64 ; GDB/pwndbg en option ; [crashs enregistrés](docs/guides/native/recorded-crashes.md)                               |
+| JavaScript / Electron        | Modules, imports, source maps, routes, IPC et relations avec les modules natifs                             | Node.js et npm ; [analyse d'applications](https://rea.tools/fr/guides/javascript/)                                                                                   |
+| Sites web                    | Structure des pages, scripts, observations réseau et captures d'écran demandées                             | Un navigateur de la famille Chrome ; [analyse du navigateur](https://rea.tools/fr/guides/browser/)                                                                   |
+| Captures réseau enregistrées | Requêtes, réponses, payloads exposés et emplacements dans le code source                                    | HAR ; mitmdump sous Linux pour les captures mitmproxy natives ; [guide des captures](docs/guides/web/web-network-captures.md)                                        |
+| Captures de paquets          | Points de terminaison, DNS, TLS SNI, distribution des protocoles et requêtes HTTP                           | tshark et capinfos fournis par l'appelant ; [guide pcap](docs/guides/data/pcap-analysis.md)                                                                          |
+| Assemblys .NET               | Métadonnées, instructions CIL, dépendances natives déclarées et comparaisons de builds                      | Inspection statique ; [guide du code managé](docs/guides/managed/managed-code-analysis.md)                                                                           |
+| APK Android                  | Déclarations du manifeste, classes, méthodes décompilées et références                                      | JADX headless et un JDK complet sous Linux/macOS/Windows x64 ; [guide Android](docs/guides/android/android-analysis.md)                                              |
+| Appareils Android            | Appareils, paquets, processus, journaux, dumps, captures d'écran et transferts d'APK/fichiers               | adb fourni par l'appelant (émulateur ou appareil) ; [guide ADB](docs/guides/android/adb-device-analysis.md)                                                          |
+| Projets JEB                  | Unités de projet fournies par le moteur, condensés d'artefacts et pseudo-code de types/méthodes             | Un client JEB démarré par l'appelant servant MCP, sélectionné via REA_JEB_MCP_URL ; [guide JEB](docs/providers/jeb-analysis.md)                                      |
+| Ressources Android           | Manifeste décodé, tables de chaînes, langues et faits de version                                            | Lanceur Apktool fourni par l'appelant ; [guide des ressources](docs/guides/android/apktool-resource-analysis.md)                                                     |
+| Applications Flutter         | Empreinte de snapshot Dart, condensés de bibliothèques par ABI et provenance de build du moteur             | Aucune (analyse APK statique) ; [guide Flutter](docs/guides/android/flutter-analysis.md)                                                                             |
+| Firmware                     | Régions, résultats d'extraction et passage de relais vers l'analyse native                                  | Binwalk / Unblob sous Linux ; [guide firmware](docs/guides/firmware/firmware-analysis.md)                                                                            |
+| Paquets enregistrés          | Champs sélectionnés, valeurs répétées, filtres et règles de décodage                                        | Linux: TShark 4.x + prlimit; [guide des captures](docs/guides/data/packet-captures.md)                                                                               |
+| Signaux logiques enregistrés | Annotations du décodeur, plages d’échantillons et diagnostics                                               | Linux: sigrok-cli 0.7.2 + prlimit; [guide des signaux](docs/guides/signals/signal-recordings.md)                                                                     |
+| Paquets et ressources        | Inventaires de fichiers, empreintes, plists, anatomie des bundles Apple et ressources extraites             | [Guide artefacts et JavaScript](docs/guides/javascript/javascript-artifact-reconstruction.md), [applications Apple](docs/guides/apple/apple-application-analysis.md) |
+| Comportement des processus   | Sortie du terminal, interactions, code de sortie, observations du système de fichiers et comparaisons       | Linux/macOS avec un PTY natif ; [capture de processus](docs/guides/runtime/process-capture.md)                                                                       |
 
 L'inspection statique JavaScript et .NET lit les fichiers fournis sans exécuter l'application. La capture à l'exécution lance la cible choisie ou interagit avec elle avec vos permissions utilisateur ; chaque guide d'exécution décrit ses effets.
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Les formats natifs et les hôtes pris en charge varient selon le fournisseur. Consultez [la configuration de Hopper et Ghidra](docs/installation.md#hopper), le [guide IDA](docs/ida-provider.md) et [la prise en charge expérimentale de Ghidra sous Windows](docs/windows-ghidra-p0.md). Ghidra prend aussi en charge [l'analyse DOS 16 bits](docs/ghidra-dos.md). Pour les gros binaires, augmentez son délai de démarrage avec `REA_GHIDRA_STARTUP_TIMEOUT_MS`. Pour le choix du fournisseur, consultez le [guide CLI](docs/cli.md#choose-a-provider). Vérifiez la [disponibilité dans les versions publiées](docs/installation.md#released-package-and-main) pour les fonctionnalités ajoutées depuis la dernière version npm.
+Les formats natifs et les hôtes pris en charge varient selon le fournisseur. Consultez [la configuration de Hopper et Ghidra](docs/getting-started/installation.md#hopper), le [guide IDA](docs/providers/ida-provider.md) et [la prise en charge expérimentale de Ghidra sous Windows](docs/providers/windows-ghidra-p0.md). Ghidra prend aussi en charge [l'analyse DOS 16 bits](docs/providers/ghidra-dos.md). Pour les gros binaires, augmentez son délai de démarrage avec `REA_GHIDRA_STARTUP_TIMEOUT_MS`. Pour le choix du fournisseur, consultez le [guide CLI](docs/getting-started/cli.md#choose-a-provider). Vérifiez la [disponibilité dans les versions publiées](docs/getting-started/installation.md#released-package-and-main) pour les fonctionnalités ajoutées depuis la dernière version npm.
 
 ## Études de cas
 
@@ -191,28 +191,28 @@ Si vous avez utilisé REA sur un projet intéressant, nous serions ravis de le d
 <details>
 <summary><strong>Quels agents peuvent utiliser REA ?</strong></summary>
 
-Tout agent compatible avec les serveurs MCP locaux. Setup configure les [agents pris en charge](docs/installation.md#supported-agents) ; les autres clients peuvent utiliser [l'enregistrement MCP manuel](docs/installation.md#mcp-registry).
+Tout agent compatible avec les serveurs MCP locaux. Setup configure les [agents pris en charge](docs/getting-started/installation.md#supported-agents) ; les autres clients peuvent utiliser [l'enregistrement MCP manuel](docs/getting-started/installation.md#mcp-registry).
 
 </details>
 
 <details>
 <summary><strong>Ai-je besoin de Hopper, Ghidra ou IDA ?</strong></summary>
 
-L'analyse native approfondie utilise l'un d'eux. L'inspection statique JavaScript et .NET fonctionne sans moteur d'analyse native. Setup peut installer Hopper après votre accord ; Ghidra et IDA utilisent vos installations existantes. Consultez [la configuration des fournisseurs](docs/installation.md#hopper).
+L'analyse native approfondie utilise l'un d'eux. L'inspection statique JavaScript et .NET fonctionne sans moteur d'analyse native. Setup peut installer Hopper après votre accord ; Ghidra et IDA utilisent vos installations existantes. Consultez [la configuration des fournisseurs](docs/getting-started/installation.md#hopper).
 
 </details>
 
 <details>
 <summary><strong>Dois-je lancer Hopper au préalable ?</strong></summary>
 
-REA lance Hopper lorsqu'une opération en a besoin. Sous macOS, une boîte de dialogue de premier lancement peut vous demander de choisir le mode démo ou d'activer votre licence. Consultez [Démarrage et dépannage de Hopper](docs/installation.md#launcher-paths-and-troubleshooting).
+REA lance Hopper lorsqu'une opération en a besoin. Sous macOS, une boîte de dialogue de premier lancement peut vous demander de choisir le mode démo ou d'activer votre licence. Consultez [Démarrage et dépannage de Hopper](docs/getting-started/installation.md#launcher-paths-and-troubleshooting).
 
 </details>
 
 <details>
 <summary><strong>Que fait l'installation du skill depuis skills.sh ?</strong></summary>
 
-Le skill fournit des instructions d'investigation à votre agent. Utilisez `npx rea-agents setup` pour enregistrer le serveur MCP de REA et installer les instructions correspondantes, puis redémarrez votre agent. Consultez [l'installation du skill seul](docs/installation.md#skill-only-installation).
+Le skill fournit des instructions d'investigation à votre agent. Utilisez `npx rea-agents setup` pour enregistrer le serveur MCP de REA et installer les instructions correspondantes, puis redémarrez votre agent. Consultez [l'installation du skill seul](docs/getting-started/installation.md#skill-only-installation).
 
 </details>
 
@@ -255,12 +255,12 @@ Si vous utilisez un agent, terminez l'[actualisation de la configuration](#mettr
 
 Commencez par les [guides pas à pas](https://rea.tools/fr/guides/) du site web. Pour les options exactes, les prérequis et les contrats de résultats :
 
-- [Installation et configuration](docs/installation.md) : enregistrement des agents, configuration des fournisseurs, mises à jour et désinstallation.
-- [Vérification et dépannage](docs/installation.md#check-readiness-for-your-task) : diagnostiquer un agent ou un moteur d'analyse donné.
-- [CLI et Evidence](docs/cli.md) : commandes, choix du fournisseur, snapshots, import/export et codes de sortie.
-- [Contrats MCP](docs/mcp-contracts.md) et [prompts pour agents](docs/mcp-prompts.md) : résultats des outils, sessions et investigations guidées.
-- [Catalogue des outils](docs/mcp-contracts.md#generated-catalog) : inventaire des outils, fournisseurs et commandes CLI, généré lors du build.
-- [Feuille de route](docs/roadmap.md) : travaux prévus et suivi des capacités.
+- [Installation et configuration](docs/getting-started/installation.md) : enregistrement des agents, configuration des fournisseurs, mises à jour et désinstallation.
+- [Vérification et dépannage](docs/getting-started/installation.md#check-readiness-for-your-task) : diagnostiquer un agent ou un moteur d'analyse donné.
+- [CLI et Evidence](docs/getting-started/cli.md) : commandes, choix du fournisseur, snapshots, import/export et codes de sortie.
+- [Contrats MCP](docs/reference/mcp-contracts.md) et [prompts pour agents](docs/getting-started/mcp-prompts.md) : résultats des outils, sessions et investigations guidées.
+- [Catalogue des outils](docs/reference/mcp-contracts.md#generated-catalog) : inventaire des outils, fournisseurs et commandes CLI, généré lors du build.
+- [Feuille de route](docs/development/roadmap.md) : travaux prévus et suivi des capacités.
 
 Signalez les vulnérabilités via [SECURITY.md](SECURITY.md).
 
@@ -292,7 +292,7 @@ applicable licenses.
 
 Votre aide sur REA est la bienvenue ! [Ouvrez une issue](https://github.com/morluto/rea/issues) pour signaler un bug ou proposer une fonctionnalité, ou [envoyez une pull request](https://github.com/morluto/rea/pulls) pour améliorer le code ou la documentation.
 
-Consultez [CONTRIBUTING.md](CONTRIBUTING.md) pour l'environnement de développement et les vérifications, la page [tests](docs/testing.md) pour les procédures de vérification, et la [carte de l'architecture](docs/architecture.mermaid) pour la structure du projet.
+Consultez [CONTRIBUTING.md](CONTRIBUTING.md) pour l'environnement de développement et les vérifications, la page [tests](docs/development/testing.md) pour les procédures de vérification, et la [carte de l'architecture](docs/architecture/architecture.mermaid) pour la structure du projet.
 
 ## Licence
 

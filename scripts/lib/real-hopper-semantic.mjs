@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
  * `requireFunctionDossierOracle` is only used inside `verifyRealHopperFixture`,
  * which runs against the real Hopper bridge after `build:cached`. Loading it
  * lazily keeps this module importable from `test:fast` (which docs promise to
- * run "without build" — see docs/testing.md § test scripts) so that mock-only
+ * run "without build" — see docs/development/testing.md § test scripts) so that mock-only
  * callers such as `requireCurrentDocument` and `resolveFixtureProcedure` do
  * not require `dist/`.
  */

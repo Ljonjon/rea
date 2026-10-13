@@ -9,7 +9,7 @@
 **Thấy một tính năng bạn thích? Hiểu cách nó hoạt động, đến tận mức mã nhị phân.**
 
 [![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
-[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/mcp-contracts.md#generated-catalog)
+[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/reference/mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
 [![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](LICENSE)
@@ -67,7 +67,7 @@ npx rea-agents setup
 
 Chọn các tác nhân, xem lại những thay đổi được đề xuất và chấp thuận. Quá trình thiết lập thêm máy chủ MCP của REA cùng hướng dẫn quy trình tương ứng, đồng thời sao lưu cấu hình hiện có. Sau đó khởi động lại tác nhân.
 
-Quá trình thiết lập hỗ trợ Claude Code, Codex, Cursor, Gemini CLI, Grok Build và [các tác nhân khác](docs/installation.md#supported-agents). Xem [cài đặt và thiết lập](docs/installation.md) để cấu hình trình phân tích và đăng ký MCP thủ công.
+Quá trình thiết lập hỗ trợ Claude Code, Codex, Cursor, Gemini CLI, Grok Build và [các tác nhân khác](docs/getting-started/installation.md#supported-agents). Xem [cài đặt và thiết lập](docs/getting-started/installation.md) để cấu hình trình phân tích và đăng ký MCP thủ công.
 
 ### Hỏi tác nhân
 
@@ -94,7 +94,7 @@ npm install --global rea-agents
 rea --help
 ```
 
-Để phân tích mã máy, trước tiên hãy cấu hình trình phân tích. Xem [hướng dẫn CLI và Evidence](docs/cli.md) về các lệnh phân tích mã máy, lựa chọn trình phân tích, ảnh chụp trạng thái và sử dụng trong script.
+Để phân tích mã máy, trước tiên hãy cấu hình trình phân tích. Xem [hướng dẫn CLI và Evidence](docs/getting-started/cli.md) về các lệnh phân tích mã máy, lựa chọn trình phân tích, ảnh chụp trạng thái và sử dụng trong script.
 
 ### Cập nhật REA
 
@@ -130,33 +130,33 @@ Tác nhân gọi REA qua MCP để kiểm tra mục tiêu và lần theo mã li�
 
 REA yêu cầu Node.js 22.x (>=22.19), 24.x (>=24.11) hoặc 26+, cùng với npm. Công cụ bổ sung và nền tảng chạy REA được hỗ trợ tùy thuộc vào mục tiêu:
 
-| Mục tiêu                      | REA trả về gì                                                                                                   | Yêu cầu và hướng dẫn                                                                                                                          |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tệp nhị phân mã máy           | Mã giả, hợp ngữ, chuỗi, ký hiệu, lời gọi và tham chiếu                                                          | Hopper, Ghidra hoặc IDA; [phân tích mã máy](https://rea.tools/vi/guides/native/)                                                              |
-| Bố cục ELF ngoại tuyến        | Các section, segment, ký hiệu/thông tin tái định vị gốc và các biện pháp giảm thiểu có thể có từ phân tích tĩnh | pwntools do bên gọi cung cấp trên Linux x64; [chẩn đoán tệp nhị phân](docs/binary-diagnostics.md)                                             |
-| Bytecode EVM                  | Bộ chọn điều phối, độ lệch byte, tham số suy luận và khả năng thay đổi trạng thái                               | Đầu vào cục bộ chứa byte thô hoặc dạng thập lục phân trên Linux x64; [hướng dẫn EVM ngoại tuyến](docs/evm-bytecode.md)                        |
-| Sự cố Linux đã ghi lại        | Bản ghi note thô, thanh ghi/tín hiệu của mọi luồng được ghi lại và các ứng viên ánh xạ tùy chọn                 | pwntools do bên gọi cung cấp trên Linux x64; GDB/pwndbg tùy chọn; [sự cố đã ghi lại](docs/recorded-crashes.md)                                |
-| JavaScript / Electron         | Mô-đun, các khai báo import, source map, tuyến, IPC và quan hệ với tiện ích mở rộng mã máy                      | Node.js và npm; [phân tích ứng dụng](https://rea.tools/vi/guides/javascript/)                                                                 |
-| Trang web                     | Cấu trúc trang, script, quan sát mạng và ảnh chụp màn hình được yêu cầu                                         | Trình duyệt thuộc họ Chrome; [phân tích trình duyệt](https://rea.tools/vi/guides/browser/)                                                    |
-| Bản ghi lưu lượng mạng đã lưu | Yêu cầu, phản hồi, payload có thể truy cập và vị trí nguồn                                                      | HAR; mitmdump trên Linux cho bản ghi định dạng gốc của mitmproxy; [hướng dẫn bản ghi mạng](docs/web-network-captures.md)                      |
-| Bắt gói tin                   | Điểm cuối, DNS, TLS SNI, phân bố giao thức và yêu cầu HTTP                                                      | tshark và capinfos do nơi gọi cung cấp; [hướng dẫn pcap](docs/pcap-analysis.md)                                                               |
-| Assembly .NET                 | Siêu dữ liệu, lệnh CIL, các phụ thuộc mã máy được khai báo và so sánh bản dựng                                  | Kiểm tra tĩnh; [hướng dẫn mã được quản lý](docs/managed-code-analysis.md)                                                                     |
-| APK Android                   | Khai báo manifest, lớp, phương thức được dịch ngược và tham chiếu                                               | JADX không giao diện đồ họa và JDK đầy đủ trên Linux/macOS/Windows x64; [hướng dẫn Android](docs/android-analysis.md)                         |
-| Thiết bị Android              | Thiết bị, gói, tiến trình, nhật ký, dump, ảnh chụp màn hình và truyền APK/tệp                                   | adb do nơi gọi cung cấp (trình giả lập hoặc thiết bị); [hướng dẫn ADB](docs/adb-device-analysis.md)                                           |
-| Dự án JEB                     | Đơn vị dự án từ engine, hash của artifact và mã giả của kiểu/phương thức                                        | Một ứng dụng JEB do nơi gọi khởi động, phục vụ MCP, chọn bằng REA_JEB_MCP_URL; [hướng dẫn JEB](docs/jeb-analysis.md)                          |
-| Tài nguyên Android            | Manifest đã giải mã, bảng chuỗi, ngôn ngữ và thông tin phiên bản                                                | Trình khởi chạy Apktool do nơi gọi cung cấp; [hướng dẫn tài nguyên](docs/apktool-resource-analysis.md)                                        |
-| Ứng dụng Flutter              | Băm snapshot Dart, hash thư viện theo ABI và nguồn gốc build engine                                             | Không cần (phân tích APK tĩnh); [hướng dẫn Flutter](docs/flutter-analysis.md)                                                                 |
-| Phần sụn                      | Các vùng, kết quả trích xuất và dữ liệu chuyển sang phân tích mã máy                                            | Binwalk / Unblob trên Linux; [hướng dẫn phần sụn](docs/firmware-analysis.md)                                                                  |
-| Gói tin đã ghi                | Trường được chọn, giá trị lặp, bộ lọc và quy tắc giải mã                                                        | Linux: TShark 4.x + prlimit; [hướng dẫn bản ghi gói tin](docs/packet-captures.md)                                                             |
-| Tín hiệu logic đã ghi         | Chú thích bộ giải mã, phạm vi mẫu và chẩn đoán                                                                  | Linux: sigrok-cli 0.7.2 + prlimit; [hướng dẫn tín hiệu](docs/signal-recordings.md)                                                            |
-| Gói và tài nguyên             | Danh sách tệp, giá trị băm, plist, cấu trúc bundle Apple và tài nguyên được trích xuất                          | [Hướng dẫn hiện vật phần mềm và JavaScript](docs/javascript-artifact-reconstruction.md), [ứng dụng Apple](docs/apple-application-analysis.md) |
-| Hành vi tiến trình            | Đầu ra terminal, tương tác, quan sát khi thoát và hệ thống tệp, cùng so sánh các lần chạy                       | Linux/macOS có PTY gốc; [ghi lại tiến trình](docs/process-capture.md)                                                                         |
+| Mục tiêu                      | REA trả về gì                                                                                                   | Yêu cầu và hướng dẫn                                                                                                                                                         |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tệp nhị phân mã máy           | Mã giả, hợp ngữ, chuỗi, ký hiệu, lời gọi và tham chiếu                                                          | Hopper, Ghidra hoặc IDA; [phân tích mã máy](https://rea.tools/vi/guides/native/)                                                                                             |
+| Bố cục ELF ngoại tuyến        | Các section, segment, ký hiệu/thông tin tái định vị gốc và các biện pháp giảm thiểu có thể có từ phân tích tĩnh | pwntools do bên gọi cung cấp trên Linux x64; [chẩn đoán tệp nhị phân](docs/guides/native/binary-diagnostics.md)                                                              |
+| Bytecode EVM                  | Bộ chọn điều phối, độ lệch byte, tham số suy luận và khả năng thay đổi trạng thái                               | Đầu vào cục bộ chứa byte thô hoặc dạng thập lục phân trên Linux x64; [hướng dẫn EVM ngoại tuyến](docs/guides/evm/evm-bytecode.md)                                            |
+| Sự cố Linux đã ghi lại        | Bản ghi note thô, thanh ghi/tín hiệu của mọi luồng được ghi lại và các ứng viên ánh xạ tùy chọn                 | pwntools do bên gọi cung cấp trên Linux x64; GDB/pwndbg tùy chọn; [sự cố đã ghi lại](docs/guides/native/recorded-crashes.md)                                                 |
+| JavaScript / Electron         | Mô-đun, các khai báo import, source map, tuyến, IPC và quan hệ với tiện ích mở rộng mã máy                      | Node.js và npm; [phân tích ứng dụng](https://rea.tools/vi/guides/javascript/)                                                                                                |
+| Trang web                     | Cấu trúc trang, script, quan sát mạng và ảnh chụp màn hình được yêu cầu                                         | Trình duyệt thuộc họ Chrome; [phân tích trình duyệt](https://rea.tools/vi/guides/browser/)                                                                                   |
+| Bản ghi lưu lượng mạng đã lưu | Yêu cầu, phản hồi, payload có thể truy cập và vị trí nguồn                                                      | HAR; mitmdump trên Linux cho bản ghi định dạng gốc của mitmproxy; [hướng dẫn bản ghi mạng](docs/guides/web/web-network-captures.md)                                          |
+| Bắt gói tin                   | Điểm cuối, DNS, TLS SNI, phân bố giao thức và yêu cầu HTTP                                                      | tshark và capinfos do nơi gọi cung cấp; [hướng dẫn pcap](docs/guides/data/pcap-analysis.md)                                                                                  |
+| Assembly .NET                 | Siêu dữ liệu, lệnh CIL, các phụ thuộc mã máy được khai báo và so sánh bản dựng                                  | Kiểm tra tĩnh; [hướng dẫn mã được quản lý](docs/guides/managed/managed-code-analysis.md)                                                                                     |
+| APK Android                   | Khai báo manifest, lớp, phương thức được dịch ngược và tham chiếu                                               | JADX không giao diện đồ họa và JDK đầy đủ trên Linux/macOS/Windows x64; [hướng dẫn Android](docs/guides/android/android-analysis.md)                                         |
+| Thiết bị Android              | Thiết bị, gói, tiến trình, nhật ký, dump, ảnh chụp màn hình và truyền APK/tệp                                   | adb do nơi gọi cung cấp (trình giả lập hoặc thiết bị); [hướng dẫn ADB](docs/guides/android/adb-device-analysis.md)                                                           |
+| Dự án JEB                     | Đơn vị dự án từ engine, hash của artifact và mã giả của kiểu/phương thức                                        | Một ứng dụng JEB do nơi gọi khởi động, phục vụ MCP, chọn bằng REA_JEB_MCP_URL; [hướng dẫn JEB](docs/providers/jeb-analysis.md)                                               |
+| Tài nguyên Android            | Manifest đã giải mã, bảng chuỗi, ngôn ngữ và thông tin phiên bản                                                | Trình khởi chạy Apktool do nơi gọi cung cấp; [hướng dẫn tài nguyên](docs/guides/android/apktool-resource-analysis.md)                                                        |
+| Ứng dụng Flutter              | Băm snapshot Dart, hash thư viện theo ABI và nguồn gốc build engine                                             | Không cần (phân tích APK tĩnh); [hướng dẫn Flutter](docs/guides/android/flutter-analysis.md)                                                                                 |
+| Phần sụn                      | Các vùng, kết quả trích xuất và dữ liệu chuyển sang phân tích mã máy                                            | Binwalk / Unblob trên Linux; [hướng dẫn phần sụn](docs/guides/firmware/firmware-analysis.md)                                                                                 |
+| Gói tin đã ghi                | Trường được chọn, giá trị lặp, bộ lọc và quy tắc giải mã                                                        | Linux: TShark 4.x + prlimit; [hướng dẫn bản ghi gói tin](docs/guides/data/packet-captures.md)                                                                                |
+| Tín hiệu logic đã ghi         | Chú thích bộ giải mã, phạm vi mẫu và chẩn đoán                                                                  | Linux: sigrok-cli 0.7.2 + prlimit; [hướng dẫn tín hiệu](docs/guides/signals/signal-recordings.md)                                                                            |
+| Gói và tài nguyên             | Danh sách tệp, giá trị băm, plist, cấu trúc bundle Apple và tài nguyên được trích xuất                          | [Hướng dẫn hiện vật phần mềm và JavaScript](docs/guides/javascript/javascript-artifact-reconstruction.md), [ứng dụng Apple](docs/guides/apple/apple-application-analysis.md) |
+| Hành vi tiến trình            | Đầu ra terminal, tương tác, quan sát khi thoát và hệ thống tệp, cùng so sánh các lần chạy                       | Linux/macOS có PTY gốc; [ghi lại tiến trình](docs/guides/runtime/process-capture.md)                                                                                         |
 
 Kiểm tra tĩnh JavaScript và .NET đọc các tệp được cung cấp mà không chạy ứng dụng. Ghi lại khi chạy sẽ khởi chạy hoặc tương tác với mục tiêu đã chọn bằng quyền người dùng của bạn; từng hướng dẫn mô tả tác động của nó.
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Định dạng mã máy và nền tảng chạy REA được hỗ trợ khác nhau tùy trình phân tích. Xem [thiết lập Hopper và Ghidra](docs/installation.md#hopper), [hướng dẫn IDA](docs/ida-provider.md) và [hỗ trợ Ghidra thử nghiệm trên Windows](docs/windows-ghidra-p0.md). Ghidra cũng hỗ trợ [phân tích DOS 16 bit](docs/ghidra-dos.md). Để chọn trình phân tích, xem [hướng dẫn CLI](docs/cli.md#choose-a-provider). Kiểm tra [khả năng sử dụng theo bản phát hành](docs/installation.md#released-package-and-main) đối với tính năng được bổ sung sau phiên bản npm mới nhất.
+Định dạng mã máy và nền tảng chạy REA được hỗ trợ khác nhau tùy trình phân tích. Xem [thiết lập Hopper và Ghidra](docs/getting-started/installation.md#hopper), [hướng dẫn IDA](docs/providers/ida-provider.md) và [hỗ trợ Ghidra thử nghiệm trên Windows](docs/providers/windows-ghidra-p0.md). Ghidra cũng hỗ trợ [phân tích DOS 16 bit](docs/providers/ghidra-dos.md). Để chọn trình phân tích, xem [hướng dẫn CLI](docs/getting-started/cli.md#choose-a-provider). Kiểm tra [khả năng sử dụng theo bản phát hành](docs/getting-started/installation.md#released-package-and-main) đối với tính năng được bổ sung sau phiên bản npm mới nhất.
 
 ## Các nghiên cứu điển hình
 
@@ -187,28 +187,28 @@ Nếu bạn dùng REA cho một mục tiêu thú vị, chúng tôi muốn biết
 <details>
 <summary><strong>Tác nhân nào có thể dùng REA?</strong></summary>
 
-Bất kỳ tác nhân nào hỗ trợ máy chủ MCP cục bộ. Quá trình thiết lập cấu hình các [tác nhân được hỗ trợ](docs/installation.md#supported-agents); ứng dụng khách khác có thể dùng [đăng ký MCP thủ công](docs/installation.md#mcp-registry).
+Bất kỳ tác nhân nào hỗ trợ máy chủ MCP cục bộ. Quá trình thiết lập cấu hình các [tác nhân được hỗ trợ](docs/getting-started/installation.md#supported-agents); ứng dụng khách khác có thể dùng [đăng ký MCP thủ công](docs/getting-started/installation.md#mcp-registry).
 
 </details>
 
 <details>
 <summary><strong>Tôi có cần Hopper, Ghidra hoặc IDA không?</strong></summary>
 
-Phân tích mã máy chuyên sâu sử dụng một trong những công cụ đó. Kiểm tra tĩnh JavaScript và .NET hoạt động mà không cần bộ máy phân tích mã máy. Quá trình thiết lập có thể cài Hopper sau khi được chấp thuận; Ghidra và IDA dùng bản cài đặt sẵn có. Xem [thiết lập trình phân tích](docs/installation.md#hopper).
+Phân tích mã máy chuyên sâu sử dụng một trong những công cụ đó. Kiểm tra tĩnh JavaScript và .NET hoạt động mà không cần bộ máy phân tích mã máy. Quá trình thiết lập có thể cài Hopper sau khi được chấp thuận; Ghidra và IDA dùng bản cài đặt sẵn có. Xem [thiết lập trình phân tích](docs/getting-started/installation.md#hopper).
 
 </details>
 
 <details>
 <summary><strong>Tôi có cần khởi chạy Hopper trước không?</strong></summary>
 
-REA khởi chạy Hopper khi một thao tác cần đến nó. Trên macOS, hộp thoại lần chạy đầu có thể yêu cầu chọn chế độ dùng thử hoặc kích hoạt giấy phép. Xem [khởi động Hopper và khắc phục sự cố](docs/installation.md#launcher-paths-and-troubleshooting).
+REA khởi chạy Hopper khi một thao tác cần đến nó. Trên macOS, hộp thoại lần chạy đầu có thể yêu cầu chọn chế độ dùng thử hoặc kích hoạt giấy phép. Xem [khởi động Hopper và khắc phục sự cố](docs/getting-started/installation.md#launcher-paths-and-troubleshooting).
 
 </details>
 
 <details>
 <summary><strong>Cài skill từ skills.sh có tác dụng gì?</strong></summary>
 
-Skill cung cấp hướng dẫn điều tra cho tác nhân. Dùng `npx rea-agents setup` để đăng ký máy chủ MCP của REA và cài hướng dẫn tương ứng, sau đó khởi động lại tác nhân. Xem [chỉ cài skill](docs/installation.md#skill-only-installation).
+Skill cung cấp hướng dẫn điều tra cho tác nhân. Dùng `npx rea-agents setup` để đăng ký máy chủ MCP của REA và cài hướng dẫn tương ứng, sau đó khởi động lại tác nhân. Xem [chỉ cài skill](docs/getting-started/installation.md#skill-only-installation).
 
 </details>
 
@@ -251,12 +251,12 @@ Nếu dùng tác nhân, hãy hoàn tất [làm mới thiết lập](#cập-nhậ
 
 Bắt đầu với [hướng dẫn thực hành](https://rea.tools/vi/guides/) trên trang web. Để biết tùy chọn cụ thể, điều kiện tiên quyết và hợp đồng kết quả:
 
-- [Cài đặt và thiết lập](docs/installation.md): đăng ký tác nhân, cấu hình trình phân tích, cập nhật và gỡ cài đặt.
-- [Kiểm tra mức sẵn sàng và khắc phục sự cố](docs/installation.md#check-readiness-for-your-task): chẩn đoán một tác nhân hoặc bộ máy phân tích cụ thể.
-- [CLI và Evidence](docs/cli.md): lệnh, lựa chọn trình phân tích, ảnh chụp trạng thái, nhập/xuất và trạng thái thoát.
-- [Hợp đồng MCP](docs/mcp-contracts.md) và [prompt cho tác nhân](docs/mcp-prompts.md): kết quả công cụ, phiên làm việc và điều tra có hướng dẫn.
-- [Danh mục công cụ](docs/mcp-contracts.md#generated-catalog): danh sách công cụ, trình phân tích và lệnh CLI được tạo khi dựng dự án.
-- [Lộ trình](docs/roadmap.md): công việc dự kiến và theo dõi các khả năng.
+- [Cài đặt và thiết lập](docs/getting-started/installation.md): đăng ký tác nhân, cấu hình trình phân tích, cập nhật và gỡ cài đặt.
+- [Kiểm tra mức sẵn sàng và khắc phục sự cố](docs/getting-started/installation.md#check-readiness-for-your-task): chẩn đoán một tác nhân hoặc bộ máy phân tích cụ thể.
+- [CLI và Evidence](docs/getting-started/cli.md): lệnh, lựa chọn trình phân tích, ảnh chụp trạng thái, nhập/xuất và trạng thái thoát.
+- [Hợp đồng MCP](docs/reference/mcp-contracts.md) và [prompt cho tác nhân](docs/getting-started/mcp-prompts.md): kết quả công cụ, phiên làm việc và điều tra có hướng dẫn.
+- [Danh mục công cụ](docs/reference/mcp-contracts.md#generated-catalog): danh sách công cụ, trình phân tích và lệnh CLI được tạo khi dựng dự án.
+- [Lộ trình](docs/development/roadmap.md): công việc dự kiến và theo dõi các khả năng.
 
 Báo cáo lỗ hổng theo [SECURITY.md](SECURITY.md).
 
@@ -288,7 +288,7 @@ applicable licenses.
 
 Chúng tôi hoan nghênh bạn giúp phát triển REA! [Mở issue](https://github.com/morluto/rea/issues) để báo lỗi hoặc đề xuất tính năng, hoặc [gửi pull request](https://github.com/morluto/rea/pulls) để cải thiện mã hay tài liệu.
 
-Xem [CONTRIBUTING.md](CONTRIBUTING.md) về thiết lập môi trường phát triển và các bước kiểm tra, [hướng dẫn kiểm thử](docs/testing.md) về các luồng xác minh và [sơ đồ kiến trúc](docs/architecture.mermaid) về cấu trúc dự án.
+Xem [CONTRIBUTING.md](CONTRIBUTING.md) về thiết lập môi trường phát triển và các bước kiểm tra, [hướng dẫn kiểm thử](docs/development/testing.md) về các luồng xác minh và [sơ đồ kiến trúc](docs/architecture/architecture.mermaid) về cấu trúc dự án.
 
 ## Giấy phép
 

@@ -38,7 +38,7 @@ export const inspectIdaRegistration = (
             : "IDA MCP registration is not configured.",
         remediation: valid
           ? null
-          : "Set REA_IDA_MCP_CONFIG to your upstream IDA MCP registration JSON; see docs/ida-provider.md.",
+          : "Set REA_IDA_MCP_CONFIG to your upstream IDA MCP registration JSON; see docs/providers/ida-provider.md.",
         classification:
           path === undefined ? "missing_analysis_engine" : "config_drift",
       },

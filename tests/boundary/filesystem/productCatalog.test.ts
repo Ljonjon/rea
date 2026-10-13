@@ -48,7 +48,7 @@ afterEach(async () => {
 describe("canonical product catalog", () => {
   it("admits every documented browser scenario through the named contract", async () => {
     const guide = await readFile(
-      join(root, "docs/browser-scenario-contract.md"),
+      join(root, "docs/guides/web/browser-scenario-contract.md"),
       "utf8",
     );
     const examples = [
@@ -169,7 +169,9 @@ describe("canonical product catalog drift", () => {
       ],
     };
     const issues = await documentationFactIssues(root, drifted);
-    expect(issues).toContain("docs/installation.md: missing Future Client");
+    expect(issues).toContain(
+      "docs/getting-started/installation.md: missing Future Client",
+    );
     expect(issues).not.toContain("README.md: missing Future Client");
   });
 
@@ -183,7 +185,7 @@ describe("canonical product catalog drift", () => {
       "README_ko.md",
       "README_ar.md",
       "website/locales/languages.json",
-      "docs/installation.md",
+      "docs/getting-started/installation.md",
       "AGENTS.md",
       ".github/pull_request_template.md",
     ];
@@ -203,8 +205,8 @@ describe("canonical product catalog drift", () => {
     );
     for (const [original, changed] of [
       [
-        "(docs/installation.md#supported-agents)",
-        "(docs/installation.md#missing-agents)",
+        "(docs/getting-started/installation.md#supported-agents)",
+        "(docs/getting-started/installation.md#missing-agents)",
       ],
       [
         "https://rea.tools/zh-CN/guides/native/",

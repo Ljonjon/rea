@@ -9,7 +9,7 @@
 **وجدت ميزة تعجبك؟ افهم طريقة عملها حتى مستوى الشيفرة الثنائية.**
 
 [![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
-[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/mcp-contracts.md#generated-catalog)
+[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/reference/mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
 [![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](LICENSE)
@@ -67,7 +67,7 @@ npx rea-agents setup
 
 اختر الوكلاء، وراجع التغييرات المقترحة، ثم وافق عليها. يضيف الإعداد خادم MCP الخاص بـ REA وتعليمات سير العمل المطابقة، مع الاحتفاظ بنسخ احتياطية من الإعدادات الموجودة. أعد تشغيل وكيلك بعد ذلك.
 
-يدعم الإعداد Claude Code وCodex وCursor وGemini CLI وGrok Build و[وكلاء آخرين](docs/installation.md#supported-agents). راجع [التثبيت والإعداد](docs/installation.md) لتهيئة موفّري التحليل وتسجيل MCP يدويًا.
+يدعم الإعداد Claude Code وCodex وCursor وGemini CLI وGrok Build و[وكلاء آخرين](docs/getting-started/installation.md#supported-agents). راجع [التثبيت والإعداد](docs/getting-started/installation.md) لتهيئة موفّري التحليل وتسجيل MCP يدويًا.
 
 ### اطلب من وكيلك
 
@@ -94,7 +94,7 @@ npm install --global rea-agents
 rea --help
 ```
 
-لتحليل الشيفرة الأصلية، هيّئ موفّرًا أولًا. راجع [دليل CLI وEvidence](docs/cli.md) لأوامر تحليل الشيفرة الأصلية، واختيار الموفّر، واللقطات، والاستخدام في السكربتات.
+لتحليل الشيفرة الأصلية، هيّئ موفّرًا أولًا. راجع [دليل CLI وEvidence](docs/getting-started/cli.md) لأوامر تحليل الشيفرة الأصلية، واختيار الموفّر، واللقطات، والاستخدام في السكربتات.
 
 ### تحديث REA
 
@@ -130,33 +130,33 @@ npx rea-agents@latest setup
 
 يتطلب REA إصدار Node.js 22.x (>=22.19) أو 24.x (>=24.11) أو 26+، إضافة إلى npm. تعتمد الأدوات الإضافية والأنظمة المضيفة المدعومة على الهدف:
 
-| الهدف                           | ما يعيده REA                                                                                               | المتطلبات والدليل                                                                                                                 |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| الملفات الثنائية للشيفرة الأصلية | شيفرة شبه برمجية، وتعليمات تجميع، وسلاسل نصية، ورموز، واستدعاءات، ومراجع                                    | Hopper أو Ghidra أو IDA؛ [تحليل الشيفرة الأصلية](https://rea.tools/ar/guides/native/)                                              |
-| بنية ELF دون تشغيل              | الأقسام والمقاطع والرموز ومعلومات إعادة التموضع الأصلية، وآليات الحماية المحتملة المستدلّ عليها بالفحص الثابت | pwntools يوفّره المستدعي على Linux x64؛ [تشخيص الملفات الثنائية](docs/binary-diagnostics.md)                                       |
-| شيفرة EVM البايتية              | محددات التوجيه، وإزاحات البايتات، والمعاملات المستنتجة، وقابلية تغيير الحالة                                | مدخل محلي يحمل بايتات خامًا أو تمثيلًا سداسيًا عشريًا على Linux x64؛ [دليل EVM دون تشغيل](docs/evm-bytecode.md)                        |
-| أعطال Linux المسجّلة             | سجلات note الخام، ومسجّلات المعالج/الإشارات لكل خيط مسجّل، وترشيحات اختيارية لخرائط الذاكرة                     | pwntools يوفّره المستدعي على Linux x64؛ GDB/pwndbg اختياريان؛ [الأعطال المسجّلة](docs/recorded-crashes.md)                           |
-| JavaScript / Electron           | الوحدات، وعمليات الاستيراد، وخرائط المصدر، والمسارات، وIPC، وعلاقات إضافات الشيفرة الأصلية                    | Node.js وnpm؛ [تحليل التطبيقات](https://rea.tools/ar/guides/javascript/)                                                          |
-| المواقع                         | بنية الصفحة، والسكربتات، وملاحظات الشبكة، ولقطات الشاشة المطلوبة                                            | متصفح من عائلة Chrome؛ [تحليل المتصفح](https://rea.tools/ar/guides/browser/)                                                      |
-| تسجيلات الشبكة المحفوظة          | الطلبات، والاستجابات، ومحتويات الحمولة المتاحة، ومواضعها في المصدر                                          | HAR؛ وmitmdump على Linux لتسجيلات mitmproxy بصيغتها الأصلية؛ [دليل تسجيلات الشبكة](docs/web-network-captures.md)                     |
-| التقاط الحزم                    | نقاط النهاية وDNS وTLS SNI وتوزيع البروتوكولات وطلبات HTTP                                                  | tshark وcapinfos يوفّرهما المُستدعي؛ [دليل pcap](docs/pcap-analysis.md)                                                             |
-| تجميعات .NET                    | البيانات الوصفية، وتعليمات CIL، واعتماديات الشيفرة الأصلية المعلنة، ومقارنات البناء                         | فحص ثابت؛ [دليل الشيفرة المُدارة](docs/managed-code-analysis.md)                                                                   |
-| حزم Android APK                 | تصريحات ملف manifest، والأصناف، والدوال الناتجة عن فك الترجمة، والمراجع                                     | JADX دون واجهة رسومية وJDK كامل على Linux/macOS/Windows x64؛ [دليل Android](docs/android-analysis.md)                             |
-| أجهزة Android                   | الأجهزة والحزم والعمليات والسجلات والدامبات ولقطات الشاشة ونقل APK/الملفات                                   | adb يوفّره المُستدعي (محاكي أو جهاز)؛ [دليل ADB](docs/adb-device-analysis.md)                                                       |
-| مشاريع JEB                      | وحدات المشروع من المحرك وبصمات المصنّفات والكود الزائف للأنواع/الدوال                                        | عميل JEB يبدأه المُستدعي ويقدّم MCP، ويُختار عبر REA_JEB_MCP_URL؛ [دليل JEB](docs/jeb-analysis.md)                                   |
-| موارد Android                   | البيان المفكوك الترميز وجداول السلاسل واللغات وحقائق الإصدار                                                 | مُشغّل Apktool يوفّره المُستدعي؛ [دليل الموارد](docs/apktool-resource-analysis.md)                                                    |
-| تطبيقات Flutter                 | بصمة لقطة Dart وهشوش المكتبات لكل ABI وأصل بناء المحرك                                                     | لا شيء (تحليل APK ساكن)؛ [دليل Flutter](docs/flutter-analysis.md)                                                                  |
-| البرامج الثابتة                 | المناطق، ونتائج الاستخراج، وما يُمرّر إلى تحليل الشيفرة الأصلية                                                | Binwalk / Unblob على Linux؛ [دليل البرامج الثابتة](docs/firmware-analysis.md)                                                     |
-| الحزم المسجلة                   | حقول مختارة وقيم متكررة ومرشحات وقواعد فك الترميز                                                          | Linux: TShark 4.x + prlimit; [دليل التقاط الحزم](docs/packet-captures.md)                                                         |
-| الإشارات المنطقية المسجلة        | تعليقات مفكك الترميز ونطاقات العينات ومعلومات التشخيص                                                      | Linux: sigrok-cli 0.7.2 + prlimit; [دليل الإشارات](docs/signal-recordings.md)                                                      |
-| الحزم والموارد                  | قوائم الملفات، والبصمات، وملفات plist، وبنية حزم Apple، والموارد المستخرجة                                 | [دليل تحليل الملفات وJavaScript](docs/javascript-artifact-reconstruction.md)، [تطبيقات Apple](docs/apple-application-analysis.md) |
-| سلوك العمليات                   | مخرجات الطرفية، والتفاعلات، وملاحظات الخروج ونظام الملفات، ومقارنات التشغيل                                  | Linux/macOS مع PTY أصلي؛ [تسجيل سلوك العمليات](docs/process-capture.md)                                                           |
+| الهدف                           | ما يعيده REA                                                                                               | المتطلبات والدليل                                                                                                                                                |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| الملفات الثنائية للشيفرة الأصلية | شيفرة شبه برمجية، وتعليمات تجميع، وسلاسل نصية، ورموز، واستدعاءات، ومراجع                                    | Hopper أو Ghidra أو IDA؛ [تحليل الشيفرة الأصلية](https://rea.tools/ar/guides/native/)                                                                             |
+| بنية ELF دون تشغيل              | الأقسام والمقاطع والرموز ومعلومات إعادة التموضع الأصلية، وآليات الحماية المحتملة المستدلّ عليها بالفحص الثابت | pwntools يوفّره المستدعي على Linux x64؛ [تشخيص الملفات الثنائية](docs/guides/native/binary-diagnostics.md)                                                        |
+| شيفرة EVM البايتية              | محددات التوجيه، وإزاحات البايتات، والمعاملات المستنتجة، وقابلية تغيير الحالة                                | مدخل محلي يحمل بايتات خامًا أو تمثيلًا سداسيًا عشريًا على Linux x64؛ [دليل EVM دون تشغيل](docs/guides/evm/evm-bytecode.md)                                            |
+| أعطال Linux المسجّلة             | سجلات note الخام، ومسجّلات المعالج/الإشارات لكل خيط مسجّل، وترشيحات اختيارية لخرائط الذاكرة                     | pwntools يوفّره المستدعي على Linux x64؛ GDB/pwndbg اختياريان؛ [الأعطال المسجّلة](docs/guides/native/recorded-crashes.md)                                            |
+| JavaScript / Electron           | الوحدات، وعمليات الاستيراد، وخرائط المصدر، والمسارات، وIPC، وعلاقات إضافات الشيفرة الأصلية                    | Node.js وnpm؛ [تحليل التطبيقات](https://rea.tools/ar/guides/javascript/)                                                                                         |
+| المواقع                         | بنية الصفحة، والسكربتات، وملاحظات الشبكة، ولقطات الشاشة المطلوبة                                            | متصفح من عائلة Chrome؛ [تحليل المتصفح](https://rea.tools/ar/guides/browser/)                                                                                     |
+| تسجيلات الشبكة المحفوظة          | الطلبات، والاستجابات، ومحتويات الحمولة المتاحة، ومواضعها في المصدر                                          | HAR؛ وmitmdump على Linux لتسجيلات mitmproxy بصيغتها الأصلية؛ [دليل تسجيلات الشبكة](docs/guides/web/web-network-captures.md)                                         |
+| التقاط الحزم                    | نقاط النهاية وDNS وTLS SNI وتوزيع البروتوكولات وطلبات HTTP                                                  | tshark وcapinfos يوفّرهما المُستدعي؛ [دليل pcap](docs/guides/data/pcap-analysis.md)                                                                                |
+| تجميعات .NET                    | البيانات الوصفية، وتعليمات CIL، واعتماديات الشيفرة الأصلية المعلنة، ومقارنات البناء                         | فحص ثابت؛ [دليل الشيفرة المُدارة](docs/guides/managed/managed-code-analysis.md)                                                                                   |
+| حزم Android APK                 | تصريحات ملف manifest، والأصناف، والدوال الناتجة عن فك الترجمة، والمراجع                                     | JADX دون واجهة رسومية وJDK كامل على Linux/macOS/Windows x64؛ [دليل Android](docs/guides/android/android-analysis.md)                                             |
+| أجهزة Android                   | الأجهزة والحزم والعمليات والسجلات والدامبات ولقطات الشاشة ونقل APK/الملفات                                   | adb يوفّره المُستدعي (محاكي أو جهاز)؛ [دليل ADB](docs/guides/android/adb-device-analysis.md)                                                                       |
+| مشاريع JEB                      | وحدات المشروع من المحرك وبصمات المصنّفات والكود الزائف للأنواع/الدوال                                        | عميل JEB يبدأه المُستدعي ويقدّم MCP، ويُختار عبر REA_JEB_MCP_URL؛ [دليل JEB](docs/providers/jeb-analysis.md)                                                        |
+| موارد Android                   | البيان المفكوك الترميز وجداول السلاسل واللغات وحقائق الإصدار                                                 | مُشغّل Apktool يوفّره المُستدعي؛ [دليل الموارد](docs/guides/android/apktool-resource-analysis.md)                                                                    |
+| تطبيقات Flutter                 | بصمة لقطة Dart وهشوش المكتبات لكل ABI وأصل بناء المحرك                                                     | لا شيء (تحليل APK ساكن)؛ [دليل Flutter](docs/guides/android/flutter-analysis.md)                                                                                  |
+| البرامج الثابتة                 | المناطق، ونتائج الاستخراج، وما يُمرّر إلى تحليل الشيفرة الأصلية                                                | Binwalk / Unblob على Linux؛ [دليل البرامج الثابتة](docs/guides/firmware/firmware-analysis.md)                                                                    |
+| الحزم المسجلة                   | حقول مختارة وقيم متكررة ومرشحات وقواعد فك الترميز                                                          | Linux: TShark 4.x + prlimit; [دليل التقاط الحزم](docs/guides/data/packet-captures.md)                                                                            |
+| الإشارات المنطقية المسجلة        | تعليقات مفكك الترميز ونطاقات العينات ومعلومات التشخيص                                                      | Linux: sigrok-cli 0.7.2 + prlimit; [دليل الإشارات](docs/guides/signals/signal-recordings.md)                                                                      |
+| الحزم والموارد                  | قوائم الملفات، والبصمات، وملفات plist، وبنية حزم Apple، والموارد المستخرجة                                 | [دليل تحليل الملفات وJavaScript](docs/guides/javascript/javascript-artifact-reconstruction.md)، [تطبيقات Apple](docs/guides/apple/apple-application-analysis.md) |
+| سلوك العمليات                   | مخرجات الطرفية، والتفاعلات، وملاحظات الخروج ونظام الملفات، ومقارنات التشغيل                                  | Linux/macOS مع PTY أصلي؛ [تسجيل سلوك العمليات](docs/guides/runtime/process-capture.md)                                                                           |
 
 يقرأ الفحص الثابت لـ JavaScript و.NET الملفات المقدّمة دون تشغيل التطبيق. يشغّل التسجيل أثناء التنفيذ الهدف المحدد أو يتفاعل معه بصلاحيات مستخدمك؛ ويشرح كل دليل للتسجيل أثناء التنفيذ آثاره.
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-تختلف صيغ ملفات الشيفرة الأصلية والأنظمة المضيفة المدعومة باختلاف الموفّر. راجع [إعداد Hopper وGhidra](docs/installation.md#hopper)، و[دليل IDA](docs/ida-provider.md)، و[دعم Ghidra التجريبي على Windows](docs/windows-ghidra-p0.md). يدعم Ghidra أيضًا [تحليل DOS ذي 16 بت](docs/ghidra-dos.md). لاختيار الموفّر، راجع [دليل CLI](docs/cli.md#choose-a-provider). تحقّق من [توفر الميزات في الإصدارات](docs/installation.md#released-package-and-main) للميزات المضافة بعد أحدث إصدار على npm.
+تختلف صيغ ملفات الشيفرة الأصلية والأنظمة المضيفة المدعومة باختلاف الموفّر. راجع [إعداد Hopper وGhidra](docs/getting-started/installation.md#hopper)، و[دليل IDA](docs/providers/ida-provider.md)، و[دعم Ghidra التجريبي على Windows](docs/providers/windows-ghidra-p0.md). يدعم Ghidra أيضًا [تحليل DOS ذي 16 بت](docs/providers/ghidra-dos.md). لاختيار الموفّر، راجع [دليل CLI](docs/getting-started/cli.md#choose-a-provider). تحقّق من [توفر الميزات في الإصدارات](docs/getting-started/installation.md#released-package-and-main) للميزات المضافة بعد أحدث إصدار على npm.
 
 ## دراسات الحالة
 
@@ -189,28 +189,28 @@ npx rea-agents@latest setup
 <details>
 <summary><strong>أي وكلاء يمكنهم استخدام REA؟</strong></summary>
 
-أي وكيل يدعم خوادم MCP المحلية. يهيّئ الإعداد [الوكلاء المدعومين](docs/installation.md#supported-agents)؛ ويمكن للعملاء الآخرين استخدام [تسجيل MCP يدويًا](docs/installation.md#mcp-registry).
+أي وكيل يدعم خوادم MCP المحلية. يهيّئ الإعداد [الوكلاء المدعومين](docs/getting-started/installation.md#supported-agents)؛ ويمكن للعملاء الآخرين استخدام [تسجيل MCP يدويًا](docs/getting-started/installation.md#mcp-registry).
 
 </details>
 
 <details>
 <summary><strong>هل أحتاج إلى Hopper أو Ghidra أو IDA؟</strong></summary>
 
-يستخدم تحليل الشيفرة الأصلية المتعمق أحدها. يعمل الفحص الثابت لـ JavaScript و.NET دون محرك لتحليل الشيفرة الأصلية. يستطيع الإعداد تثبيت Hopper بعد الموافقة؛ أما Ghidra وIDA فيستخدمان تثبيتاتك الموجودة. راجع [إعداد الموفّرين](docs/installation.md#hopper).
+يستخدم تحليل الشيفرة الأصلية المتعمق أحدها. يعمل الفحص الثابت لـ JavaScript و.NET دون محرك لتحليل الشيفرة الأصلية. يستطيع الإعداد تثبيت Hopper بعد الموافقة؛ أما Ghidra وIDA فيستخدمان تثبيتاتك الموجودة. راجع [إعداد الموفّرين](docs/getting-started/installation.md#hopper).
 
 </details>
 
 <details>
 <summary><strong>هل أحتاج إلى تشغيل Hopper أولًا؟</strong></summary>
 
-يشغّل REA برنامج Hopper عندما تحتاج العملية إليه. على macOS، قد تظهر عند التشغيل الأول نافذة تطلب اختيار وضع العرض التجريبي أو تفعيل الترخيص. راجع [تشغيل Hopper واستكشاف الأخطاء](docs/installation.md#launcher-paths-and-troubleshooting).
+يشغّل REA برنامج Hopper عندما تحتاج العملية إليه. على macOS، قد تظهر عند التشغيل الأول نافذة تطلب اختيار وضع العرض التجريبي أو تفعيل الترخيص. راجع [تشغيل Hopper واستكشاف الأخطاء](docs/getting-started/installation.md#launcher-paths-and-troubleshooting).
 
 </details>
 
 <details>
 <summary><strong>ماذا يفعل تثبيت المهارة من skills.sh؟</strong></summary>
 
-توفّر المهارة تعليمات الاستقصاء لوكيلك. استخدم `npx rea-agents setup` لتسجيل خادم MCP الخاص بـ REA وتثبيت التعليمات المطابقة، ثم أعد تشغيل وكيلك. راجع [تثبيت المهارة وحدها](docs/installation.md#skill-only-installation).
+توفّر المهارة تعليمات الاستقصاء لوكيلك. استخدم `npx rea-agents setup` لتسجيل خادم MCP الخاص بـ REA وتثبيت التعليمات المطابقة، ثم أعد تشغيل وكيلك. راجع [تثبيت المهارة وحدها](docs/getting-started/installation.md#skill-only-installation).
 
 </details>
 
@@ -253,12 +253,12 @@ npx rea-agents@latest setup
 
 ابدأ بـ [الأدلة العملية](https://rea.tools/ar/guides/) على الموقع. للخيارات الدقيقة والمتطلبات وعقود النتائج:
 
-- [التثبيت والإعداد](docs/installation.md): تسجيل الوكلاء، وتهيئة الموفّرين، والتحديثات، وإلغاء التثبيت.
-- [الجاهزية واستكشاف الأخطاء](docs/installation.md#check-readiness-for-your-task): تشخيص وكيل أو محرك تحليل محدد.
-- [CLI وEvidence](docs/cli.md): الأوامر، واختيار الموفّر، واللقطات، والاستيراد/التصدير، وحالات الخروج.
-- [عقود MCP](docs/mcp-contracts.md) و[تعليمات الوكلاء](docs/mcp-prompts.md): نتائج الأدوات، والجلسات، والاستقصاءات الموجّهة.
-- [كتالوج الأدوات](docs/mcp-contracts.md#generated-catalog): قائمة الأدوات والموفّرين وأوامر CLI المولّدة أثناء البناء.
-- [خطة العمل](docs/roadmap.md): الأعمال المخطط لها ومتابعة القدرات.
+- [التثبيت والإعداد](docs/getting-started/installation.md): تسجيل الوكلاء، وتهيئة الموفّرين، والتحديثات، وإلغاء التثبيت.
+- [الجاهزية واستكشاف الأخطاء](docs/getting-started/installation.md#check-readiness-for-your-task): تشخيص وكيل أو محرك تحليل محدد.
+- [CLI وEvidence](docs/getting-started/cli.md): الأوامر، واختيار الموفّر، واللقطات، والاستيراد/التصدير، وحالات الخروج.
+- [عقود MCP](docs/reference/mcp-contracts.md) و[تعليمات الوكلاء](docs/getting-started/mcp-prompts.md): نتائج الأدوات، والجلسات، والاستقصاءات الموجّهة.
+- [كتالوج الأدوات](docs/reference/mcp-contracts.md#generated-catalog): قائمة الأدوات والموفّرين وأوامر CLI المولّدة أثناء البناء.
+- [خطة العمل](docs/development/roadmap.md): الأعمال المخطط لها ومتابعة القدرات.
 
 أبلغ عن الثغرات وفق [SECURITY.md](SECURITY.md).
 
@@ -290,7 +290,7 @@ applicable licenses.
 
 نرحّب بمساعدتك في تطوير REA! [افتح issue](https://github.com/morluto/rea/issues) للإبلاغ عن خطأ أو اقتراح ميزة، أو [أرسل pull request](https://github.com/morluto/rea/pulls) لتحسين الشيفرة أو التوثيق.
 
-راجع [CONTRIBUTING.md](CONTRIBUTING.md) لإعداد بيئة التطوير والفحوص، و[دليل الاختبار](docs/testing.md) لمسارات التحقق، و[خريطة البنية](docs/architecture.mermaid) لهيكل المشروع.
+راجع [CONTRIBUTING.md](CONTRIBUTING.md) لإعداد بيئة التطوير والفحوص، و[دليل الاختبار](docs/development/testing.md) لمسارات التحقق، و[خريطة البنية](docs/architecture/architecture.mermaid) لهيكل المشروع.
 
 ## الترخيص
 

@@ -9,7 +9,7 @@
 **Beğendiğiniz bir özellik mi gördünüz? İkili kod düzeyine kadar nasıl çalıştığını anlayın.**
 
 [![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
-[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/mcp-contracts.md#generated-catalog)
+[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/reference/mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
 [![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](LICENSE)
@@ -67,7 +67,7 @@ npx rea-agents setup
 
 Ajanlarınızı seçin, önerilen değişiklikleri inceleyin ve onaylayın. Kurulum, mevcut yapılandırmaları yedekleyerek REA'nın MCP sunucusunu ve uyumlu iş akışı talimatlarını ekler. Ardından ajanınızı yeniden başlatın.
 
-Kurulum Claude Code, Codex, Cursor, Gemini CLI, Grok Build ve [diğer ajanları](docs/installation.md#supported-agents) destekler. Sağlayıcı yapılandırması ve elle MCP kaydı için [yükleme ve kurulum](docs/installation.md) belgesine bakın.
+Kurulum Claude Code, Codex, Cursor, Gemini CLI, Grok Build ve [diğer ajanları](docs/getting-started/installation.md#supported-agents) destekler. Sağlayıcı yapılandırması ve elle MCP kaydı için [yükleme ve kurulum](docs/getting-started/installation.md) belgesine bakın.
 
 ### Ajanınıza sorun
 
@@ -94,7 +94,7 @@ npm install --global rea-agents
 rea --help
 ```
 
-Yerel makine kodu analizi için önce bir sağlayıcı yapılandırın. Yerel analiz komutları, sağlayıcı seçimi, anlık görüntüler ve betik kullanımı için [CLI ve Evidence rehberine](docs/cli.md) bakın.
+Yerel makine kodu analizi için önce bir sağlayıcı yapılandırın. Yerel analiz komutları, sağlayıcı seçimi, anlık görüntüler ve betik kullanımı için [CLI ve Evidence rehberine](docs/getting-started/cli.md) bakın.
 
 ### REA'yı güncelleyin
 
@@ -130,33 +130,33 @@ Ajanınız, hedefi incelemek ve ilgili kodu izlemek için MCP üzerinden REA'yı
 
 REA; Node.js 22.x (>=22.19), 24.x (>=24.11) veya 26+ ve npm gerektirir. Ek araçlar ve desteklenen ana bilgisayar sistemleri hedefe bağlıdır:
 
-| Hedef                                   | REA'nın döndürdükleri                                                                                       | Gereksinimler ve rehber                                                                                                                |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Yerel makine kodu içeren ikili dosyalar | Sözde kod, assembly kodu, dizeler, semboller, çağrılar ve referanslar                                       | Hopper, Ghidra veya IDA; [yerel kod analizi](https://rea.tools/tr/guides/native/)                                                      |
-| Çevrimdışı ELF yapısı                   | Bölümler, segmentler, özgün semboller/yeniden konumlandırmalar ve statik analizden olası güvenlik önlemleri | Linux x64 üzerinde çağıranın sağladığı pwntools; [ikili dosya tanılama](docs/binary-diagnostics.md)                                    |
-| EVM bayt kodu                           | Yönlendirme seçicileri, bayt ofsetleri, çıkarımla belirlenen argümanlar ve durum değiştirilebilirliği       | Linux x64 üzerinde yerel ham bayt/onaltılık girdi; [çevrimdışı EVM rehberi](docs/evm-bytecode.md)                                      |
-| Kaydedilmiş Linux çökmeleri             | Ham note kayıtları, kaydedilen her iş parçacığının yazmaçları/sinyalleri ve isteğe bağlı eşleme adayları    | Linux x64 üzerinde çağıranın sağladığı pwntools; isteğe bağlı GDB/pwndbg; [kaydedilmiş çökmeler](docs/recorded-crashes.md)             |
-| JavaScript / Electron                   | Modüller, içe aktarmalar, kaynak haritaları, rotalar, IPC ve yerel eklenti ilişkileri                       | Node.js ve npm; [uygulama analizi](https://rea.tools/tr/guides/javascript/)                                                            |
-| Web siteleri                            | Sayfa yapısı, betikler, ağ gözlemleri ve istenen ekran görüntüleri                                          | Chrome ailesinden bir tarayıcı; [tarayıcı analizi](https://rea.tools/tr/guides/browser/)                                               |
-| Kaydedilmiş ağ yakalamaları             | İstekler, yanıtlar, erişilebilir yük içerikleri ve kaynak konumları                                         | HAR; mitmproxy'nin kendi biçimindeki yakalamalar için Linux üzerinde mitmdump; [ağ yakalama rehberi](docs/web-network-captures.md)     |
-| Paket yakalamaları                      | Uç noktalar, DNS, TLS SNI, protokol dağılımı ve HTTP istekleri                                              | Çağıranın sağladığı tshark ve capinfos; [pcap rehberi](docs/pcap-analysis.md)                                                          |
-| .NET derlemeleri                        | Meta veriler, CIL talimatları, bildirilmiş yerel bağımlılıklar ve derleme karşılaştırmaları                 | Statik inceleme; [yönetilen kod rehberi](docs/managed-code-analysis.md)                                                                |
-| Android APK'leri                        | Manifest bildirimleri, sınıflar, tersine derlenmiş metotlar ve referanslar                                  | Linux/macOS/Windows x64 üzerinde arayüzsüz JADX ve tam bir JDK; [Android rehberi](docs/android-analysis.md)                            |
-| Android cihazları                       | Cihazlar, paketler, süreçler, günlükler, dökümler, ekran görüntüleri ve APK/dosya aktarımları               | Çağıranın sağladığı adb (emülatör veya cihaz); [ADB rehberi](docs/adb-device-analysis.md)                                              |
-| JEB projeleri                           | Motor destekli proje birimleri, artefakt özetleri ve tür/metot sözdekodu                                    | Çağıranın başlattığı, MCP sunan bir JEB istemcisi, REA_JEB_MCP_URL ile seçilir; [JEB rehberi](docs/jeb-analysis.md)                    |
-| Android kaynakları                      | Çözülmüş manifest, dize tabloları, diller ve sürüm bilgileri                                                | Çağıranın sağladığı Apktool başlatıcısı; [kaynak rehberi](docs/apktool-resource-analysis.md)                                           |
-| Flutter uygulamaları                    | Dart anlık görüntü karması, ABI başına kitaplık özetleri ve motor derleme kökeni                            | Yok (statik APK çözümleme); [Flutter rehberi](docs/flutter-analysis.md)                                                                |
-| Donanım yazılımı                        | Bölgeler, çıkarma sonuçları ve yerel kod analizine devirler                                                 | Linux üzerinde Binwalk / Unblob; [donanım yazılımı rehberi](docs/firmware-analysis.md)                                                 |
-| Kaydedilmiş paketler                    | Seçilen alanlar, yinelenen değerler, filtreler ve çözümleme kuralları                                       | Linux: TShark 4.x + prlimit; [yakalama kılavuzu](docs/packet-captures.md)                                                              |
-| Kaydedilmiş mantık sinyalleri           | Kod çözücü açıklamaları, örnek aralıkları ve tanılama                                                       | Linux: sigrok-cli 0.7.2 + prlimit; [sinyal kılavuzu](docs/signal-recordings.md)                                                        |
-| Paketler ve kaynaklar                   | Dosya envanterleri, özet değerleri, plist'ler, Apple paket yapısı ve çıkarılmış kaynaklar                   | [Artefakt ve JavaScript rehberi](docs/javascript-artifact-reconstruction.md), [Apple uygulamaları](docs/apple-application-analysis.md) |
-| Süreç davranışı                         | Terminal çıktısı, etkileşimler, sonlanma ve dosya sistemi gözlemleri, çalıştırma karşılaştırmaları          | Yerel PTY ile Linux/macOS; [süreç yakalama](docs/process-capture.md)                                                                   |
+| Hedef                                   | REA'nın döndürdükleri                                                                                       | Gereksinimler ve rehber                                                                                                                                               |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Yerel makine kodu içeren ikili dosyalar | Sözde kod, assembly kodu, dizeler, semboller, çağrılar ve referanslar                                       | Hopper, Ghidra veya IDA; [yerel kod analizi](https://rea.tools/tr/guides/native/)                                                                                     |
+| Çevrimdışı ELF yapısı                   | Bölümler, segmentler, özgün semboller/yeniden konumlandırmalar ve statik analizden olası güvenlik önlemleri | Linux x64 üzerinde çağıranın sağladığı pwntools; [ikili dosya tanılama](docs/guides/native/binary-diagnostics.md)                                                     |
+| EVM bayt kodu                           | Yönlendirme seçicileri, bayt ofsetleri, çıkarımla belirlenen argümanlar ve durum değiştirilebilirliği       | Linux x64 üzerinde yerel ham bayt/onaltılık girdi; [çevrimdışı EVM rehberi](docs/guides/evm/evm-bytecode.md)                                                          |
+| Kaydedilmiş Linux çökmeleri             | Ham note kayıtları, kaydedilen her iş parçacığının yazmaçları/sinyalleri ve isteğe bağlı eşleme adayları    | Linux x64 üzerinde çağıranın sağladığı pwntools; isteğe bağlı GDB/pwndbg; [kaydedilmiş çökmeler](docs/guides/native/recorded-crashes.md)                              |
+| JavaScript / Electron                   | Modüller, içe aktarmalar, kaynak haritaları, rotalar, IPC ve yerel eklenti ilişkileri                       | Node.js ve npm; [uygulama analizi](https://rea.tools/tr/guides/javascript/)                                                                                           |
+| Web siteleri                            | Sayfa yapısı, betikler, ağ gözlemleri ve istenen ekran görüntüleri                                          | Chrome ailesinden bir tarayıcı; [tarayıcı analizi](https://rea.tools/tr/guides/browser/)                                                                              |
+| Kaydedilmiş ağ yakalamaları             | İstekler, yanıtlar, erişilebilir yük içerikleri ve kaynak konumları                                         | HAR; mitmproxy'nin kendi biçimindeki yakalamalar için Linux üzerinde mitmdump; [ağ yakalama rehberi](docs/guides/web/web-network-captures.md)                         |
+| Paket yakalamaları                      | Uç noktalar, DNS, TLS SNI, protokol dağılımı ve HTTP istekleri                                              | Çağıranın sağladığı tshark ve capinfos; [pcap rehberi](docs/guides/data/pcap-analysis.md)                                                                             |
+| .NET derlemeleri                        | Meta veriler, CIL talimatları, bildirilmiş yerel bağımlılıklar ve derleme karşılaştırmaları                 | Statik inceleme; [yönetilen kod rehberi](docs/guides/managed/managed-code-analysis.md)                                                                                |
+| Android APK'leri                        | Manifest bildirimleri, sınıflar, tersine derlenmiş metotlar ve referanslar                                  | Linux/macOS/Windows x64 üzerinde arayüzsüz JADX ve tam bir JDK; [Android rehberi](docs/guides/android/android-analysis.md)                                            |
+| Android cihazları                       | Cihazlar, paketler, süreçler, günlükler, dökümler, ekran görüntüleri ve APK/dosya aktarımları               | Çağıranın sağladığı adb (emülatör veya cihaz); [ADB rehberi](docs/guides/android/adb-device-analysis.md)                                                              |
+| JEB projeleri                           | Motor destekli proje birimleri, artefakt özetleri ve tür/metot sözdekodu                                    | Çağıranın başlattığı, MCP sunan bir JEB istemcisi, REA_JEB_MCP_URL ile seçilir; [JEB rehberi](docs/providers/jeb-analysis.md)                                         |
+| Android kaynakları                      | Çözülmüş manifest, dize tabloları, diller ve sürüm bilgileri                                                | Çağıranın sağladığı Apktool başlatıcısı; [kaynak rehberi](docs/guides/android/apktool-resource-analysis.md)                                                           |
+| Flutter uygulamaları                    | Dart anlık görüntü karması, ABI başına kitaplık özetleri ve motor derleme kökeni                            | Yok (statik APK çözümleme); [Flutter rehberi](docs/guides/android/flutter-analysis.md)                                                                                |
+| Donanım yazılımı                        | Bölgeler, çıkarma sonuçları ve yerel kod analizine devirler                                                 | Linux üzerinde Binwalk / Unblob; [donanım yazılımı rehberi](docs/guides/firmware/firmware-analysis.md)                                                                |
+| Kaydedilmiş paketler                    | Seçilen alanlar, yinelenen değerler, filtreler ve çözümleme kuralları                                       | Linux: TShark 4.x + prlimit; [yakalama kılavuzu](docs/guides/data/packet-captures.md)                                                                                 |
+| Kaydedilmiş mantık sinyalleri           | Kod çözücü açıklamaları, örnek aralıkları ve tanılama                                                       | Linux: sigrok-cli 0.7.2 + prlimit; [sinyal kılavuzu](docs/guides/signals/signal-recordings.md)                                                                        |
+| Paketler ve kaynaklar                   | Dosya envanterleri, özet değerleri, plist'ler, Apple paket yapısı ve çıkarılmış kaynaklar                   | [Artefakt ve JavaScript rehberi](docs/guides/javascript/javascript-artifact-reconstruction.md), [Apple uygulamaları](docs/guides/apple/apple-application-analysis.md) |
+| Süreç davranışı                         | Terminal çıktısı, etkileşimler, sonlanma ve dosya sistemi gözlemleri, çalıştırma karşılaştırmaları          | Yerel PTY ile Linux/macOS; [süreç yakalama](docs/guides/runtime/process-capture.md)                                                                                   |
 
 Statik JavaScript ve .NET incelemesi, uygulamayı çalıştırmadan sağlanan dosyaları okur. Çalışma zamanı yakalaması, seçilen hedefi kullanıcı izinlerinizle çalıştırır veya onunla etkileşime girer; her çalışma zamanı rehberi etkilerini açıklar.
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-Yerel makine kodu içeren ikili dosya biçimleri ve ana bilgisayar desteği sağlayıcıya göre değişir. [Hopper ve Ghidra kurulumu](docs/installation.md#hopper), [IDA rehberi](docs/ida-provider.md) ve [Windows için deneysel Ghidra desteği](docs/windows-ghidra-p0.md) belgelerine bakın. Ghidra ayrıca [16 bit DOS analizini](docs/ghidra-dos.md) destekler. Sağlayıcı seçimi için [CLI rehberine](docs/cli.md#choose-a-provider) bakın. En son npm sürümünden sonra eklenen özellikler için [sürümlerde kullanılabilirliği](docs/installation.md#released-package-and-main) kontrol edin.
+Yerel makine kodu içeren ikili dosya biçimleri ve ana bilgisayar desteği sağlayıcıya göre değişir. [Hopper ve Ghidra kurulumu](docs/getting-started/installation.md#hopper), [IDA rehberi](docs/providers/ida-provider.md) ve [Windows için deneysel Ghidra desteği](docs/providers/windows-ghidra-p0.md) belgelerine bakın. Ghidra ayrıca [16 bit DOS analizini](docs/providers/ghidra-dos.md) destekler. Sağlayıcı seçimi için [CLI rehberine](docs/getting-started/cli.md#choose-a-provider) bakın. En son npm sürümünden sonra eklenen özellikler için [sürümlerde kullanılabilirliği](docs/getting-started/installation.md#released-package-and-main) kontrol edin.
 
 ## Örnek çalışmalar
 
@@ -187,28 +187,28 @@ REA'yı ilginç bir konuda kullandıysanız görmek isteriz. Hedefi, sorunuzu, R
 <details>
 <summary><strong>Hangi ajanlar REA'yı kullanabilir?</strong></summary>
 
-Yerel MCP sunucularını destekleyen her ajan REA'yı kullanabilir. Kurulum, [desteklenen ajanları](docs/installation.md#supported-agents) yapılandırır; diğer istemciler [elle MCP kaydını](docs/installation.md#mcp-registry) kullanabilir.
+Yerel MCP sunucularını destekleyen her ajan REA'yı kullanabilir. Kurulum, [desteklenen ajanları](docs/getting-started/installation.md#supported-agents) yapılandırır; diğer istemciler [elle MCP kaydını](docs/getting-started/installation.md#mcp-registry) kullanabilir.
 
 </details>
 
 <details>
 <summary><strong>Hopper, Ghidra veya IDA gerekiyor mu?</strong></summary>
 
-Derin yerel kod analizi bunlardan birini kullanır. Statik JavaScript ve .NET incelemesi yerel analiz motoru olmadan çalışır. Kurulum onaydan sonra Hopper yükleyebilir; Ghidra ve IDA mevcut kurulumlarınızı kullanır. [Sağlayıcı kurulumuna](docs/installation.md#hopper) bakın.
+Derin yerel kod analizi bunlardan birini kullanır. Statik JavaScript ve .NET incelemesi yerel analiz motoru olmadan çalışır. Kurulum onaydan sonra Hopper yükleyebilir; Ghidra ve IDA mevcut kurulumlarınızı kullanır. [Sağlayıcı kurulumuna](docs/getting-started/installation.md#hopper) bakın.
 
 </details>
 
 <details>
 <summary><strong>Önce Hopper'ı başlatmam gerekiyor mu?</strong></summary>
 
-REA, bir işlem gerektirdiğinde Hopper'ı başlatır. macOS'ta ilk çalıştırmada demo modunu seçmenizi veya lisansınızı etkinleştirmenizi isteyen bir iletişim kutusu açılabilir. [Hopper başlatma ve sorun giderme](docs/installation.md#launcher-paths-and-troubleshooting) belgesine bakın.
+REA, bir işlem gerektirdiğinde Hopper'ı başlatır. macOS'ta ilk çalıştırmada demo modunu seçmenizi veya lisansınızı etkinleştirmenizi isteyen bir iletişim kutusu açılabilir. [Hopper başlatma ve sorun giderme](docs/getting-started/installation.md#launcher-paths-and-troubleshooting) belgesine bakın.
 
 </details>
 
 <details>
 <summary><strong>skills.sh üzerinden skill yüklemek ne yapar?</strong></summary>
 
-Skill, ajanınıza araştırma talimatları sağlar. REA'nın MCP sunucusunu kaydetmek ve uyumlu talimatları yüklemek için `npx rea-agents setup` kullanın, ardından ajanınızı yeniden başlatın. [Yalnızca skill yükleme](docs/installation.md#skill-only-installation) belgesine bakın.
+Skill, ajanınıza araştırma talimatları sağlar. REA'nın MCP sunucusunu kaydetmek ve uyumlu talimatları yüklemek için `npx rea-agents setup` kullanın, ardından ajanınızı yeniden başlatın. [Yalnızca skill yükleme](docs/getting-started/installation.md#skill-only-installation) belgesine bakın.
 
 </details>
 
@@ -251,12 +251,12 @@ Ajan kullanıyorsanız [kurulum yenilemesini](#reayı-güncelleyin) tamamlayın 
 
 Web sitesindeki [uygulamalı rehberlerden](https://rea.tools/tr/guides/) başlayın. Kesin seçenekler, ön koşullar ve sonuç sözleşmeleri için:
 
-- [Yükleme ve kurulum](docs/installation.md): ajan kaydı, sağlayıcı yapılandırması, güncellemeler ve kaldırma.
-- [Hazırlık ve sorun giderme](docs/installation.md#check-readiness-for-your-task): belirli bir ajanı veya analiz motorunu tanılama.
-- [CLI ve Evidence](docs/cli.md): komutlar, sağlayıcı seçimi, anlık görüntüler, içe/dışa aktarma ve çıkış durumları.
-- [MCP sözleşmeleri](docs/mcp-contracts.md) ve [ajan istemleri](docs/mcp-prompts.md): araç sonuçları, oturumlar ve yönlendirmeli araştırmalar.
-- [Araç kataloğu](docs/mcp-contracts.md#generated-catalog): derleme sırasında oluşturulan araç, sağlayıcı ve CLI komutu envanteri.
-- [Yol haritası](docs/roadmap.md): planlanan çalışmalar ve yetenek takibi.
+- [Yükleme ve kurulum](docs/getting-started/installation.md): ajan kaydı, sağlayıcı yapılandırması, güncellemeler ve kaldırma.
+- [Hazırlık ve sorun giderme](docs/getting-started/installation.md#check-readiness-for-your-task): belirli bir ajanı veya analiz motorunu tanılama.
+- [CLI ve Evidence](docs/getting-started/cli.md): komutlar, sağlayıcı seçimi, anlık görüntüler, içe/dışa aktarma ve çıkış durumları.
+- [MCP sözleşmeleri](docs/reference/mcp-contracts.md) ve [ajan istemleri](docs/getting-started/mcp-prompts.md): araç sonuçları, oturumlar ve yönlendirmeli araştırmalar.
+- [Araç kataloğu](docs/reference/mcp-contracts.md#generated-catalog): derleme sırasında oluşturulan araç, sağlayıcı ve CLI komutu envanteri.
+- [Yol haritası](docs/development/roadmap.md): planlanan çalışmalar ve yetenek takibi.
 
 Güvenlik açıklarını [SECURITY.md](SECURITY.md) üzerinden bildirin.
 
@@ -288,7 +288,7 @@ applicable licenses.
 
 REA'ya katkınızı bekliyoruz! Hata bildirmek veya özellik önermek için bir [issue açın](https://github.com/morluto/rea/issues); kodu veya belgeleri geliştirmek için bir [pull request gönderin](https://github.com/morluto/rea/pulls).
 
-Geliştirme ortamı ve kontroller için [CONTRIBUTING.md](CONTRIBUTING.md), doğrulama süreçleri için [test rehberi](docs/testing.md) ve proje yapısı için [mimari harita](docs/architecture.mermaid) belgelerine bakın.
+Geliştirme ortamı ve kontroller için [CONTRIBUTING.md](CONTRIBUTING.md), doğrulama süreçleri için [test rehberi](docs/development/testing.md) ve proje yapısı için [mimari harita](docs/architecture/architecture.mermaid) belgelerine bakın.
 
 ## Lisans
 

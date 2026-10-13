@@ -9,7 +9,7 @@
 **เห็นฟีเจอร์ที่ชอบแล้วอยากรู้ว่าทำงานอย่างไร? เข้าใจได้ลึกถึงระดับไบนารี**
 
 [![npm version](https://img.shields.io/npm/v/rea-agents?style=flat-square&color=cb3837)](https://www.npmjs.com/package/rea-agents)
-[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/mcp-contracts.md#generated-catalog)
+[![MCP tool catalog](https://img.shields.io/badge/MCP-tool_catalog-5c4ee5?style=flat-square)](docs/reference/mcp-contracts.md#generated-catalog)
 [![Node.js requirements](https://img.shields.io/badge/Node.js-requirements-339933?style=flat-square&logo=nodedotjs&logoColor=white)](#current-status)
 [![skills.sh](https://skills.sh/b/morluto/rea?style=flat-square)](https://skills.sh/morluto/rea/reverse-engineer-anything)
 [![MIT license](https://img.shields.io/badge/license-MIT-f4c430?style=flat-square)](LICENSE)
@@ -67,7 +67,7 @@ npx rea-agents setup
 
 เลือกเอเจนต์ ตรวจสอบการเปลี่ยนแปลงที่เสนอ แล้วอนุมัติ ขั้นตอนตั้งค่าจะเพิ่มเซิร์ฟเวอร์ MCP ของ REA และคำแนะนำการทำงานที่ตรงกัน พร้อมสำรองการตั้งค่าที่มีอยู่ จากนั้นเริ่มเอเจนต์ใหม่
 
-ขั้นตอนตั้งค่ารองรับ Claude Code, Codex, Cursor, Gemini CLI, Grok Build และ[เอเจนต์อื่น ๆ](docs/installation.md#supported-agents) ดู[การติดตั้งและตั้งค่า](docs/installation.md) สำหรับการตั้งค่าผู้ให้บริการวิเคราะห์และการลงทะเบียน MCP ด้วยตนเอง
+ขั้นตอนตั้งค่ารองรับ Claude Code, Codex, Cursor, Gemini CLI, Grok Build และ[เอเจนต์อื่น ๆ](docs/getting-started/installation.md#supported-agents) ดู[การติดตั้งและตั้งค่า](docs/getting-started/installation.md) สำหรับการตั้งค่าผู้ให้บริการวิเคราะห์และการลงทะเบียน MCP ด้วยตนเอง
 
 ### ถามเอเจนต์
 
@@ -94,7 +94,7 @@ npm install --global rea-agents
 rea --help
 ```
 
-สำหรับการวิเคราะห์เนทีฟ ให้ตั้งค่าผู้ให้บริการวิเคราะห์ก่อน ดู[คู่มือ CLI และ Evidence](docs/cli.md) สำหรับคำสั่งเนทีฟ การเลือกผู้ให้บริการ สแนปช็อต และการใช้งานในสคริปต์
+สำหรับการวิเคราะห์เนทีฟ ให้ตั้งค่าผู้ให้บริการวิเคราะห์ก่อน ดู[คู่มือ CLI และ Evidence](docs/getting-started/cli.md) สำหรับคำสั่งเนทีฟ การเลือกผู้ให้บริการ สแนปช็อต และการใช้งานในสคริปต์
 
 ### อัปเดต REA
 
@@ -130,33 +130,33 @@ npx rea-agents@latest setup
 
 REA ต้องใช้ Node.js 22.x (>=22.19), 24.x (>=24.11) หรือ 26+ และ npm เครื่องมือเพิ่มเติมและแพลตฟอร์มที่รองรับขึ้นอยู่กับเป้าหมาย:
 
-| เป้าหมาย                      | สิ่งที่ REA ส่งกลับ                                                                   | ข้อกำหนดและคู่มือ                                                                                                                  |
-| ---------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| ไบนารีเนทีฟ                    | โค้ดเทียม แอสเซมบลี สตริง สัญลักษณ์ การเรียก และการอ้างอิง                                | Hopper, Ghidra หรือ IDA; [การวิเคราะห์เนทีฟ](https://rea.tools/th/guides/native/)                                                  |
-| โครงสร้าง ELF แบบออฟไลน์       | เซกชัน เซกเมนต์ สัญลักษณ์/รีโลเคชันต้นฉบับ และตัวเลือกกลไกป้องกันที่พบจากการวิเคราะห์แบบสถิต      | pwntools ที่ผู้ใช้จัดเตรียมบน Linux x64; [การวินิจฉัยไบนารี](docs/binary-diagnostics.md)                                                  |
-| ไบต์โค้ด EVM                   | ตัวเลือกฟังก์ชันสำหรับการเรียก ออฟเซ็ตไบต์ อาร์กิวเมนต์และความสามารถในการเปลี่ยนสถานะที่อนุมานได้ | ไฟล์บนเครื่องที่มีไบต์ดิบหรือข้อมูลเลขฐานสิบหกบน Linux x64; [คู่มือ EVM แบบออฟไลน์](docs/evm-bytecode.md)                                      |
-| ข้อมูลการแครชของ Linux ที่บันทึกไว้ | ระเบียน note ดิบ รีจิสเตอร์/สัญญาณของทุกเธรดที่บันทึกไว้ และตัวเลือกการแมปเพิ่มเติม              | pwntools ที่ผู้ใช้จัดเตรียมบน Linux x64; เลือกใช้ GDB/pwndbg เพิ่มเติมได้; [การแครชที่บันทึกไว้](docs/recorded-crashes.md)                       |
-| JavaScript / Electron        | โมดูล การนำเข้า ซอร์สแมป เส้นทาง IPC และความสัมพันธ์กับส่วนเสริมเนทีฟ                      | Node.js และ npm; [การวิเคราะห์แอปพลิเคชัน](https://rea.tools/th/guides/javascript/)                                                |
-| เว็บไซต์                       | โครงสร้างหน้า สคริปต์ ข้อมูลเครือข่ายที่สังเกตได้ และภาพหน้าจอที่ร้องขอ                         | เบราว์เซอร์ในตระกูล Chrome; [การวิเคราะห์ผ่านเบราว์เซอร์](https://rea.tools/th/guides/browser/)                                        |
-| ข้อมูลเครือข่ายที่บันทึกไว้           | คำขอ คำตอบ เพย์โหลดที่ปรากฏ และตำแหน่งต้นทาง                                         | HAR; mitmdump บน Linux สำหรับข้อมูลที่บันทึกในรูปแบบเนทีฟของ mitmproxy; [คู่มือการบันทึกข้อมูล](docs/web-network-captures.md)                  |
-| การจับแพ็กเก็ต                  | จุดเชื่อมต่อ, DNS, TLS SNI, การกระจายโปรโตคอล และคำขอ HTTP                          | tshark และ capinfos ที่ผู้เรียกจัดเตรียม; [คู่มือ pcap](docs/pcap-analysis.md)                                                           |
-| แอสเซมบลี .NET                | เมทาดาทา คำสั่ง CIL การพึ่งพาเนทีฟที่ประกาศไว้ และการเปรียบเทียบผลการบิลด์                  | การตรวจสอบแบบสถิต; [คู่มือโค้ดแบบจัดการ](docs/managed-code-analysis.md)                                                              |
-| APK ของ Android              | การประกาศใน manifest คลาส เมธอดที่ดีคอมไพล์ และการอ้างอิง                             | JADX แบบไม่มี GUI และ JDK แบบเต็มบน Linux/macOS/Windows x64; [คู่มือ Android](docs/android-analysis.md)                              |
-| อุปกรณ์ Android                | อุปกรณ์ แพ็กเกจ โพรเซส บันทึก ดัมพ์ ภาพหน้าจอ และการถ่ายโอน APK/ไฟล์                      | adb ที่ผู้เรียกจัดเตรียม (โปรแกรมจำลองหรืออุปกรณ์จริง); [คู่มือ ADB](docs/adb-device-analysis.md)                                            |
-| โปรเจกต์ JEB                  | หน่วยโปรเจกต์จากเอนจิน, แฮชของอาร์ติแฟกต์ และซูโดโค้ดของไทป์/เมท็อด                       | ไคลเอนต์ JEB ที่ผู้เรียกเริ่มและให้บริการ MCP เลือกด้วย REA_JEB_MCP_URL; [คู่มือ JEB](docs/jeb-analysis.md)                                   |
-| ทรัพยากร Android              | ไฟล์ manifest ที่ถอดรหัสแล้ว ตารางสตริง ภาษา และข้อมูลเวอร์ชัน                            | ตัวเรียก Apktool ที่ผู้เรียกจัดเตรียม; [คู่มือทรัพยากร](docs/apktool-resource-analysis.md)                                                  |
-| แอป Flutter                  | แฮชสแนปชอต Dart, แฮชไลบรารีราย ABI และที่มาของบิลด์เอนจิน                             | ไม่ต้อง (วิเคราะห์ APK แบบ static); [คู่มือ Flutter](docs/flutter-analysis.md)                                                        |
-| เฟิร์มแวร์                      | พื้นที่ข้อมูล ผลการแตกไฟล์ และการส่งต่อไปวิเคราะห์เนทีฟ                                     | Binwalk / Unblob บน Linux; [คู่มือเฟิร์มแวร์](docs/firmware-analysis.md)                                                             |
-| แพ็กเก็ตที่บันทึกไว้                | ฟิลด์ที่เลือก ค่าซ้ำ ตัวกรอง และกฎการถอดรหัส                                             | Linux: TShark 4.x + prlimit; [คู่มือไฟล์แคปเจอร์](docs/packet-captures.md)                                                          |
-| สัญญาณลอจิกที่บันทึกไว้             | คำอธิบายจากตัวถอดรหัส ช่วงตัวอย่าง และข้อมูลวินิจฉัย                                       | Linux: sigrok-cli 0.7.2 + prlimit; [คู่มือสัญญาณ](docs/signal-recordings.md)                                                       |
-| แพ็กเกจและทรัพยากร             | รายการไฟล์ ค่าแฮช plist โครงสร้างบันเดิลของ Apple และทรัพยากรที่แตกออกมา                | [คู่มืออาร์ติแฟกต์และ JavaScript](docs/javascript-artifact-reconstruction.md), [แอปพลิเคชัน Apple](docs/apple-application-analysis.md) |
-| พฤติกรรมของโปรเซส             | เอาต์พุตเทอร์มินัล การโต้ตอบ ข้อมูลการสิ้นสุดและระบบไฟล์ที่สังเกตได้ และการเปรียบเทียบการรัน       | Linux/macOS ที่มี PTY เนทีฟ; [การบันทึกโปรเซส](docs/process-capture.md)                                                              |
+| เป้าหมาย                      | สิ่งที่ REA ส่งกลับ                                                                   | ข้อกำหนดและคู่มือ                                                                                                                                                 |
+| ---------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ไบนารีเนทีฟ                    | โค้ดเทียม แอสเซมบลี สตริง สัญลักษณ์ การเรียก และการอ้างอิง                                | Hopper, Ghidra หรือ IDA; [การวิเคราะห์เนทีฟ](https://rea.tools/th/guides/native/)                                                                                 |
+| โครงสร้าง ELF แบบออฟไลน์       | เซกชัน เซกเมนต์ สัญลักษณ์/รีโลเคชันต้นฉบับ และตัวเลือกกลไกป้องกันที่พบจากการวิเคราะห์แบบสถิต      | pwntools ที่ผู้ใช้จัดเตรียมบน Linux x64; [การวินิจฉัยไบนารี](docs/guides/native/binary-diagnostics.md)                                                                   |
+| ไบต์โค้ด EVM                   | ตัวเลือกฟังก์ชันสำหรับการเรียก ออฟเซ็ตไบต์ อาร์กิวเมนต์และความสามารถในการเปลี่ยนสถานะที่อนุมานได้ | ไฟล์บนเครื่องที่มีไบต์ดิบหรือข้อมูลเลขฐานสิบหกบน Linux x64; [คู่มือ EVM แบบออฟไลน์](docs/guides/evm/evm-bytecode.md)                                                          |
+| ข้อมูลการแครชของ Linux ที่บันทึกไว้ | ระเบียน note ดิบ รีจิสเตอร์/สัญญาณของทุกเธรดที่บันทึกไว้ และตัวเลือกการแมปเพิ่มเติม              | pwntools ที่ผู้ใช้จัดเตรียมบน Linux x64; เลือกใช้ GDB/pwndbg เพิ่มเติมได้; [การแครชที่บันทึกไว้](docs/guides/native/recorded-crashes.md)                                        |
+| JavaScript / Electron        | โมดูล การนำเข้า ซอร์สแมป เส้นทาง IPC และความสัมพันธ์กับส่วนเสริมเนทีฟ                      | Node.js และ npm; [การวิเคราะห์แอปพลิเคชัน](https://rea.tools/th/guides/javascript/)                                                                               |
+| เว็บไซต์                       | โครงสร้างหน้า สคริปต์ ข้อมูลเครือข่ายที่สังเกตได้ และภาพหน้าจอที่ร้องขอ                         | เบราว์เซอร์ในตระกูล Chrome; [การวิเคราะห์ผ่านเบราว์เซอร์](https://rea.tools/th/guides/browser/)                                                                       |
+| ข้อมูลเครือข่ายที่บันทึกไว้           | คำขอ คำตอบ เพย์โหลดที่ปรากฏ และตำแหน่งต้นทาง                                         | HAR; mitmdump บน Linux สำหรับข้อมูลที่บันทึกในรูปแบบเนทีฟของ mitmproxy; [คู่มือการบันทึกข้อมูล](docs/guides/web/web-network-captures.md)                                      |
+| การจับแพ็กเก็ต                  | จุดเชื่อมต่อ, DNS, TLS SNI, การกระจายโปรโตคอล และคำขอ HTTP                          | tshark และ capinfos ที่ผู้เรียกจัดเตรียม; [คู่มือ pcap](docs/guides/data/pcap-analysis.md)                                                                              |
+| แอสเซมบลี .NET                | เมทาดาทา คำสั่ง CIL การพึ่งพาเนทีฟที่ประกาศไว้ และการเปรียบเทียบผลการบิลด์                  | การตรวจสอบแบบสถิต; [คู่มือโค้ดแบบจัดการ](docs/guides/managed/managed-code-analysis.md)                                                                              |
+| APK ของ Android              | การประกาศใน manifest คลาส เมธอดที่ดีคอมไพล์ และการอ้างอิง                             | JADX แบบไม่มี GUI และ JDK แบบเต็มบน Linux/macOS/Windows x64; [คู่มือ Android](docs/guides/android/android-analysis.md)                                              |
+| อุปกรณ์ Android                | อุปกรณ์ แพ็กเกจ โพรเซส บันทึก ดัมพ์ ภาพหน้าจอ และการถ่ายโอน APK/ไฟล์                      | adb ที่ผู้เรียกจัดเตรียม (โปรแกรมจำลองหรืออุปกรณ์จริง); [คู่มือ ADB](docs/guides/android/adb-device-analysis.md)                                                            |
+| โปรเจกต์ JEB                  | หน่วยโปรเจกต์จากเอนจิน, แฮชของอาร์ติแฟกต์ และซูโดโค้ดของไทป์/เมท็อด                       | ไคลเอนต์ JEB ที่ผู้เรียกเริ่มและให้บริการ MCP เลือกด้วย REA_JEB_MCP_URL; [คู่มือ JEB](docs/providers/jeb-analysis.md)                                                        |
+| ทรัพยากร Android              | ไฟล์ manifest ที่ถอดรหัสแล้ว ตารางสตริง ภาษา และข้อมูลเวอร์ชัน                            | ตัวเรียก Apktool ที่ผู้เรียกจัดเตรียม; [คู่มือทรัพยากร](docs/guides/android/apktool-resource-analysis.md)                                                                  |
+| แอป Flutter                  | แฮชสแนปชอต Dart, แฮชไลบรารีราย ABI และที่มาของบิลด์เอนจิน                             | ไม่ต้อง (วิเคราะห์ APK แบบ static); [คู่มือ Flutter](docs/guides/android/flutter-analysis.md)                                                                        |
+| เฟิร์มแวร์                      | พื้นที่ข้อมูล ผลการแตกไฟล์ และการส่งต่อไปวิเคราะห์เนทีฟ                                     | Binwalk / Unblob บน Linux; [คู่มือเฟิร์มแวร์](docs/guides/firmware/firmware-analysis.md)                                                                            |
+| แพ็กเก็ตที่บันทึกไว้                | ฟิลด์ที่เลือก ค่าซ้ำ ตัวกรอง และกฎการถอดรหัส                                             | Linux: TShark 4.x + prlimit; [คู่มือไฟล์แคปเจอร์](docs/guides/data/packet-captures.md)                                                                             |
+| สัญญาณลอจิกที่บันทึกไว้             | คำอธิบายจากตัวถอดรหัส ช่วงตัวอย่าง และข้อมูลวินิจฉัย                                       | Linux: sigrok-cli 0.7.2 + prlimit; [คู่มือสัญญาณ](docs/guides/signals/signal-recordings.md)                                                                       |
+| แพ็กเกจและทรัพยากร             | รายการไฟล์ ค่าแฮช plist โครงสร้างบันเดิลของ Apple และทรัพยากรที่แตกออกมา                | [คู่มืออาร์ติแฟกต์และ JavaScript](docs/guides/javascript/javascript-artifact-reconstruction.md), [แอปพลิเคชัน Apple](docs/guides/apple/apple-application-analysis.md) |
+| พฤติกรรมของโปรเซส             | เอาต์พุตเทอร์มินัล การโต้ตอบ ข้อมูลการสิ้นสุดและระบบไฟล์ที่สังเกตได้ และการเปรียบเทียบการรัน       | Linux/macOS ที่มี PTY เนทีฟ; [การบันทึกโปรเซส](docs/guides/runtime/process-capture.md)                                                                              |
 
 การตรวจสอบ JavaScript และ .NET แบบสถิตอ่านไฟล์ที่ให้มาโดยไม่รันแอปพลิเคชัน การบันทึกขณะทำงานจะรันหรือโต้ตอบกับเป้าหมายที่เลือกโดยใช้สิทธิ์ของผู้ใช้คุณ คู่มือการทำงานแต่ละฉบับอธิบายผลที่เกิดขึ้นไว้
 
 <a id="choosing-a-deep-analysis-provider"></a>
 
-รูปแบบไบนารีเนทีฟและแพลตฟอร์มที่รองรับแตกต่างกันตามผู้ให้บริการวิเคราะห์ ดู[การตั้งค่า Hopper และ Ghidra](docs/installation.md#hopper), [คู่มือ IDA](docs/ida-provider.md) และ[การรองรับ Ghidra บน Windows แบบทดลอง](docs/windows-ghidra-p0.md) Ghidra ยังรองรับ[การวิเคราะห์ DOS แบบ 16 บิต](docs/ghidra-dos.md) สำหรับการเลือกผู้ให้บริการ ดู[คู่มือ CLI](docs/cli.md#choose-a-provider) ตรวจสอบ[ความพร้อมใช้งานในแต่ละรุ่น](docs/installation.md#released-package-and-main) สำหรับฟีเจอร์ที่เพิ่มหลังรุ่นล่าสุดบน npm
+รูปแบบไบนารีเนทีฟและแพลตฟอร์มที่รองรับแตกต่างกันตามผู้ให้บริการวิเคราะห์ ดู[การตั้งค่า Hopper และ Ghidra](docs/getting-started/installation.md#hopper), [คู่มือ IDA](docs/providers/ida-provider.md) และ[การรองรับ Ghidra บน Windows แบบทดลอง](docs/providers/windows-ghidra-p0.md) Ghidra ยังรองรับ[การวิเคราะห์ DOS แบบ 16 บิต](docs/providers/ghidra-dos.md) สำหรับการเลือกผู้ให้บริการ ดู[คู่มือ CLI](docs/getting-started/cli.md#choose-a-provider) ตรวจสอบ[ความพร้อมใช้งานในแต่ละรุ่น](docs/getting-started/installation.md#released-package-and-main) สำหรับฟีเจอร์ที่เพิ่มหลังรุ่นล่าสุดบน npm
 
 ## ตัวอย่างการใช้งาน
 
@@ -187,28 +187,28 @@ REA ต้องใช้ Node.js 22.x (>=22.19), 24.x (>=24.11) หรือ 26
 <details>
 <summary><strong>เอเจนต์ใดใช้ REA ได้บ้าง?</strong></summary>
 
-เอเจนต์ใดก็ตามที่รองรับเซิร์ฟเวอร์ MCP บนเครื่อง ขั้นตอนตั้งค่าจะกำหนดค่าให้กับ[เอเจนต์ที่รองรับ](docs/installation.md#supported-agents) ส่วนไคลเอนต์อื่นใช้[การลงทะเบียน MCP ด้วยตนเอง](docs/installation.md#mcp-registry) ได้
+เอเจนต์ใดก็ตามที่รองรับเซิร์ฟเวอร์ MCP บนเครื่อง ขั้นตอนตั้งค่าจะกำหนดค่าให้กับ[เอเจนต์ที่รองรับ](docs/getting-started/installation.md#supported-agents) ส่วนไคลเอนต์อื่นใช้[การลงทะเบียน MCP ด้วยตนเอง](docs/getting-started/installation.md#mcp-registry) ได้
 
 </details>
 
 <details>
 <summary><strong>จำเป็นต้องมี Hopper, Ghidra หรือ IDA หรือไม่?</strong></summary>
 
-การวิเคราะห์เนทีฟเชิงลึกต้องใช้หนึ่งในเครื่องมือเหล่านี้ การตรวจสอบ JavaScript และ .NET แบบสถิตทำงานได้โดยไม่มีเอนจินวิเคราะห์เนทีฟ ขั้นตอนตั้งค่าสามารถติดตั้ง Hopper หลังได้รับอนุมัติ ส่วน Ghidra และ IDA ใช้การติดตั้งที่คุณมีอยู่แล้ว ดู[การตั้งค่าผู้ให้บริการวิเคราะห์](docs/installation.md#hopper)
+การวิเคราะห์เนทีฟเชิงลึกต้องใช้หนึ่งในเครื่องมือเหล่านี้ การตรวจสอบ JavaScript และ .NET แบบสถิตทำงานได้โดยไม่มีเอนจินวิเคราะห์เนทีฟ ขั้นตอนตั้งค่าสามารถติดตั้ง Hopper หลังได้รับอนุมัติ ส่วน Ghidra และ IDA ใช้การติดตั้งที่คุณมีอยู่แล้ว ดู[การตั้งค่าผู้ให้บริการวิเคราะห์](docs/getting-started/installation.md#hopper)
 
 </details>
 
 <details>
 <summary><strong>ต้องเริ่ม Hopper ก่อนหรือไม่?</strong></summary>
 
-REA เริ่ม Hopper เมื่อการดำเนินการต้องใช้ บน macOS อาจมีหน้าต่างเมื่อรันครั้งแรกให้เลือกโหมดทดลองหรือเปิดใช้ใบอนุญาต ดู[การเริ่ม Hopper และการแก้ไขปัญหา](docs/installation.md#launcher-paths-and-troubleshooting)
+REA เริ่ม Hopper เมื่อการดำเนินการต้องใช้ บน macOS อาจมีหน้าต่างเมื่อรันครั้งแรกให้เลือกโหมดทดลองหรือเปิดใช้ใบอนุญาต ดู[การเริ่ม Hopper และการแก้ไขปัญหา](docs/getting-started/installation.md#launcher-paths-and-troubleshooting)
 
 </details>
 
 <details>
 <summary><strong>การติดตั้งสกิลจาก skills.sh ทำอะไร?</strong></summary>
 
-สกิลให้คำแนะนำการตรวจสอบแก่เอเจนต์ ใช้ `npx rea-agents setup` เพื่อลงทะเบียนเซิร์ฟเวอร์ MCP ของ REA และติดตั้งคำแนะนำที่ตรงกัน แล้วเริ่มเอเจนต์ใหม่ ดู[การติดตั้งเฉพาะสกิล](docs/installation.md#skill-only-installation)
+สกิลให้คำแนะนำการตรวจสอบแก่เอเจนต์ ใช้ `npx rea-agents setup` เพื่อลงทะเบียนเซิร์ฟเวอร์ MCP ของ REA และติดตั้งคำแนะนำที่ตรงกัน แล้วเริ่มเอเจนต์ใหม่ ดู[การติดตั้งเฉพาะสกิล](docs/getting-started/installation.md#skill-only-installation)
 
 </details>
 
@@ -251,12 +251,12 @@ npx rea-agents@latest setup
 
 เริ่มจาก[คู่มือพร้อมตัวอย่าง](https://rea.tools/th/guides/) บนเว็บไซต์ สำหรับตัวเลือก ข้อกำหนดเบื้องต้น และสัญญาผลลัพธ์ที่แน่นอน:
 
-- [การติดตั้งและตั้งค่า](docs/installation.md): การลงทะเบียนเอเจนต์ การตั้งค่าผู้ให้บริการ การอัปเดต และการถอนการติดตั้ง
-- [ความพร้อมใช้งานและการแก้ไขปัญหา](docs/installation.md#check-readiness-for-your-task): ตรวจวินิจฉัยเอเจนต์หรือเอนจินวิเคราะห์หนึ่งตัว
-- [CLI และ Evidence](docs/cli.md): คำสั่ง การเลือกผู้ให้บริการ สแนปช็อต การนำเข้า/ส่งออก และรหัสการสิ้นสุด
-- [สัญญา MCP](docs/mcp-contracts.md) และ[พรอมป์ต์สำหรับเอเจนต์](docs/mcp-prompts.md): ผลลัพธ์เครื่องมือ เซสชัน และการตรวจสอบตามคำแนะนำ
-- [แค็ตตาล็อกเครื่องมือ](docs/mcp-contracts.md#generated-catalog): รายการเครื่องมือ ผู้ให้บริการ และคำสั่ง CLI ที่สร้างระหว่างการบิลด์
-- [แผนพัฒนา](docs/roadmap.md): งานที่วางแผนไว้และรายการติดตามความสามารถ
+- [การติดตั้งและตั้งค่า](docs/getting-started/installation.md): การลงทะเบียนเอเจนต์ การตั้งค่าผู้ให้บริการ การอัปเดต และการถอนการติดตั้ง
+- [ความพร้อมใช้งานและการแก้ไขปัญหา](docs/getting-started/installation.md#check-readiness-for-your-task): ตรวจวินิจฉัยเอเจนต์หรือเอนจินวิเคราะห์หนึ่งตัว
+- [CLI และ Evidence](docs/getting-started/cli.md): คำสั่ง การเลือกผู้ให้บริการ สแนปช็อต การนำเข้า/ส่งออก และรหัสการสิ้นสุด
+- [สัญญา MCP](docs/reference/mcp-contracts.md) และ[พรอมป์ต์สำหรับเอเจนต์](docs/getting-started/mcp-prompts.md): ผลลัพธ์เครื่องมือ เซสชัน และการตรวจสอบตามคำแนะนำ
+- [แค็ตตาล็อกเครื่องมือ](docs/reference/mcp-contracts.md#generated-catalog): รายการเครื่องมือ ผู้ให้บริการ และคำสั่ง CLI ที่สร้างระหว่างการบิลด์
+- [แผนพัฒนา](docs/development/roadmap.md): งานที่วางแผนไว้และรายการติดตามความสามารถ
 
 รายงานช่องโหว่ผ่าน [SECURITY.md](SECURITY.md)
 
@@ -288,7 +288,7 @@ applicable licenses.
 
 เรายินดีรับความช่วยเหลือในการพัฒนา REA! [เปิด issue](https://github.com/morluto/rea/issues) เพื่อรายงานบั๊กหรือเสนอฟีเจอร์ หรือ[ส่ง pull request](https://github.com/morluto/rea/pulls) เพื่อปรับปรุงโค้ดหรือเอกสาร
 
-ดู [CONTRIBUTING.md](CONTRIBUTING.md) สำหรับการตั้งค่าสภาพแวดล้อมพัฒนาและการตรวจสอบ ดู[การทดสอบ](docs/testing.md) สำหรับแนวทางการตรวจยืนยัน และ[แผนผังสถาปัตยกรรม](docs/architecture.mermaid) สำหรับโครงสร้างโปรเจกต์
+ดู [CONTRIBUTING.md](CONTRIBUTING.md) สำหรับการตั้งค่าสภาพแวดล้อมพัฒนาและการตรวจสอบ ดู[การทดสอบ](docs/development/testing.md) สำหรับแนวทางการตรวจยืนยัน และ[แผนผังสถาปัตยกรรม](docs/architecture/architecture.mermaid) สำหรับโครงสร้างโปรเจกต์
 
 ## สัญญาอนุญาต
 

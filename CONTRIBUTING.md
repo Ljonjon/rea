@@ -11,7 +11,7 @@ incorrect user instructions warrant standalone corrections. Collect other
 cosmetic-only suggestions in an issue rather than separate PRs.
 
 For capability organization and provider composition, use the
-[architecture map](docs/architecture.mermaid). Production factories in
+[architecture map](docs/architecture/architecture.mermaid). Production factories in
 `src/composition/` construct fresh providers without starting engines or acquiring
 targets; optional adapter failures must preserve successful peers. Run
 `npm run verify:test-discovery` after adding or moving tests. Resolved import
@@ -22,7 +22,7 @@ For analysis workflows and agent interfaces, follow the
 scope, reuse/cache decisions, and relevant before/after measurements when these
 costs change.
 
-When adding or changing an MCP tool, follow the [tool design guide](docs/tool-design.md) and preserve the canonical contracts and generated catalog.
+When adding or changing an MCP tool, follow the [tool design guide](docs/development/tool-design.md) and preserve the canonical contracts and generated catalog.
 
 ## Contribution scope
 
@@ -124,7 +124,7 @@ guarantee.
 Use the development toolchain pinned in `.nvmrc` and
 `package.json#packageManager`. Run `nvm use` before installing dependencies;
 installed-package runtime support is documented in
-[installation](docs/installation.md#start-setup).
+[installation](docs/getting-started/installation.md#start-setup).
 
 ```bash
 npm ci
@@ -143,6 +143,10 @@ Repository invariants live in [AGENTS.md](AGENTS.md). Keep provider-specific
 protocols in adapters and shared CLI/MCP workflows in the application layer.
 
 ## Documentation website
+
+Use the [documentation directory](docs/README.md) and
+[authoring guide](docs/development/documentation.md) for document ownership,
+domain-based feature specifications and architectural decision records.
 
 The VitePress site uses the Markdown files in `docs/`. Run `npm run docs:dev`
 for live editing, `npm run docs:build` to check the production build and
@@ -176,7 +180,7 @@ npm run check:fast
 `test:local` runs source tests without building. `check:changed` combines cached
 static checks with source tests affected since the merge base with `origin/main`.
 Import-graph selection can miss runtime registration, bridges, and generated data;
-select relevant boundary tests explicitly. See [testing](docs/testing.md#developer-commands)
+select relevant boundary tests explicitly. See [testing](docs/development/testing.md#developer-commands)
 for commands, test placement, pruning, and real-provider prerequisites.
 
 Before requesting review, run relevant tests and `npm run check`; add
@@ -239,8 +243,8 @@ Run `npm run verify:hopper` on a supported macOS host or
 `npm run verify:hopper:linux` on the supported Linux demo runner. These build
 native fixtures and verify the installed engine through CLI/MCP; package or
 simulated-provider checks do not establish engine behavior. See
-[real-toolchain verification](docs/testing.md#end-to-end-integration-and-golden-evidence)
-for prerequisites and scope, and [Hopper setup](docs/installation.md#hopper)
+[real-toolchain verification](docs/development/testing.md#end-to-end-integration-and-golden-evidence)
+for prerequisites and scope, and [Hopper setup](docs/getting-started/installation.md#hopper)
 for supported hosts and unattended startup.
 
 Use the default `build/conformance/manifest.json` unless explicitly verifying
@@ -249,7 +253,7 @@ Generated fixtures and manifests remain ignored.
 
 ## Maintainer release checklist
 
-Use the [release guide](docs/releasing.md). Main pushes automatically refresh a
+Use the [release guide](docs/development/releasing.md). Main pushes automatically refresh a
 Release Please PR with the next version and changelog. Review its migration
 notes, wait for the current CI checks to pass, and merge it into main to publish.
 

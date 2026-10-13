@@ -14,7 +14,7 @@ Preserve caller-selected inputs and local evidence, including output, URLs, path
 
 ## Architecture and Cleanup
 
-Dependencies flow inward: domain semantics and contracts, provider adapters, shared application workflows, then CLI/MCP adapters. Keep engine protocols and provider-specific code out of domain/application layers. See [docs/architecture.mermaid](docs/architecture.mermaid) when changing composition.
+Dependencies flow inward: domain semantics and contracts, provider adapters, shared application workflows, then CLI/MCP adapters. Keep engine protocols and provider-specific code out of domain/application layers. See [docs/architecture/architecture.mermaid](docs/architecture/architecture.mermaid) when changing composition.
 
 Give each interpretation and resource a clear owner. Consumers must use that owner's parsed facts rather than reinterpret raw source. Preserve identity, omission, uncertainty, and source evidence across boundaries. Retain ownership of resources whose cleanup failed. Reuse `src/process/` supervision and identity primitives; a PID and executable path alone do not establish ownership after exit or reuse.
 
@@ -57,6 +57,12 @@ do not establish fewer tokens or faster analysis.
 
 ## Development
 
+Documentation ownership and authoring conventions live in
+[docs/development/documentation.md](docs/development/documentation.md). A feature
+uses `docs/specs/<domain>/<feature-slug>/spec.md`, one `plan.md` and `tasks.md`;
+individual architectural decisions use `docs/adr/<domain>/<decision-slug>.md`.
+Consult the [documentation directory](docs/README.md) before adding a guide.
+
 Use [.nvmrc](.nvmrc) and `package.json#packageManager` for the pinned toolchain. Cursor Cloud may place older Node.js first on `PATH`; environment setup installs the pinned toolchain under `/usr/local/bin`.
 
 - `npm ci`: install locked dependencies.
@@ -72,9 +78,9 @@ Use relevant checks for the change. The complete local gate, `npm run check:pr`,
 
 ## Tool and Test Changes
 
-For tool design, follow [docs/tool-design.md](docs/tool-design.md): start from the analyst question, reuse existing contracts, preserve caller choices, and return useful evidence inline. Limits must follow real format, protocol, authority, or resource constraints. Account for representation expansion before allocation; derive completeness from examined coverage.
+For tool design, follow [docs/development/tool-design.md](docs/development/tool-design.md): start from the analyst question, reuse existing contracts, preserve caller choices, and return useful evidence inline. Limits must follow real format, protocol, authority, or resource constraints. Account for representation expansion before allocation; derive completeness from examined coverage.
 
-For test changes or provider claims, use [docs/testing.md](docs/testing.md). Prefer real public CLI/MCP workflows, then production-boundary integration, then producer goldens. Keep module tests for distinct semantics stronger workflows cannot reliably reproduce. Preserve malformed-input, cancellation, cleanup, permission, capacity, and target-identity coverage when pruning. Report unverified coverage explicitly; simulated providers do not establish real-provider behavior.
+For test changes or provider claims, use [docs/development/testing.md](docs/development/testing.md). Prefer real public CLI/MCP workflows, then production-boundary integration, then producer goldens. Keep module tests for distinct semantics stronger workflows cannot reliably reproduce. Preserve malformed-input, cancellation, cleanup, permission, capacity, and target-identity coverage when pruning. Report unverified coverage explicitly; simulated providers do not establish real-provider behavior.
 
 Use Conventional Commit subjects and PR titles. Mark breaking changes with `!` or a `BREAKING CHANGE:` footer. Describe behavior changes, relevant validation, and real-provider verification scope.
 

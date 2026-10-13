@@ -62,7 +62,10 @@ const captureViaMcp = async (scenario: Record<string, unknown>) => {
 };
 
 it("documents a finalization scenario and exit record that match the contract", async () => {
-  const document = await readFile("docs/process-capture.md", "utf8");
+  const document = await readFile(
+    "docs/guides/runtime/process-capture.md",
+    "utf8",
+  );
   const blocks = [
     ...(document.split("### Finalization interval")[1] ?? "").matchAll(
       /```json\n([\s\S]*?)\n```/gu,
@@ -85,7 +88,10 @@ it("documents a finalization scenario and exit record that match the contract", 
 itWithCaptureCapability.each(["cli", "mcp"] as const)(
   "hashes the documented complete report despite omitted terminal output through %s",
   async (adapter) => {
-    const document = await readFile("docs/process-capture.md", "utf8");
+    const document = await readFile(
+      "docs/guides/runtime/process-capture.md",
+      "utf8",
+    );
     const example = document
       .split("## Hash a report independently of terminal output")[1]
       ?.match(/```json\n([\s\S]*?)\n```/u)?.[1];
