@@ -14,6 +14,72 @@ import {
 } from "../../fixtures/fakeCdpBrowser.js";
 
 const browsers: FakeCdpBrowser[] = [];
+
+it("reports complete storage key additions and removals without content fingerprints", async () => {
+  const browser = await startFakeCdpBrowser();
+  browsers.push(browser);
+  const captured = await new CdpBrowserProvider().inspectPage(
+    inspectWebPageInputSchema.parse({
+      cdp_endpoint: browser.endpoint,
+      allowed_origins: [browser.allowedOrigin],
+      target_id: "allowed-page",
+      observation_ms: 0,
+      include_storage_keys: true,
+    }),
+  );
+  if (!captured.ok) throw captured.error;
+  const before = captured.value;
+  expect(before.storage.fingerprints_complete).toBe(false);
+  const after = structuredClone(before);
+  after.storage.local_storage_keys.push("new-local");
+  after.storage.session_storage_keys.push("new-session");
+  after.storage.indexed_db_names.push("new-db");
+  after.storage.cache_names.push("new-cache");
+  const compareStorage = (left: WebPageInspection, right: WebPageInspection) =>
+    compareWebCaptures(
+      compareWebCapturesInputSchema.parse({
+        before: { inspection: left },
+        after: { inspection: right },
+      }),
+    ).dimensions.storage;
+  const identities = [
+    "storage:cache:new-cache",
+    "storage:indexed_db:new-db",
+    "storage:local_storage:new-local",
+    "storage:session_storage:new-session",
+  ];
+  for (const [left, right, change] of [
+    [before, after, "added"],
+    [after, before, "removed"],
+  ] as const) {
+    expect(compareStorage(left, right)).toMatchObject({
+      status: "changed",
+      total_changes: 4,
+      changes: identities.map((identity) => ({ identity, change })),
+    });
+  }
+  expect(compareStorage(after, after)).toMatchObject({
+    status: "unknown",
+    total_changes: 0,
+  });
+  const missingQuota = structuredClone(after);
+  missingQuota.storage.quota_bytes = null;
+  expect(compareStorage(before, missingQuota)).toMatchObject({
+    status: "changed",
+    total_changes: 4,
+  });
+  const partialInventory = structuredClone(after);
+  partialInventory.completeness.unavailable_sections.push("storage_keys");
+  expect(compareStorage(before, partialInventory)).toMatchObject({
+    status: "unknown",
+    total_changes: 0,
+  });
+  expect(compareStorage(partialInventory, before)).toMatchObject({
+    status: "unknown",
+    total_changes: 0,
+  });
+});
+
 const expectInvalidDiff = (input: unknown): void => {
   expect(webCaptureDiffSchema.safeParse(input).success).toBe(false);
 };
