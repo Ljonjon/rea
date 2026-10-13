@@ -26,6 +26,8 @@ it("recognizes the native helper's complete authorization rejection", () => {
 });
 
 it.each([
+  { stdout: { text: "wrapper output\n", bytes: 15, retained_bytes: 15 } },
+  { stdout: { text: "", bytes: 1, retained_bytes: 0 } },
   { output_closed: false },
   { diagnostic_truncated: true },
   { signal: "SIGTERM", exit_code: null },
@@ -76,6 +78,8 @@ it("recognizes the native helper's complete Spotlight not-found report", () => {
 });
 
 it.each([
+  { stdout: { text: "wrapper output\n", bytes: 15, retained_bytes: 15 } },
+  { stdout: { text: "", bytes: 1, retained_bytes: 0 } },
   { output_closed: false },
   { diagnostic_truncated: true },
   { signal: "SIGTERM", exit_code: null },
