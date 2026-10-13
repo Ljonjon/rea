@@ -44,6 +44,7 @@ import {
   ghidraProcessorUnsupportedReason,
   isGhidraPspTarget,
 } from "./GhidraPspProfile.js";
+import { ghidraArmUnsupportedReason } from "./GhidraArmProfile.js";
 import { resolveGhidraExtensions } from "./extensions/GhidraExtensions.js";
 import {
   CAPABILITIES,
@@ -167,6 +168,14 @@ export class GhidraProvider implements AnalysisProviderCandidate {
         status: "unsupported",
         code: "architecture_unsupported",
         reason: mipsReason,
+        diagnostics,
+      };
+    const armReason = ghidraArmUnsupportedReason(target);
+    if (armReason !== null)
+      return {
+        status: "unsupported",
+        code: "architecture_unsupported",
+        reason: armReason,
         diagnostics,
       };
     if (
